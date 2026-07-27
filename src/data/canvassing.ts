@@ -1,16 +1,10 @@
-import type {
-  CanvassingCase,
-  CanvassingDetail,
-  CanvassingStatus,
-  StatusTone,
-} from "@/lib/types";
+import type { CanvassingCase, CanvassingDetail } from "@/lib/types";
 
-export const canvassingTone: Record<CanvassingStatus, StatusTone> = {
-  "awaiting-quotes": "info",
-  "comparison-ready": "neutral",
-  "vendor-selected": "success",
-  "pending-exemption": "warning",
-};
+/**
+ * Seed fixtures. These are read only by `src/db/seed.ts` — the app itself goes
+ * through the API. Status tones moved to `@/lib/status-tones`, which both the
+ * client and the server-side mappers share.
+ */
 
 export const canvassingCases: CanvassingCase[] = [
   {
@@ -88,13 +82,6 @@ export const canvassingCases: CanvassingCase[] = [
   },
 ];
 
-/**
- * Explains why one PR appears as several rows — items awarded to different
- * vendors are canvassed as separate batches.
- */
-export const canvassingListNote =
-  "PR-2026-0113 shows two batches — items awarded to different vendors within the same PR appear as separate rows, grouped visually by shared shading, each tagged with its batch number.";
-
 export const canvassingDetails: CanvassingDetail[] = [
   {
     purchaseRequestId: "PR-2026-0113",
@@ -137,6 +124,7 @@ export const canvassingDetails: CanvassingDetail[] = [
       {
         batch: 1,
         quotesRequired: 3,
+        quotesReceived: 4,
         items: [
           {
             id: "PR-2026-0113-1",
@@ -179,6 +167,7 @@ export const canvassingDetails: CanvassingDetail[] = [
       {
         batch: 2,
         quotesRequired: 3,
+        quotesReceived: 3,
         items: [
           {
             id: "PR-2026-0113-3",
@@ -215,15 +204,3 @@ export const canvassingDetails: CanvassingDetail[] = [
     ],
   },
 ];
-
-export function getCanvassingDetail(purchaseRequestId: string) {
-  return canvassingDetails.find(
-    (detail) => detail.purchaseRequestId === purchaseRequestId,
-  );
-}
-
-export function getCanvassingBatch(purchaseRequestId: string, batch: number) {
-  return getCanvassingDetail(purchaseRequestId)?.batches.find(
-    (candidate) => candidate.batch === batch,
-  );
-}

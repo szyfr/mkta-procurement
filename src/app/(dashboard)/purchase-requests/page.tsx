@@ -2,41 +2,17 @@ import { PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { PurchaseRequestCard } from "@/components/purchase-requests/pr-card";
-import { PurchaseRequestTable } from "@/components/purchase-requests/pr-table";
+import { PurchaseRequestsView } from "@/components/purchase-requests/purchase-requests-view";
 import {
   type ListView,
   ViewToggle,
 } from "@/components/purchase-requests/view-toggle";
-import { DataToolbar } from "@/components/shared/data-toolbar";
 import { PageHeader } from "@/components/shared/page-header";
-import { StatusLegend } from "@/components/shared/status-legend";
 import { Button } from "@/components/ui/button";
-import {
-  departments,
-  getListedPurchaseRequests,
-} from "@/data/purchase-requests";
 
 export const metadata: Metadata = {
   title: "Purchase Requests",
 };
-
-const filters = [
-  {
-    label: "Status",
-    options: [
-      "Draft",
-      "Canvassing",
-      "PO Created",
-      "Partially Completed",
-      "Completed",
-      "Rejected",
-    ],
-  },
-  { label: "Priority", options: ["High", "Normal", "Low"] },
-  { label: "Department", options: departments },
-  { label: "Date", options: ["Last 7 days", "Last 30 days", "Last 90 days"] },
-];
 
 export default async function PurchaseRequestsPage({
   searchParams,
@@ -45,7 +21,6 @@ export default async function PurchaseRequestsPage({
 }) {
   const { view } = await searchParams;
   const activeView: ListView = view === "table" ? "table" : "cards";
-  const requests = getListedPurchaseRequests();
 
   return (
     <>
@@ -75,19 +50,7 @@ export default async function PurchaseRequestsPage({
         }
       />
 
-      <DataToolbar placeholder="Filter requests…" filters={filters} />
-
-      <StatusLegend />
-
-      {activeView === "table" ? (
-        <PurchaseRequestTable requests={requests} />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {requests.map((request) => (
-            <PurchaseRequestCard key={request.id} request={request} />
-          ))}
-        </div>
-      )}
+      <PurchaseRequestsView view={activeView} />
     </>
   );
 }

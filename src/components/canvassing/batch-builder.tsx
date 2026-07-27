@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import { DataError } from "@/components/shared/query-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -22,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useCreateBatch } from "@/hooks/canvassing";
 import type { CanvassingDetail } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -36,13 +39,36 @@ export function BatchBuilder({
   purchaseRequestId: string;
   items: CanvassingDetail["items"];
 }) {
-  const [selected, setSelected] = React.useState<string[]>(() =>
-    items.filter((item) => item.batch === 1).map((item) => item.id),
-  );
+  const router = useRouter();
+  const createBatch = useCreateBatch(purchaseRequestId);
+
+  // Nothing is preselected: an unbatched item is not necessarily available to
+  // canvass — it may already be on a purchase order — and guessing wrong here
+  // would put a sourced item into a batch.
+  const [selected, setSelected] = React.useState<string[]>([]);
 
   function toggle(id: string, checked: boolean) {
     setSelected((current) =>
       checked ? [...current, id] : current.filter((entry) => entry !== id),
+    );
+  }
+
+  /**
+   * The selection used to be discarded on navigation — the quote page read a
+   * batch number out of the URL that nothing had created. It now creates the
+   * batch first and navigates to the number the server assigned.
+   */
+  function createQuotation() {
+    createBatch.mutate(
+      { itemIds: selected },
+      {
+        onSuccess: ({ batch }) => {
+          setSelected([]);
+          router.push(
+            `/canvassing/${purchaseRequestId}/quotes/new?batch=${batch}`,
+          );
+        },
+      },
     );
   }
 
@@ -119,19 +145,36 @@ export function BatchBuilder({
         </Table>
       </CardContent>
 
-      <CardFooter className="justify-between gap-2">
-        <span className="text-xs text-muted-foreground">
-          {selected.length} {selected.length === 1 ? "item" : "items"} selected
-          {selected.length > 0 ? " — not yet grouped into an active batch" : ""}
-        </span>
-        <Button
-          size="sm"
-          disabled={selected.length === 0}
-          render={<Link href={`/canvassing/${purchaseRequestId}/quotes/new`} />}
-          nativeButton={false}
-        >
-          Create Quotation for Selected Items →
-        </Button>
+      <CardFooter className="flex-col items-stretch gap-3">
+        {createBatch.isError ? (
+          <DataError
+            error={createBatch.error}
+            title="Could not create the batch"
+          />
+        ) : null}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground">
+            {selected.length} {selected.length === 1 ? "item" : "items"}{" "}
+            selected
+            {selected.length > 0
+              ? " — not yet grouped into an active batch"
+              : ""}
+          </span>
+          <Button
+            size="sm"
+            disabled={selected.length === 0 || createBatch.isPending}
+            onClick={createQuotation}
+          >
+            {createBatch.isPending ? (
+              <>
+                <Spinner data-icon="inline-start" />
+                Creating batch
+              </>
+            ) : (
+              "Create Quotation for Selected Items →"
+            )}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

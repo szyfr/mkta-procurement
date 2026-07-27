@@ -31,10 +31,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { catalogItems, vendors } from "@/data/purchase-requests";
+import { useCatalogItems, useVendors } from "@/hooks/reference";
 import { cn, formatCurrency } from "@/lib/utils";
 
-interface DraftLine {
+export interface DraftLine {
   key: string;
   /** Null while the row is a blank "not in catalog" placeholder. */
   itemName: string | null;
@@ -46,45 +46,18 @@ interface DraftLine {
   vendor: string | null;
 }
 
-const initialLines: DraftLine[] = [
-  {
-    key: "line-1",
-    itemName: "Hex bolt M8x40 (galvanized)",
-    quantity: 200,
-    unitCost: 4.5,
-    unit: "pcs",
-    sourcing: "direct",
-    vendor: "Pacific Fasteners Inc.",
-  },
-  {
-    key: "line-2",
-    itemName: "Industrial gear oil 20L",
-    quantity: 10,
-    unitCost: 3200,
-    unit: "drum",
-    sourcing: "canvassing",
-    vendor: null,
-  },
-  {
-    key: "line-3",
+/** A blank row, used for the initial line and for "Add item". */
+export function createEmptyLine(key: string): DraftLine {
+  return {
+    key,
     itemName: null,
-    quantity: 5,
+    quantity: 1,
     unitCost: null,
     unit: null,
-    sourcing: "pending-item-creation",
+    sourcing: "canvassing",
     vendor: null,
-  },
-];
-
-const catalogOptions = [
-  { label: "Select an item", value: null },
-  ...catalogItems.map((item) => ({ label: item.name, value: item.name })),
-];
-
-const vendorOptions = [
-  { label: "Select a vendor", value: null },
-  ...vendors.map((vendor) => ({ label: vendor, value: vendor })),
-];
+  };
+}
 
 function lineTotal(line: DraftLine) {
   if (line.unitCost === null) return null;
@@ -96,36 +69,44 @@ function lineTotal(line: DraftLine) {
  * entry, not chosen here — matching the wireframe's "determined automatically"
  * note.
  */
-export function LineItemsEditor() {
-  const [lines, setLines] = React.useState(initialLines);
-  const nextKey = React.useRef(initialLines.length + 1);
+export function LineItemsEditor({
+  lines,
+  onLinesChange,
+}: {
+  lines: DraftLine[];
+  onLinesChange: (lines: DraftLine[]) => void;
+}) {
+  // The catalog and vendor list come from the API rather than module scope, so
+  // the picker reflects whatever the backend actually has.
+  const { data: catalogItems = [] } = useCatalogItems();
+  const { data: vendors = [] } = useVendors();
+  const nextKey = React.useRef(lines.length + 1);
+
+  const catalogOptions = [
+    { label: "Select an item", value: null },
+    ...catalogItems.map((item) => ({ label: item.name, value: item.name })),
+  ];
+
+  const vendorOptions = [
+    { label: "Select a vendor", value: null },
+    ...vendors.map((vendor) => ({ label: vendor, value: vendor })),
+  ];
 
   const total = lines.reduce((sum, line) => sum + (lineTotal(line) ?? 0), 0);
 
   function updateLine(key: string, patch: Partial<DraftLine>) {
-    setLines((current) =>
-      current.map((line) => (line.key === key ? { ...line, ...patch } : line)),
+    onLinesChange(
+      lines.map((line) => (line.key === key ? { ...line, ...patch } : line)),
     );
   }
 
   function addLine() {
     nextKey.current += 1;
-    setLines((current) => [
-      ...current,
-      {
-        key: `line-${nextKey.current}`,
-        itemName: null,
-        quantity: 1,
-        unitCost: null,
-        unit: null,
-        sourcing: "canvassing",
-        vendor: null,
-      },
-    ]);
+    onLinesChange([...lines, createEmptyLine(`line-${nextKey.current}`)]);
   }
 
   function removeLine(key: string) {
-    setLines((current) => current.filter((line) => line.key !== key));
+    onLinesChange(lines.filter((line) => line.key !== key));
   }
 
   function selectItem(key: string, itemName: string | null) {

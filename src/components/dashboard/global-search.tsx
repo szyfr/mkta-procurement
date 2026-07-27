@@ -13,12 +13,21 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Separator } from "@/components/ui/separator";
-import {
-  maxResultsPerGroup,
-  searchProcurement,
-  searchResultGroups,
-} from "@/data/search";
+import { Spinner } from "@/components/ui/spinner";
+import { useSearch } from "@/hooks/search";
+import type { SearchResultType } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+/** Order the result groups appear in the dropdown. */
+const searchResultGroups: SearchResultType[] = [
+  "Purchase Requests",
+  "Purchase Orders",
+  "Items",
+  "Vendors",
+];
+
+/** Max results shown per group before the "see all" row takes over. */
+const maxResultsPerGroup = 3;
 
 /**
  * Global search. Results are grouped by record type and capped per group, with
@@ -31,7 +40,7 @@ export function GlobalSearch({ className }: { className?: string }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const matches = React.useMemo(() => searchProcurement(query), [query]);
+  const { data: matches = [], isFetching, debouncedQuery } = useSearch(query);
 
   const groups = React.useMemo(
     () =>
@@ -72,10 +81,16 @@ export function GlobalSearch({ className }: { className?: string }) {
     if (event.key === "Escape") {
       clear();
     }
-    if (event.key === "Enter" && matches.length > 0) {
-      event.preventDefault();
-      router.push(matches[0].href);
-      setOpen(false);
+    // Results are fetched now, so a keypress can arrive while they are still in
+    // flight or still describing the previous query. Navigating on either would
+    // send the user somewhere they did not choose.
+    if (event.key === "Enter") {
+      const settled = !isFetching && debouncedQuery === query.trim();
+      if (settled && matches.length > 0) {
+        event.preventDefault();
+        router.push(matches[0].href);
+        setOpen(false);
+      }
     }
   }
 
@@ -124,13 +139,22 @@ export function GlobalSearch({ className }: { className?: string }) {
           className="absolute top-full right-0 left-0 z-50 mt-1 overflow-hidden rounded-lg border bg-popover text-popover-foreground shadow-md"
         >
           {groups.length === 0 ? (
-            <div className="px-4 py-6 text-center">
-              <p className="text-xs text-foreground">
-                No results for &ldquo;{query}&rdquo;
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Try a PR number, vendor name, or item keyword
-              </p>
+            <div className="px-4 py-6 text-center" aria-live="polite">
+              {isFetching ? (
+                <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <Spinner />
+                  Searching…
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs text-foreground">
+                    No results for &ldquo;{query}&rdquo;
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Try a PR number, vendor name, or item keyword
+                  </p>
+                </>
+              )}
             </div>
           ) : (
             <>

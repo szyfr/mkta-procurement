@@ -17,9 +17,20 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { appIdentity, mainNav } from "@/data/navigation";
-import { currentUser } from "@/data/users";
+import { useSession } from "@/hooks/session";
+
+/** Shown while the session query is in flight, so the footer never collapses. */
+const PLACEHOLDER_USER = {
+  name: "…",
+  email: "",
+  role: "",
+  department: "",
+  avatar: "",
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: user } = useSession();
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -45,7 +56,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={mainNav} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={currentUser} />
+        <NavUser user={user ?? PLACEHOLDER_USER} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

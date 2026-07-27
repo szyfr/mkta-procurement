@@ -9,8 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { ReportCell, ReportDefinition } from "@/data/reports";
+import { reportPresentation } from "@/lib/reports/presentation";
 import { cn } from "@/lib/utils";
+import type { ReportCell, ReportData } from "@/types";
 
 const toneClasses = {
   success: "text-status-success",
@@ -26,7 +27,11 @@ function Cell({ cell }: { cell: ReportCell }) {
 }
 
 /** A generated report: heading, chart, and the table behind it. */
-export function ReportResult({ report }: { report: ReportDefinition }) {
+export function ReportResult({ report }: { report: ReportData }) {
+  // Chart colours are presentation, so they are looked up by id rather than
+  // arriving from the API.
+  const { chartConfig } = reportPresentation(report.id);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
@@ -37,7 +42,7 @@ export function ReportResult({ report }: { report: ReportDefinition }) {
       <CardContent>
         <ReportBarChart
           data={report.chart.data}
-          config={report.chart.config}
+          config={chartConfig}
           unit={report.chart.unit}
           currency={report.chart.currency}
         />

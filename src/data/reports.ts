@@ -1,42 +1,22 @@
-import {
-  ClipboardCheckIcon,
-  GaugeIcon,
-  StarIcon,
-  TimerIcon,
-  UserCheckIcon,
-} from "lucide-react";
-import type { ChartConfig } from "@/components/ui/chart";
+import type { ReportCell, ReportChartDatum } from "@/types";
 
 /**
- * Report definitions. Chart datasets and configs live here rather than in the
- * chart components so a report can be pointed at a real API response without
- * touching any component.
+ * Seed fixtures for the canned reports. Read only by `src/db/seed.ts`.
+ *
+ * The lucide icon and the chart's `ChartConfig` are deliberately absent: they
+ * cannot cross a JSON boundary, so they live in
+ * `@/lib/reports/presentation.ts` and are looked up by report id on the client.
  */
-
-export interface ReportChartDatum {
-  category: string;
-  value: number;
-  /** Per-bar colour. Omit for the default monochrome treatment. */
-  fill?: string;
-}
-
-/** A table cell, optionally tinted (used for trend deltas). */
-export type ReportCell =
-  | string
-  | { value: string; tone: "success" | "danger" | "muted" };
-
 export interface ReportDefinition {
   id: string;
   title: string;
   description: string;
-  icon: typeof TimerIcon;
   /** Heading of the generated result panel. */
   resultTitle: string;
   /** Right-aligned summary beside the result heading. */
   summary: string;
   chart: {
     data: ReportChartDatum[];
-    config: ChartConfig;
     /** Suffix appended to tooltip values, e.g. " days". */
     unit?: string;
     /** Formats tooltip values as pesos. */
@@ -53,7 +33,6 @@ export const reports: ReportDefinition[] = [
     id: "pr-cycle-time",
     title: "PR Cycle Time",
     description: "Avg. days from submission to PO",
-    icon: TimerIcon,
     resultTitle: "PR Cycle Time — Last 90 Days",
     summary: "Avg. overall: 5.6 days",
     chart: {
@@ -62,9 +41,6 @@ export const reports: ReportDefinition[] = [
         { category: "PO Creation", value: 0.4 },
         { category: "Delivery", value: 2.1 },
       ],
-      config: {
-        value: { label: "Avg. days", color: "var(--chart-2)" },
-      } satisfies ChartConfig,
       unit: " days",
     },
     table: {
@@ -85,7 +61,6 @@ export const reports: ReportDefinition[] = [
     id: "spend-by-department",
     title: "Spend by Department",
     description: "PO amounts grouped by department",
-    icon: GaugeIcon,
     resultTitle: "Spend by Department — Last 90 Days",
     summary: "Total: ₱2,184,600",
     chart: {
@@ -96,9 +71,6 @@ export const reports: ReportDefinition[] = [
         { category: "Quality", value: 156400 },
         { category: "IT", value: 69300 },
       ],
-      config: {
-        value: { label: "Total spend", color: "var(--chart-2)" },
-      } satisfies ChartConfig,
       currency: true,
     },
     table: {
@@ -117,7 +89,6 @@ export const reports: ReportDefinition[] = [
     title: "Vendor Performance",
     description:
       "Auto-scored from delivery & quality data — replaces manual vendor evaluations",
-    icon: StarIcon,
     resultTitle: "Vendor Performance — Last 90 Days",
     summary: "12 vendors evaluated",
     chart: {
@@ -127,9 +98,6 @@ export const reports: ReportDefinition[] = [
         { category: "Del Rosario", value: 3.6 },
         { category: "Others (avg)", value: 3.9 },
       ],
-      config: {
-        value: { label: "Avg. rating", color: "var(--chart-2)" },
-      } satisfies ChartConfig,
       unit: " / 5",
     },
     table: {
@@ -147,7 +115,6 @@ export const reports: ReportDefinition[] = [
     title: "Purchaser Performance",
     description:
       "PRs processed, cycle time, and compliance per procurement officer",
-    icon: UserCheckIcon,
     resultTitle: "Purchaser Performance — Last 90 Days",
     summary: "3 procurement officers",
     chart: {
@@ -156,9 +123,6 @@ export const reports: ReportDefinition[] = [
         { category: "P. Ocampo", value: 38 },
         { category: "L. Bautista", value: 25 },
       ],
-      config: {
-        value: { label: "PRs processed", color: "var(--chart-2)" },
-      } satisfies ChartConfig,
     },
     table: {
       columns: [
@@ -178,7 +142,6 @@ export const reports: ReportDefinition[] = [
     id: "canvassing-compliance",
     title: "Canvassing Compliance",
     description: "PRs meeting the 3-quote minimum",
-    icon: ClipboardCheckIcon,
     resultTitle: "Canvassing Compliance — Last 90 Days",
     summary: "88% met the 3-quote minimum",
     chart: {
@@ -192,9 +155,6 @@ export const reports: ReportDefinition[] = [
         { category: "Exempted", value: 6, fill: "var(--status-warning)" },
         { category: "Below Minimum", value: 1, fill: "var(--status-danger)" },
       ],
-      config: {
-        value: { label: "PRs", color: "var(--chart-2)" },
-      } satisfies ChartConfig,
     },
     table: {
       columns: ["Department", "PRs Canvassed", "Met Minimum", "Exempted"],
@@ -206,18 +166,4 @@ export const reports: ReportDefinition[] = [
       ],
     },
   },
-];
-
-/** The report shown as already generated when the page loads. */
-export const defaultReportId = "spend-by-department";
-
-export function getReport(id: string) {
-  return reports.find((report) => report.id === id);
-}
-
-export const dateRanges = [
-  "Last 7 days",
-  "Last 30 days",
-  "Last 90 days",
-  "Year to date",
 ];

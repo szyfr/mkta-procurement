@@ -19,17 +19,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  purchaseRequestListTotal,
-  purchaseRequestTone,
-} from "@/data/purchase-requests";
+import { purchaseRequestTone } from "@/lib/status-tones";
 import type { PurchaseRequest } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
 export function PurchaseRequestTable({
   requests,
+  /** Row count across all pages, from the list endpoint's `meta.total`. */
+  total,
 }: {
   requests: PurchaseRequest[];
+  total?: number;
 }) {
   return (
     <Card>
@@ -107,7 +107,7 @@ export function PurchaseRequestTable({
       </CardContent>
       <CardFooter className="justify-between gap-2 text-xs text-muted-foreground">
         <span>
-          Showing {requests.length} of {purchaseRequestListTotal}
+          Showing {requests.length} of {total ?? requests.length}
         </span>
         <Pagination className="mx-0 w-auto">
           <PaginationContent>

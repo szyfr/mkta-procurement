@@ -4,7 +4,7 @@ import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { purchaseRequestTone } from "@/data/purchase-requests";
+import { purchaseRequestTone } from "@/lib/status-tones";
 import type { PurchaseRequest } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
 

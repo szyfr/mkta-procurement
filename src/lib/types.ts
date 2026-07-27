@@ -171,6 +171,12 @@ export interface CanvassingBatch {
   items: { id: string; name: string; quantity: number }[];
   quotes: VendorQuote[];
   quotesRequired: number;
+  /**
+   * Quotes counted against this batch. Can exceed `quotes.length`: a batch may
+   * have a recorded count from before its individual quotes were captured, so
+   * counting the rows alone under-reports it.
+   */
+  quotesReceived: number;
   /** Set once a winner is confirmed. */
   selectedVendorId?: string;
   selectedOn?: string;

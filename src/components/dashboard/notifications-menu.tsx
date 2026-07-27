@@ -2,7 +2,6 @@
 
 import { BellIcon } from "lucide-react";
 import Link from "next/link";
-import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +11,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { notifications as initialNotifications } from "@/data/notifications";
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useNotifications,
+} from "@/hooks/notifications";
 import type { NotificationGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -26,8 +29,9 @@ const groupLabels: Record<NotificationGroup, string> = {
  * the wireframe note that clicking navigates to the record and clears the dot.
  */
 export function NotificationsMenu() {
-  const [notifications, setNotifications] =
-    React.useState(initialNotifications);
+  const { data: notifications = [] } = useNotifications();
+  const markRead = useMarkNotificationRead();
+  const markAllRead = useMarkAllNotificationsRead();
 
   const unreadCount = notifications.filter(
     (notification) => !notification.read,
@@ -42,18 +46,15 @@ export function NotificationsMenu() {
     }))
     .filter((entry) => entry.items.length > 0);
 
+  // Both mutations update the cache optimistically, so the badge and the unread
+  // marker clear immediately — the click also navigates away, and waiting for
+  // the round trip would show a stale count on the way out.
   function markAllAsRead() {
-    setNotifications((current) =>
-      current.map((notification) => ({ ...notification, read: true })),
-    );
+    markAllRead.mutate();
   }
 
   function markAsRead(id: string) {
-    setNotifications((current) =>
-      current.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification,
-      ),
-    );
+    markRead.mutate(id);
   }
 
   return (

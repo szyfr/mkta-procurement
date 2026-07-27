@@ -1,30 +1,10 @@
-import type {
-  ItemCreationRequest,
-  PurchaseRequest,
-  PurchaseRequestStatus,
-  StatusTone,
-} from "@/lib/types";
+import type { ItemCreationRequest, PurchaseRequest } from "@/lib/types";
 
-/** Status → pill tone. Single source of truth for how a status looks. */
-export const purchaseRequestTone: Record<PurchaseRequestStatus, StatusTone> = {
-  draft: "neutral",
-  canvassing: "info",
-  "po-created": "ordered",
-  "partially-completed": "partial",
-  completed: "success",
-  rejected: "danger",
-};
-
-/** Legend shown above the purchase request list. */
-export const statusLegend: { label: string; status: PurchaseRequestStatus }[] =
-  [
-    { label: "Draft", status: "draft" },
-    { label: "Canvassing", status: "canvassing" },
-    { label: "PO Created", status: "po-created" },
-    { label: "Partially Completed", status: "partially-completed" },
-    { label: "Completed", status: "completed" },
-    { label: "Rejected", status: "rejected" },
-  ];
+/**
+ * Seed fixtures. These are read only by `src/db/seed.ts` — the app itself goes
+ * through the API. Status tones and the legend moved to `@/lib/status-tones`,
+ * which both the client and the server-side mappers share.
+ */
 
 export const purchaseRequests: PurchaseRequest[] = [
   {
@@ -512,18 +492,6 @@ export const listedPurchaseRequestIds = [
   "PR-2026-0101",
 ];
 
-export const purchaseRequestListTotal = 18;
-
-export function getPurchaseRequest(id: string) {
-  return purchaseRequests.find((request) => request.id === id);
-}
-
-export function getListedPurchaseRequests() {
-  return listedPurchaseRequestIds
-    .map((id) => getPurchaseRequest(id))
-    .filter((request): request is PurchaseRequest => request !== undefined);
-}
-
 export const itemCreationRequests: ItemCreationRequest[] = [
   {
     id: "ICR-0031",
@@ -553,15 +521,6 @@ export const itemCreationRequests: ItemCreationRequest[] = [
     submittedOn: "Jul 5",
   },
 ];
-
-export const itemCreationRequestTone: Record<
-  ItemCreationRequest["status"],
-  StatusTone
-> = {
-  pending: "warning",
-  approved: "success",
-  rejected: "danger",
-};
 
 /** Departments offered when creating a request. */
 export const departments = [

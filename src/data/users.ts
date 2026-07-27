@@ -1,17 +1,18 @@
-import type { RolePermission, StatusTone, User, UserStatus } from "@/lib/types";
+import type { RolePermission, User } from "@/lib/types";
 
-/** The signed-in user. Drives the sidebar footer and the My Account panel. */
+/**
+ * Seed fixtures. Read only by `src/db/seed.ts`; the signed-in user reaches the
+ * app through `/api/session`. The status tone map moved to
+ * `@/lib/status-tones`.
+ */
+
+/** Merged with `users[0]` on seed — they describe the same person. */
 export const currentUser = {
   name: "S. Galvis",
   email: "s.galvis@mkthemedattractions.com.ph",
   role: "Procurement Officer",
   department: "Procurement",
   avatar: "",
-};
-
-export const userStatusTone: Record<UserStatus, StatusTone> = {
-  active: "success",
-  invited: "warning",
 };
 
 export const users: User[] = [

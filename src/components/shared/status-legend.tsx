@@ -1,5 +1,5 @@
 import { StatusDot } from "@/components/shared/status-badge";
-import { purchaseRequestTone, statusLegend } from "@/data/purchase-requests";
+import { purchaseRequestTone, statusLegend } from "@/lib/status-tones";
 
 /** Maps the status colours used across the purchase request list. */
 export function StatusLegend() {

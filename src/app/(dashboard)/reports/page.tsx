@@ -1,12 +1,9 @@
 import { DownloadIcon } from "lucide-react";
 import type { Metadata } from "next";
 
-import { ReportWorkspace } from "@/components/reports/report-workspace";
-import { FilterSelect } from "@/components/shared/filter-select";
+import { ReportsView } from "@/components/reports/reports-view";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import { departments, vendors } from "@/data/purchase-requests";
-import { dateRanges } from "@/data/reports";
 
 export const metadata: Metadata = {
   title: "Reports",
@@ -26,13 +23,7 @@ export default function ReportsPage() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <FilterSelect label="Date Range: Last 90 days" options={dateRanges} />
-        <FilterSelect label="Department" options={departments} />
-        <FilterSelect label="Vendor" options={vendors} />
-      </div>
-
-      <ReportWorkspace />
+      <ReportsView />
     </>
   );
 }

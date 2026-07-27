@@ -1,8 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import * as React from "react";
 
 import { FilterSelect } from "@/components/shared/filter-select";
+import { DataError } from "@/components/shared/query-state";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -20,15 +24,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { paymentTerms, vendors } from "@/data/purchase-requests";
+import { useCreateQuote } from "@/hooks/canvassing";
+import { usePaymentTerms, useVendors } from "@/hooks/reference";
 import type { CanvassingBatch } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
 /**
  * Captures one vendor's quote for every item in a batch. Line and grand totals
  * update as unit prices are entered.
+ *
+ * Vendor and payment terms are controlled state rather than uncontrolled DOM:
+ * they come from a custom select whose value cannot be read out of `FormData`.
  */
-export function QuoteForm({ batch }: { batch: CanvassingBatch }) {
+export function QuoteForm({
+  purchaseRequestId,
+  batch,
+}: {
+  purchaseRequestId: string;
+  batch: CanvassingBatch;
+}) {
+  const router = useRouter();
+  const { data: vendors = [] } = useVendors();
+  const { data: paymentTerms = [] } = usePaymentTerms();
+  const createQuote = useCreateQuote(purchaseRequestId);
+
+  const [vendor, setVendor] = React.useState<string | null>(null);
+  const [terms, setTerms] = React.useState<string | null>(null);
+  const [documentName, setDocumentName] = React.useState<string | null>(null);
   const [unitPrices, setUnitPrices] = React.useState<Record<string, number>>(
     () => Object.fromEntries(batch.items.map((item) => [item.id, 0])),
   );
@@ -38,13 +60,58 @@ export function QuoteForm({ batch }: { batch: CanvassingBatch }) {
     0,
   );
 
+  const [validationError, setValidationError] = React.useState<string | null>(
+    null,
+  );
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    if (!vendor) {
+      setValidationError("Choose a vendor before saving this quote.");
+      return;
+    }
+    setValidationError(null);
+
+    createQuote.mutate(
+      {
+        batch: batch.batch,
+        vendor,
+        quoteRef: (form.get("quoteRef") as string) || null,
+        quoteDate: String(form.get("quoteDate") ?? ""),
+        deliveryEstimate: String(form.get("deliveryEstimate") ?? ""),
+        paymentTerms: terms,
+        documentName,
+        lines: batch.items.map((item) => ({
+          itemId: item.id,
+          quantity: item.quantity,
+          unitPrice: unitPrices[item.id] ?? 0,
+        })),
+      },
+      {
+        onSuccess: () => router.push(`/canvassing/${purchaseRequestId}`),
+      },
+    );
+  }
+
   return (
-    <>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <Card>
         <CardHeader className="border-b">
           <CardTitle>Vendor &amp; Quote Details</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
+          {validationError ? (
+            <p className="text-xs text-destructive">{validationError}</p>
+          ) : null}
+          {createQuote.isError ? (
+            <DataError
+              error={createQuote.error}
+              title="Could not save the quote"
+            />
+          ) : null}
+
           <FieldGroup className="sm:grid sm:grid-cols-2 sm:gap-4">
             <Field className="sm:col-span-2">
               <FieldLabel>Vendor</FieldLabel>
@@ -52,6 +119,8 @@ export function QuoteForm({ batch }: { batch: CanvassingBatch }) {
                 label="Search or select a vendor…"
                 options={vendors}
                 className="w-full"
+                value={vendor}
+                onValueChange={setVendor}
               />
             </Field>
 
@@ -66,7 +135,7 @@ export function QuoteForm({ batch }: { batch: CanvassingBatch }) {
 
             <Field>
               <FieldLabel htmlFor="quote-date">Quote Date</FieldLabel>
-              <Input id="quote-date" name="quoteDate" type="date" />
+              <Input id="quote-date" name="quoteDate" type="date" required />
             </Field>
 
             <Field>
@@ -77,6 +146,7 @@ export function QuoteForm({ batch }: { batch: CanvassingBatch }) {
                 id="delivery-estimate"
                 name="deliveryEstimate"
                 placeholder="e.g. 5 business days"
+                required
               />
             </Field>
 
@@ -86,6 +156,8 @@ export function QuoteForm({ batch }: { batch: CanvassingBatch }) {
                 label="Select terms"
                 options={paymentTerms}
                 className="w-full"
+                value={terms}
+                onValueChange={setTerms}
               />
             </Field>
           </FieldGroup>
@@ -168,17 +240,39 @@ export function QuoteForm({ batch }: { batch: CanvassingBatch }) {
             htmlFor="quotation-document"
             className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground hover:bg-muted/50"
           >
-            Upload vendor&apos;s quotation (PDF, email screenshot, or signed
-            document)
+            {documentName ??
+              "Upload vendor's quotation (PDF, email screenshot, or signed document)"}
             <input
               id="quotation-document"
               name="quotationDocument"
               type="file"
               className="sr-only"
+              onChange={(event) =>
+                setDocumentName(event.currentTarget.files?.[0]?.name ?? null)
+              }
             />
           </label>
         </CardContent>
+        <CardFooter className="justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push(`/canvassing/${purchaseRequestId}`)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={createQuote.isPending}>
+            {createQuote.isPending ? (
+              <>
+                <Spinner data-icon="inline-start" />
+                Saving
+              </>
+            ) : (
+              "Save Quote"
+            )}
+          </Button>
+        </CardFooter>
       </Card>
-    </>
+    </form>
   );
 }

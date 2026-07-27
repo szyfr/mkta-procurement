@@ -8,8 +8,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { ReportChartDatum } from "@/data/reports";
 import { formatCurrency } from "@/lib/utils";
+import type { ReportChartDatum } from "@/types";
 
 /**
  * Generic vertical bar chart for the report panels. Stays agnostic of any one
@@ -72,6 +72,12 @@ export function ReportBarChart({
           // stretching to fill the container.
           maxBarSize={48}
           fill={`var(--color-${dataKey})`}
+          // The grow-in animation starts when the chart mounts. Now that the
+          // report arrives from a query, the chart mounts into a container that
+          // has just been resized, and the animation reliably stalls on its
+          // first frame — leaving flat bars until some unrelated re-render
+          // knocks it loose. The report panel does not need the flourish.
+          isAnimationActive={false}
         >
           {hasPerBarColours
             ? data.map((entry) => (
