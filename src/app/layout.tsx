@@ -14,8 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MKTA Procurement",
-  description: "Procurement management system for purchase requests, supplier management, and purchasing workflows.",
+  title: {
+    default: "MKTA Procurement",
+    template: "%s · MKTA Procurement",
+  },
+  description:
+    "Procurement management system for purchase requests, supplier management, and purchasing workflows.",
 };
 
 export default function RootLayout({
