@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>11 — Header States: Search &amp; Notifications</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }</style>
+</head>
+<body class="bg-gray-100 text-gray-800 text-sm">
+
+<div class="p-6 space-y-10">
+
+  <!-- ================= STATE A: SEARCH WITH RESULTS ================= -->
+  <div class="space-y-2">
+    <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State — Global Search, Typing "gear oil"</div>
+
+    <div class="flex h-[420px] w-full border border-gray-300 rounded overflow-hidden bg-white">
+      <!-- mini sidebar for context -->
+      <aside class="w-60 shrink-0 bg-white border-r border-gray-300">
+        <div class="h-14 flex items-center px-4 border-b border-gray-300">
+          <div class="w-6 h-6 border border-gray-400 rounded mr-2"></div>
+          <a href="02-dashboard.html"><span class="font-semibold text-gray-700">Procurement</span></a>
+        </div>
+      </aside>
+
+      <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 shrink-0 border-b border-gray-300 flex items-center px-4 gap-4 relative">
+          <div class="flex items-center gap-2 text-gray-400 shrink-0">Dashboard</div>
+
+          <!-- Active search input -->
+          <div class="flex-1 max-w-md relative">
+            <div class="flex items-center gap-2 border-2 border-gray-800 rounded px-3 py-1.5 text-gray-900 bg-white">
+              <span class="w-4 h-4 border border-gray-500 rounded-full shrink-0"></span>
+              <span>gear oil</span>
+              <span class="ml-auto text-gray-300">✕</span>
+            </div>
+
+            <!-- Results dropdown -->
+            <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-none z-10">
+              <div class="px-3 py-2 text-gray-400 text-xs border-b border-gray-100">Purchase Requests</div>
+              <div class="px-3 py-2 hover:bg-gray-50 flex items-center justify-between">
+                <span>PR-2026-0115 <span class="text-gray-400">— Industrial gear oil 20L</span></span>
+                <span class="bg-blue-50 border border-blue-300 text-blue-700 rounded px-2 py-0.5 text-xs">Canvassing</span>
+              </div>
+
+              <div class="px-3 py-2 text-gray-400 text-xs border-b border-t border-gray-100">Purchase Orders</div>
+              <div class="px-3 py-2 hover:bg-gray-50 flex items-center justify-between">
+                <span>PO-3021 <span class="text-gray-400">— Metro Lubricants Corp</span></span>
+                <span class="border border-gray-300 rounded px-2 py-0.5 text-xs">Open</span>
+              </div>
+
+              <div class="px-3 py-2 text-gray-400 text-xs border-b border-t border-gray-100">Items</div>
+              <div class="px-3 py-2 hover:bg-gray-50">Industrial gear oil 20L <span class="text-gray-400">— Lubricants &amp; Fluids</span></div>
+              <div class="px-3 py-2 hover:bg-gray-50">Industrial gear oil 5L <span class="text-gray-400">— Lubricants &amp; Fluids</span></div>
+
+              <div class="px-3 py-2 border-t border-gray-200 text-gray-500 text-xs hover:bg-gray-50">See all results for "gear oil" →</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 shrink-0 ml-auto">
+            <span class="w-5 h-5 border border-gray-400 block"></span>
+            <div class="flex items-center gap-2 border-l border-gray-300 pl-4">
+              <div class="w-7 h-7 rounded-full border border-gray-400"></div>
+            </div>
+          </div>
+        </header>
+        <div class="flex-1 bg-gray-50 flex items-center justify-center text-gray-300 text-xs">Page content dims behind the open results — not modeled here</div>
+      </div>
+    </div>
+    <p class="text-gray-500 text-xs">Results grouped by type (PR / PO / Vendor / Item), 2–3 per group, capped list with a "see all" row that routes to a full search-results page for anything longer.</p>
+  </div>
+  
+  <!-- ================= STATE D: SEARCH WITH NO RESULTS ================= -->
+  <div class="space-y-2">
+    <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State — Global Search, No Matches</div>
+ 
+    <div class="flex h-[300px] w-full border border-gray-300 rounded overflow-hidden bg-white">
+      <aside class="w-60 shrink-0 bg-white border-r border-gray-300">
+        <div class="h-14 flex items-center px-4 border-b border-gray-300">
+          <div class="w-6 h-6 border border-gray-400 rounded mr-2"></div>
+          <a href="02-dashboard.html"><span class="font-semibold text-gray-700">Procurement</span></a>
+        </div>
+      </aside>
+ 
+      <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 shrink-0 border-b border-gray-300 flex items-center px-4 gap-4 relative">
+          <div class="flex items-center gap-2 text-gray-400 shrink-0">Dashboard</div>
+          <div class="flex-1 max-w-md relative">
+            <div class="flex items-center gap-2 border-2 border-gray-800 rounded px-3 py-1.5 text-gray-900 bg-white">
+              <span class="w-4 h-4 border border-gray-500 rounded-full shrink-0"></span>
+              <span>xyzzy fasteners 9000</span>
+              <span class="ml-auto text-gray-300">✕</span>
+            </div>
+            <div class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded z-10 px-4 py-6 text-center">
+              <div class="text-gray-500 text-xs mb-1">No results for "xyzzy fasteners 9000"</div>
+              <div class="text-gray-400 text-xs">Try a PR number, vendor name, or item keyword</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 shrink-0 ml-auto">
+            <span class="w-5 h-5 border border-gray-400 block"></span>
+            <div class="flex items-center gap-2 border-l border-gray-300 pl-4">
+              <div class="w-7 h-7 rounded-full border border-gray-400"></div>
+            </div>
+          </div>
+        </header>
+        <div class="flex-1 bg-gray-50 flex items-center justify-center text-gray-300 text-xs">Page content dims behind the open dropdown — not modeled here</div>
+      </div>
+    </div>
+    <p class="text-gray-500 text-xs">No "see all results" row here since there's nothing to see — just a short explanation and a hint at what to search for instead.</p>
+  </div>
+
+  <!-- ================= STATE B: NOTIFICATION PANEL OPEN ================= -->
+  <div class="space-y-2">
+    <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State — Notification Bell Clicked</div>
+
+    <div class="flex h-[420px] w-full border border-gray-300 rounded overflow-hidden bg-white">
+      <aside class="w-60 shrink-0 bg-white border-r border-gray-300">
+        <div class="h-14 flex items-center px-4 border-b border-gray-300">
+          <div class="w-6 h-6 border border-gray-400 rounded mr-2"></div>
+          <a href="02-dashboard.html"><span class="font-semibold text-gray-700">Procurement</span></a>
+        </div>
+      </aside>
+
+      <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 shrink-0 border-b border-gray-300 flex items-center justify-between px-4 gap-4 relative">
+          <div class="flex items-center gap-2 text-gray-400 shrink-0">Dashboard</div>
+          <div class="flex-1 max-w-md">
+            <div class="flex items-center gap-2 border border-gray-300 rounded px-3 py-1.5 text-gray-400">
+              <span class="w-4 h-4 border border-gray-400 rounded-full shrink-0"></span> Search PRs, POs, vendors, items…
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4 shrink-0 relative">
+            <div class="relative">
+              <span class="w-5 h-5 border-2 border-gray-800 block"></span>
+            </div>
+
+            <!-- Notification panel -->
+            <div class="absolute top-9 right-16 w-80 bg-white border border-gray-300 rounded z-10">
+              <div class="flex items-center justify-between px-4 py-2.5 border-b border-gray-200">
+                <span class="font-medium text-gray-900 text-xs">Notifications</span>
+                <span class="text-gray-400 text-xs hover:text-gray-600">Mark all as read</span>
+              </div>
+
+              <div class="px-3 py-1.5 text-gray-400 text-[11px]">Today</div>
+              <div class="flex gap-3 px-4 py-2.5 bg-blue-50/50 border-l-2 border-l-blue-500">
+                <span class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
+                <div>
+                  <div class="text-gray-900 text-xs">PR-2026-0114 needs your review</div>
+                  <div class="text-gray-400 text-xs">10 minutes ago</div>
+                </div>
+              </div>
+              <div class="flex gap-3 px-4 py-2.5 bg-blue-50/50 border-l-2 border-l-blue-500">
+                <span class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
+                <div>
+                  <div class="text-gray-900 text-xs">Del Rosario Trading submitted a quote for PR-2026-0115</div>
+                  <div class="text-gray-400 text-xs">42 minutes ago</div>
+                </div>
+              </div>
+              <div class="flex gap-3 px-4 py-2.5 border-l-2 border-l-transparent">
+                <span class="w-2 h-2 rounded-full border border-gray-300 mt-1.5 shrink-0"></span>
+                <div>
+                  <div class="text-gray-600 text-xs">PO-3025 created</div>
+                  <div class="text-gray-400 text-xs">2 hours ago</div>
+                </div>
+              </div>
+
+              <div class="px-3 py-1.5 text-gray-400 text-[11px] border-t border-gray-100">Earlier</div>
+              <div class="flex gap-3 px-4 py-2.5 border-l-2 border-l-transparent">
+                <span class="w-2 h-2 rounded-full border border-gray-300 mt-1.5 shrink-0"></span>
+                <div>
+                  <div class="text-gray-600 text-xs">PR-2026-0110 approved by Department Manager</div>
+                  <div class="text-gray-400 text-xs">Yesterday</div>
+                </div>
+              </div>
+              <div class="flex gap-3 px-4 py-2.5 border-l-2 border-l-transparent">
+                <span class="w-2 h-2 rounded-full border border-gray-300 mt-1.5 shrink-0"></span>
+                <div>
+                  <div class="text-gray-600 text-xs">PO-3009 delivery is overdue</div>
+                  <div class="text-gray-400 text-xs">2 days ago</div>
+                </div>
+              </div>
+
+              <div class="px-4 py-2.5 border-t border-gray-200 text-center text-gray-500 text-xs hover:bg-gray-50">View all notifications</div>
+            </div>
+
+            <div class="flex items-center gap-2 border-l border-gray-300 pl-4">
+              <div class="w-7 h-7 rounded-full border border-gray-400"></div>
+            </div>
+          </div>
+        </header>
+        <div class="flex-1 bg-gray-50 flex items-center justify-center text-gray-300 text-xs">Page content dims behind the open panel — not modeled here</div>
+      </div>
+    </div>
+    <p class="text-gray-500 text-xs">Unread items get a filled dot + light blue left-border tint and stay bold; read items are plain gray. Grouped by Today / Earlier, capped list, "View all" routes to a full notifications page. Clicking a notification navigates straight to the referenced PR/PO and marks it read.</p>
+  </div>
+
+  <!-- ================= STATE C: ACCOUNT DROPDOWN OPEN ================= -->
+  <div class="space-y-2">
+    <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State — Account Block Clicked (top-right, unchanged position)</div>
+ 
+    <div class="flex h-[300px] w-full border border-gray-300 rounded overflow-hidden bg-white">
+      <aside class="w-60 shrink-0 bg-white border-r border-gray-300">
+        <div class="h-14 flex items-center px-4 border-b border-gray-300">
+          <div class="w-6 h-6 border border-gray-400 rounded mr-2"></div>
+          <a href="02-dashboard.html"><span class="font-semibold text-gray-700">Procurement</span></a>
+        </div>
+      </aside>
+ 
+      <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-14 shrink-0 border-b border-gray-300 flex items-center justify-between px-4 gap-4">
+          <div class="flex items-center gap-2 text-gray-400 shrink-0">Dashboard</div>
+          <div class="flex-1 max-w-md">
+            <div class="flex items-center gap-2 border border-gray-300 rounded px-3 py-1.5 text-gray-400">
+              <span class="w-4 h-4 border border-gray-400 rounded-full shrink-0"></span> Search PRs, POs, vendors, items…
+            </div>
+          </div>
+          <div class="flex items-center gap-4 shrink-0 relative">
+            <span class="w-5 h-5 border border-gray-400 block"></span>
+            <div class="flex items-center gap-2 border-l border-gray-300 pl-4">
+              <div class="w-7 h-7 rounded-full border-2 border-gray-800"></div>
+              <div class="leading-tight">
+                <div class="text-gray-900 font-medium">J. Santos</div>
+                <div class="text-gray-400 text-xs">Procurement Officer</div>
+              </div>
+              <span class="text-gray-800">▴</span>
+            </div>
+ 
+            <!-- Dropdown -->
+            <div class="absolute top-11 right-0 w-52 bg-white border border-gray-300 rounded z-10">
+              <div class="px-4 py-2.5 border-b border-gray-200">
+                <div class="text-gray-900 text-xs font-medium">J. Santos</div>
+                <div class="text-gray-400 text-xs">j.santos@northfieldmfg.com</div>
+              </div>
+              <a href="06-settings.html#my-account" class="block px-4 py-2 text-gray-600 text-xs hover:bg-gray-50">My Account</a>
+              <a href="06-settings.html" class="block px-4 py-2 text-gray-600 text-xs hover:bg-gray-50">Settings</a>
+              <a href="00-login.html" class="block px-4 py-2 text-red-600 text-xs hover:bg-gray-50 border-t border-gray-200">Log Out</a>
+            </div>
+          </div>
+        </header>
+        <div class="flex-1 bg-gray-50 flex items-center justify-center text-gray-300 text-xs">Page content dims behind the open dropdown — not modeled here</div>
+      </div>
+    </div>
+    <p class="text-gray-500 text-xs">Same position as before (top-right) — now a real dropdown instead of a static block. My Account jumps straight to the Settings panel; Log Out returns to the Login screen.</p>
+  </div>
+ 
+
+</div>
+
+</body>
+</html>

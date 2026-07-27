@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>13 — Purchase Request Detail (Workspace)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }</style>
+</head>
+<body class="bg-gray-100 text-gray-800 text-sm">
+
+<div class="flex h-screen w-full overflow-hidden">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="w-60 shrink-0 bg-white border-r border-gray-300 flex flex-col">
+    <div class="h-14 flex items-center px-4 border-b border-gray-300">
+      <div class="w-6 h-6 border border-gray-400 rounded mr-2"></div>
+      <span class="font-semibold text-gray-700">Procurement</span>
+    </div>
+    <nav class="flex-1 py-3 overflow-y-auto">
+      <ul class="space-y-0.5 px-2">
+        <li class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+          <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="02-dashboard.html" class="hover:underline">Dashboard</a>
+        </li>
+        <li class="flex items-center gap-2 px-3 py-2 rounded bg-gray-200 border border-gray-300 font-medium text-gray-900">
+          <span class="w-4 h-4 border border-gray-500 shrink-0"></span> <a href="03-purchase-requests-cards.html" class="hover:underline">Purchase Requests</a>
+        </li>
+        <li class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+          <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="04-canvassing-list.html" class="hover:underline">Canvassing</a>
+        </li>
+        <li class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+          <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="05-reports.html" class="hover:underline">Reports</a>
+        </li>
+      </ul>
+    </nav>
+    <div class="border-t border-gray-300 p-2">
+      <div class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+        <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="06-settings.html" class="hover:underline">Settings</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN COLUMN ============ -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <header class="h-14 shrink-0 bg-white border-b border-gray-300 flex items-center justify-between px-4 gap-4">
+      <div class="flex items-center gap-2 text-gray-500 shrink-0">
+        <a href="03-purchase-requests-cards.html" class="hover:underline">Purchase Requests</a><span>/</span>
+        <span class="text-gray-900 font-medium">PR-2026-0117</span>
+      </div>
+      <div class="flex items-center gap-4 shrink-0">
+        <span class="w-5 h-5 border border-gray-400 block"></span>
+        <div class="flex items-center gap-2 border-l border-gray-300 pl-4">
+          <div class="w-7 h-7 rounded-full border border-gray-400"></div>
+          <div class="leading-tight">
+            <div class="text-gray-900 font-medium">J. Santos</div>
+            <div class="text-gray-400 text-xs">Procurement Officer</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 space-y-10">
+<!-- <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State 1 of 6 — Draft (not yet submitted)</div>
+      <div class="bg-white border border-gray-300 rounded">
+        <div class="flex items-center justify-between p-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-gray-900">PR-2026-0118</span>
+              <span class="bg-gray-50 border border-gray-300 text-gray-600 rounded px-2 py-0.5 text-xs font-medium">Draft</span>
+              <span class="border border-gray-300 rounded px-2 py-0.5 text-xs">Low</span>
+            </div>
+            <p class="text-gray-400 text-sm mt-0.5 italic">Untitled — add a title while editing</p>
+            <p class="text-gray-500 text-xs">You · IT · Not yet submitted · ₱3,150 total (3 items)</p>
+          </div>
+          <a href="03B-create-purchase-request.html" class="border border-gray-800 bg-gray-800 text-white rounded px-3 py-1.5 text-xs">Continue Editing</a>
+        </div>
+        <div class="px-4 pb-4 text-gray-400 text-xs">No approval workflow has started — nothing to show here until you submit.</div>
+      </div>
+
+      <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State 2 of 6 — Canvassing (in progress)</div>
+      <div class="bg-white border border-gray-300 rounded">
+        <div class="flex items-center justify-between p-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-gray-900">PR-2026-0115</span>
+              <span class="bg-blue-50 border border-blue-300 text-blue-700 rounded px-2 py-0.5 text-xs font-medium">Canvassing — Batch 1</span>
+              <span class="border border-gray-300 rounded px-2 py-0.5 text-xs">Normal</span>
+            </div>
+            <p class="text-gray-700 text-sm mt-0.5">Q3 production line lubricants</p>
+            <p class="text-gray-500 text-xs">A. Cruz · Production · Submitted Jul 16 · ₱212,000 total</p>
+          </div>
+          <a href="04A-canvassing-detail.html" class="border border-gray-300 rounded px-3 py-1.5 text-gray-600 text-xs">View Canvassing →</a>
+        </div>
+        <table class="w-full text-left border-t border-gray-200">
+          <thead><tr class="text-gray-400 text-xs border-b border-gray-200"><th class="px-4 py-2 font-normal">Item</th><th class="px-4 py-2 font-normal">Vendor</th><th class="px-4 py-2 font-normal">Status</th></tr></thead>
+          <tbody class="text-gray-700">
+            <tr class="border-b border-gray-100"><td class="px-4 py-2">Industrial gear oil 20L</td><td class="px-4 py-2 text-gray-400 italic">Empty — in canvassing</td><td class="px-4 py-2"><span class="bg-blue-50 border border-blue-300 text-blue-700 rounded px-2 py-0.5 text-xs">2/3 quotes received</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State 3 of 6 — PO Created</div>
+      <div class="bg-white border border-gray-300 rounded">
+        <div class="flex items-center justify-between p-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-gray-900">PR-2026-0108</span>
+              <span class="bg-purple-50 border border-purple-300 text-purple-700 rounded px-2 py-0.5 text-xs font-medium">PO Created</span>
+              <span class="border border-gray-300 rounded px-2 py-0.5 text-xs">Normal</span>
+            </div>
+            <p class="text-gray-700 text-sm mt-0.5">Safety gloves restock <span class="text-gray-400 italic">(auto-generated title)</span></p>
+            <p class="text-gray-500 text-xs">HR / Facilities · Submitted Jul 6 · vendor selected Jul 8 · ₱9,400 total</p>
+          </div>
+        </div>
+        <table class="w-full text-left border-t border-gray-200">
+          <thead><tr class="text-gray-400 text-xs border-b border-gray-200"><th class="px-4 py-2 font-normal">Item</th><th class="px-4 py-2 font-normal">Vendor</th><th class="px-4 py-2 font-normal">Status</th><th class="px-4 py-2 font-normal"></th></tr></thead>
+          <tbody class="text-gray-700">
+            <tr><td class="px-4 py-2">Safety gloves, various sizes</td><td class="px-4 py-2">Sunrise Safety Equipment</td><td class="px-4 py-2"><span class="bg-purple-50 border border-purple-300 text-purple-700 rounded px-2 py-0.5 text-xs">PO Created</span></td><td class="px-4 py-2"><button class="border border-gray-300 rounded px-2 py-1 text-gray-600 text-xs whitespace-nowrap">+ Add Proof of Order &amp; Confirm Delivery</button></td></tr>
+          </tbody>
+        </table>
+      </div> -->
+
+      <!-- <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State 4 of 6 — Partially Completed (full reference layout — every section shown)</div> -->
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-semibold text-gray-900">PR-2026-0117</h1>
+            <span class="bg-orange-50 border border-orange-300 text-orange-700 rounded px-2 py-0.5 text-xs font-medium">Partially Completed — 2/4 items</span>
+            <span class="border border-gray-400 rounded px-2 py-0.5 text-xs">Normal</span>
+          </div>
+          <p class="text-gray-700 text-sm mt-0.5">Facilities electrical fixtures</p>
+          <p class="text-gray-500 text-xs">D. Lim · Facilities · Submitted Jul 15 · ₱6,300 total</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="border border-gray-300 rounded px-3 py-1.5 text-gray-600 text-xs">Download PDF</button>
+          <button class="border border-gray-300 rounded px-3 py-1.5 text-gray-600 text-xs">Cancel Request</button>
+        </div>
+      </div>
+
+      <!-- Stepper (simplified — no separate approval stage shown) -->
+      <div class="bg-white border border-gray-300 rounded p-4">
+        <div class="flex items-center">
+          <div class="flex flex-col items-center gap-1 flex-1">
+            <span class="w-6 h-6 rounded-full bg-gray-800 text-white text-xs flex items-center justify-center">✓</span>
+            <span class="text-xs text-gray-600">Submitted</span>
+          </div>
+          <div class="flex-1 h-0.5 bg-gray-800 -mt-4"></div>
+          <div class="flex flex-col items-center gap-1 flex-1">
+            <span class="w-6 h-6 rounded-full border-2 border-gray-800 text-gray-800 text-xs flex items-center justify-center">●</span>
+            <span class="text-xs text-gray-900 font-medium">Sourcing &amp; Fulfillment</span>
+          </div>
+          <div class="flex-1 h-0.5 bg-gray-300 -mt-4"></div>
+          <div class="flex flex-col items-center gap-1 flex-1">
+            <span class="w-6 h-6 rounded-full border-2 border-gray-300 text-gray-300 text-xs flex items-center justify-center">3</span>
+            <span class="text-xs text-gray-400">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6">
+        <div class="col-span-2 space-y-6">
+
+          <!-- Items with per-item status -->
+          <div class="bg-white border border-gray-300 rounded">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-300">
+              <span class="font-medium text-gray-900">Items</span>
+              <span class="text-gray-400 text-xs">2 of 4 delivered</span>
+            </div>
+            <table class="w-full text-left">
+              <thead>
+                <tr class="text-gray-400 text-xs border-b border-gray-200">
+                  <th class="px-4 py-2 font-normal">Item</th>
+                  <th class="px-4 py-2 font-normal">Qty</th>
+                  <th class="px-4 py-2 font-normal">Vendor</th>
+                  <th class="px-4 py-2 font-normal">Status</th>
+                  <th class="px-4 py-2 font-normal"></th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-700">
+                <tr class="border-b border-gray-100">
+                  <td class="px-4 py-3">LED light fixtures</td>
+                  <td class="px-4 py-3">12</td>
+                  <td class="px-4 py-3">Bay Area Electricals</td>
+                  <td class="px-4 py-3"><span class="bg-purple-50 border border-purple-300 text-purple-700 rounded px-2 py-0.5 text-xs">PO Created</span></td>
+                  <td class="px-4 py-3"><button class="border border-gray-300 rounded px-2 py-1 text-gray-600 text-xs whitespace-nowrap">+ Add Proof of Order &amp; Confirm Delivery</button></td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-green-50/40">
+                  <td class="px-4 py-3">Circuit breaker panel</td>
+                  <td class="px-4 py-3">1</td>
+                  <td class="px-4 py-3">Bay Area Electricals</td>
+                  <td class="px-4 py-3"><span class="bg-green-50 border border-green-300 text-green-700 rounded px-2 py-0.5 text-xs">Delivered — Jul 20</span></td>
+                  <td class="px-4 py-3 text-gray-400 text-xs">Proof on file</td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-green-50/40">
+                  <td class="px-4 py-3">Cable conduit pipes</td>
+                  <td class="px-4 py-3">30</td>
+                  <td class="px-4 py-3">Bay Area Electricals</td>
+                  <td class="px-4 py-3"><span class="bg-green-50 border border-green-300 text-green-700 rounded px-2 py-0.5 text-xs">Delivered — Jul 20</span></td>
+                  <td class="px-4 py-3 text-gray-400 text-xs">Proof on file</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-3">Junction boxes</td>
+                  <td class="px-4 py-3">15</td>
+                  <td class="px-4 py-3 text-gray-400 italic">Empty — in canvassing</td>
+                  <td class="px-4 py-3"><span class="bg-blue-50 border border-blue-300 text-blue-700 rounded px-2 py-0.5 text-xs">Canvassing — Batch 1</span></td>
+                  <td class="px-4 py-3 text-gray-400 text-xs"><a href="04A-canvassing-detail.html" class="hover:underline">View Canvassing →</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Proof of Order / delivery confirmation panel (expanded example for LED fixtures) -->
+          <div class="bg-white border border-gray-300 rounded">
+            <div class="px-4 py-3 border-b border-gray-300 font-medium text-gray-900 text-xs">Add Proof of Order &amp; Confirm Delivery — LED light fixtures</div>
+            <div class="p-4 grid grid-cols-2 gap-4">
+              <div class="col-span-2">
+                <label class="text-gray-500 text-xs block mb-1">Proof of Order (vendor confirmation, invoice, or signed PO copy)</label>
+                <div class="border border-dashed border-gray-300 rounded text-center text-gray-400 py-6 text-xs">Drop file here or click to upload</div>
+              </div>
+              <div>
+                <label class="text-gray-500 text-xs block mb-1">Confirmed Delivery Date</label>
+                <div class="border border-gray-300 rounded px-3 py-1.5 text-gray-400 flex items-center justify-between">Select date <span class="w-4 h-4 border border-gray-400"></span></div>
+              </div>
+              <div>
+                <label class="text-gray-500 text-xs block mb-1">Vendor Reference No.</label>
+                <div class="border border-gray-300 rounded px-3 py-1.5 text-gray-400">Optional</div>
+              </div>
+            </div>
+            <div class="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+              <button class="border border-gray-300 rounded px-3 py-1.5 text-gray-600 text-xs">Cancel</button>
+              <button class="border border-gray-800 bg-gray-800 text-white rounded px-3 py-1.5 text-xs">Save</button>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="bg-white border border-gray-300 rounded">
+            <div class="px-4 py-3 border-b border-gray-300 font-medium text-gray-900 text-xs">Documents</div>
+            <ul class="divide-y divide-gray-100 text-xs">
+              <li class="px-4 py-2.5 flex items-center justify-between"><span>Bay Area Electricals — Invoice INV-4471.pdf</span><span class="text-gray-400">Jul 20</span></li>
+              <li class="px-4 py-2.5 flex items-center justify-between"><span>Bay Area Electricals — Quotation.pdf</span><span class="text-gray-400">Jul 15</span></li>
+            </ul>
+          </div>
+
+          <!-- Comments -->
+          <div class="bg-white border border-gray-300 rounded">
+            <div class="px-4 py-3 border-b border-gray-300 font-medium text-gray-900 text-xs">Comments</div>
+            <div class="p-4 space-y-3 text-xs">
+              <div><span class="font-medium text-gray-900">M. Reyes:</span> <span class="text-gray-600">Junction boxes are lower priority — fine to wait for full canvassing.</span> <span class="text-gray-400">Jul 16</span></div>
+            </div>
+            <div class="px-4 pb-4">
+              <div class="border border-gray-300 rounded px-3 py-2 text-gray-400 text-xs">Add a comment…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: action panel + activity -->
+        <div class="space-y-4">
+          <div class="bg-white border border-gray-300 rounded p-4">
+            <div class="font-medium text-gray-900 text-xs mb-2">Action Panel</div>
+            <div class="text-gray-500 text-xs mb-3">3 of 4 items are sourced. Waiting on Junction boxes canvassing to fully complete this PR.</div>
+            <a href="04A-canvassing-detail.html" class="border border-gray-300 rounded px-3 py-1.5 text-gray-600 text-xs w-full block text-center">View Canvassing — Batch 1</a>
+          </div>
+          <div class="bg-white border border-gray-300 rounded">
+            <div class="px-4 py-3 border-b border-gray-300 font-medium text-gray-900 text-xs">Activity History</div>
+            <ul class="divide-y divide-gray-100 text-xs">
+              <li class="px-4 py-2.5">Circuit breaker panel &amp; Cable conduit pipes marked delivered <span class="text-gray-400 block">Jul 20</span></li>
+              <li class="px-4 py-2.5">PO created for LED light fixtures &amp; 2 others <span class="text-gray-400 block">Jul 19</span></li>
+              <li class="px-4 py-2.5">Junction boxes routed to canvassing (Batch 1) <span class="text-gray-400 block">Jul 17</span></li>
+              <li class="px-4 py-2.5">Submitted by D. Lim <span class="text-gray-400 block">Jul 15</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State 5 of 6 — Completed</div>
+      <div class="bg-white border border-gray-300 rounded">
+        <div class="flex items-center justify-between p-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-gray-900">PR-2026-0101</span>
+              <span class="bg-green-50 border border-green-300 text-green-700 rounded px-2 py-0.5 text-xs font-medium">Completed</span>
+              <span class="border border-gray-300 rounded px-2 py-0.5 text-xs">Normal</span>
+            </div>
+            <p class="text-gray-700 text-sm mt-0.5">Production line replacement parts</p>
+            <p class="text-gray-500 text-xs">A. Cruz · Production · Submitted Jun 28 · Completed Jul 2 · ₱156,400 total</p>
+          </div>
+          <button class="border border-gray-300 rounded px-3 py-1.5 text-gray-600 text-xs">Download PDF</button>
+        </div>
+        <div class="px-4 pb-4">
+          <div class="flex items-center mb-4">
+            <div class="flex flex-col items-center gap-1 flex-1"><span class="w-6 h-6 rounded-full bg-gray-800 text-white text-xs flex items-center justify-center">✓</span><span class="text-xs text-gray-600">Submitted</span></div>
+            <div class="flex-1 h-0.5 bg-gray-800 -mt-4"></div>
+            <div class="flex flex-col items-center gap-1 flex-1"><span class="w-6 h-6 rounded-full bg-gray-800 text-white text-xs flex items-center justify-center">✓</span><span class="text-xs text-gray-600">Sourcing &amp; Fulfillment</span></div>
+            <div class="flex-1 h-0.5 bg-gray-800 -mt-4"></div>
+            <div class="flex flex-col items-center gap-1 flex-1"><span class="w-6 h-6 rounded-full bg-gray-800 text-white text-xs flex items-center justify-center">✓</span><span class="text-xs text-gray-600">Completed</span></div>
+          </div>
+          <table class="w-full text-left border-t border-gray-200">
+            <thead><tr class="text-gray-400 text-xs border-b border-gray-200"><th class="px-4 py-2 font-normal">Item</th><th class="px-4 py-2 font-normal">Vendor</th><th class="px-4 py-2 font-normal">Status</th></tr></thead>
+            <tbody class="text-gray-700">
+              <tr class="border-b border-gray-100"><td class="px-4 py-2">Conveyor belt roller, 4in</td><td class="px-4 py-2">Acme Industrial Supply</td><td class="px-4 py-2"><span class="bg-green-50 border border-green-300 text-green-700 rounded px-2 py-0.5 text-xs">Delivered — Jul 2</span></td></tr>
+              <tr><td class="px-4 py-2">Drive chain, 40-pitch</td><td class="px-4 py-2">Acme Industrial Supply</td><td class="px-4 py-2"><span class="bg-green-50 border border-green-300 text-green-700 rounded px-2 py-0.5 text-xs">Delivered — Jul 2</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="text-xs uppercase tracking-wide text-gray-400 border-b border-gray-300 pb-2">State 6 of 6 — Rejected</div>
+      <div class="bg-white border border-gray-300 rounded">
+        <div class="flex items-center justify-between p-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-gray-900">PR-2026-0109</span>
+              <span class="bg-red-50 border border-red-300 text-red-700 rounded px-2 py-0.5 text-xs font-medium">Rejected</span>
+              <span class="border border-gray-300 rounded px-2 py-0.5 text-xs">Normal</span>
+            </div>
+            <p class="text-gray-700 text-sm mt-0.5">Quality lab duplicate order</p>
+            <p class="text-gray-500 text-xs">R. Tan · Quality · Submitted Jul 8 · Rejected Jul 10 · ₱48,900 total</p>
+          </div>
+          <button class="border border-gray-800 bg-gray-800 text-white rounded px-3 py-1.5 text-xs">Revise &amp; Resubmit</button>
+        </div>
+        <div class="px-4 pb-4">
+          <div class="bg-red-50 border border-red-300 text-red-700 rounded px-3 py-2 text-xs">
+            Rejection reason: duplicate of an active PR (PR-2026-0104) already covering the same hydraulic fitting for Quality — consolidate instead of resubmitting separately.
+          </div>
+        </div>
+      </div> -->
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

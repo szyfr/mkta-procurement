@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>01 — Application Layout</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .ph { background-image: repeating-linear-gradient(45deg, #e5e5e5 0, #e5e5e5 1px, transparent 1px, transparent 8px); }
+</style>
+</head>
+<body class="bg-gray-100 text-gray-800 text-sm">
+
+<div class="flex h-screen w-full overflow-hidden">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="w-60 shrink-0 bg-white border-r border-gray-300 flex flex-col">
+    <!-- App / module switcher -->
+    <div class="h-14 flex items-center px-4 border-b border-gray-300">
+      <div class="w-6 h-6 border border-gray-400 rounded mr-2"></div>
+      <span class="font-semibold text-gray-700">Procurement</span>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 py-3 overflow-y-auto">
+      <ul class="space-y-0.5 px-2">
+        <li class="flex items-center gap-2 px-3 py-2 rounded bg-gray-200 border border-gray-300 font-medium text-gray-900">
+          <span class="w-4 h-4 border border-gray-500 shrink-0"></span> <a href="02-dashboard.html" class="hover:underline">Dashboard</a>
+        </li>
+        <li class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+          <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="03-purchase-requests-cards.html" class="hover:underline">Purchase Requests</a>
+        </li>
+        <li class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+          <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="04-canvassing-list.html" class="hover:underline">Canvassing</a>
+        </li>
+        <li class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+          <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="05-reports.html" class="hover:underline">Reports</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Bottom: settings + collapse -->
+    <div class="border-t border-gray-300 p-2">
+      <div class="flex items-center gap-2 px-3 py-2 rounded text-gray-600 hover:bg-gray-50">
+        <span class="w-4 h-4 border border-gray-400 shrink-0"></span> <a href="06-settings.html" class="hover:underline">Settings</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN COLUMN ============ -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- ============ HEADER ============ -->
+    <a href="07-header-states.html" >
+    <header class="h-14 shrink-0 bg-white border-b border-gray-300 flex items-center justify-between px-4 gap-4">
+      <!-- Breadcrumb -->
+      <div class="flex items-center gap-2 text-gray-500 shrink-0">
+        <span>Procurement</span>
+        <span>/</span>
+        <span class="text-gray-900 font-medium">Dashboard</span>
+      </div>
+
+      <!-- Global search -->
+      <div class="flex-1 max-w-md">
+        <div class="flex items-center gap-2 border border-gray-300 rounded px-3 py-1.5 text-gray-400">
+          <span class="w-4 h-4 border border-gray-400 rounded-full shrink-0"></span>
+          <span>Search PRs, POs, vendors, items…</span>
+        </div>
+      </div>
+
+      <!-- Right cluster: notifications + user menu -->
+      <div class="flex items-center gap-4 shrink-0">
+        <div class="relative">
+          <span class="w-5 h-5 border border-gray-400 block"></span>
+          <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-gray-700 text-white text-[9px] flex items-center justify-center">3</span>
+        </div>
+        <div class="flex items-center gap-2 border-l border-gray-300 pl-4">
+          <div class="w-7 h-7 rounded-full border border-gray-400"></div>
+          <div class="leading-tight">
+            <div class="text-gray-900 font-medium">J. Santos</div>
+            <div class="text-gray-400 text-xs">Procurement Officer</div>
+          </div>
+          <span class="text-gray-400">▾</span>
+        </div>
+      </div>
+    </header>
+    </a>
+
+    <!-- ============ MAIN CONTENT AREA (placeholder — swapped per screen) ============ -->
+    <main class="flex-1 overflow-y-auto p-6">
+      <div class="ph border border-dashed border-gray-300 rounded h-full flex items-center justify-center text-gray-400">
+        Page content area — varies per screen (Dashboard, PR List, PR Workspace, etc.)
+      </div>
+    </main>
+  </div>
+</div>
+
+</body>
+</html>
