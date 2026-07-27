@@ -24,7 +24,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-/** Builds initials from a name like "J. Santos" → "JS". */
+/** Builds initials from a name like "S. Galvis" → "SG". */
 function initials(name: string) {
   return name
     .split(/\s+/)

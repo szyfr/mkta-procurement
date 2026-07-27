@@ -152,7 +152,7 @@ export const reports: ReportDefinition[] = [
     summary: "3 procurement officers",
     chart: {
       data: [
-        { category: "J. Santos", value: 47 },
+        { category: "S. Galvis", value: 47 },
         { category: "P. Ocampo", value: 38 },
         { category: "L. Bautista", value: 25 },
       ],
@@ -168,7 +168,7 @@ export const reports: ReportDefinition[] = [
         "Canvassing Compliance",
       ],
       rows: [
-        ["J. Santos (you)", "47", "5.1 days", "94%"],
+        ["S. Galvis (you)", "47", "5.1 days", "94%"],
         ["P. Ocampo", "38", "6.4 days", "87%"],
         ["L. Bautista", "25", "7.2 days", "81%"],
       ],

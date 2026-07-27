@@ -2,7 +2,7 @@ import type { RolePermission, StatusTone, User, UserStatus } from "@/lib/types";
 
 /** The signed-in user. Drives the sidebar footer and the My Account panel. */
 export const currentUser = {
-  name: "J. Santos",
+  name: "S. Galvis",
   email: "j.santos@northfieldmfg.com",
   role: "Procurement Officer",
   department: "Procurement",
@@ -17,7 +17,7 @@ export const userStatusTone: Record<UserStatus, StatusTone> = {
 export const users: User[] = [
   {
     id: "u-1",
-    name: "J. Santos",
+    name: "S. Galvis",
     role: "Procurement Officer",
     department: "Procurement",
     status: "active",

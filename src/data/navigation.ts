@@ -8,7 +8,7 @@ import {
 
 export const appIdentity = {
   name: "Procurement",
-  organization: "Northfield Manufacturing Corp.",
+  organization: "MK Themed Attractions Phils.",
 };
 
 export const mainNav = [
