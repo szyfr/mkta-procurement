@@ -40,6 +40,7 @@ export default function DashboardPage() {
           <Button
             variant="outline"
             render={<Link href="/purchase-requests/new" />}
+            nativeButton={false}
           >
             <PlusIcon data-icon="inline-start" />
             New Purchase Request
@@ -50,7 +51,7 @@ export default function DashboardPage() {
       <KpiCards />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
               <CardTitle>Requests Requiring Action</CardTitle>
@@ -109,7 +110,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Pending Quotations</CardTitle>

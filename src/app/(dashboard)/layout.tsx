@@ -10,11 +10,14 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      {/* SidebarInset is the <main> landmark, so children go in a plain div.
+          min-w-0 lets wide tables scroll inside their own container instead of
+          stretching the flex track past the viewport. */}
+      <SidebarInset className="min-w-0">
         <SiteHeader />
-        <main className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-6 p-4 md:p-6">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

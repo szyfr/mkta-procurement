@@ -35,6 +35,7 @@ export function ViewToggle({ view }: { view: ListView }) {
         size="sm"
         aria-current={view === "cards" ? "true" : undefined}
         render={<Link href={hrefFor("cards")} />}
+        nativeButton={false}
       >
         <LayoutGridIcon data-icon="inline-start" />
         Cards
@@ -44,6 +45,7 @@ export function ViewToggle({ view }: { view: ListView }) {
         size="sm"
         aria-current={view === "table" ? "true" : undefined}
         render={<Link href={hrefFor("table")} />}
+        nativeButton={false}
       >
         <TableIcon data-icon="inline-start" />
         Table

@@ -96,6 +96,7 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
             size="sm"
             className="mt-1 w-full"
             render={<Link href={action.href} />}
+            nativeButton={false}
           >
             {action.label}
           </Button>

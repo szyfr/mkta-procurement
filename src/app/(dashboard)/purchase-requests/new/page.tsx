@@ -38,13 +38,17 @@ export default function NewPurchaseRequestPage() {
             <Button
               variant="outline"
               render={<Link href="/purchase-requests" />}
+              nativeButton={false}
             >
               Cancel
             </Button>
             <Button variant="outline" type="button">
               Save as Draft
             </Button>
-            <Button render={<Link href="/purchase-requests/PR-2026-0117" />}>
+            <Button
+              render={<Link href="/purchase-requests/PR-2026-0117" />}
+              nativeButton={false}
+            >
               Submit for Approval
             </Button>
           </>
@@ -52,7 +56,7 @@ export default function NewPurchaseRequestPage() {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Request Details</CardTitle>
@@ -142,7 +146,7 @@ export default function NewPurchaseRequestPage() {
           </Card>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Before you submit</CardTitle>

@@ -128,6 +128,7 @@ export function BatchBuilder({
           size="sm"
           disabled={selected.length === 0}
           render={<Link href={`/canvassing/${purchaseRequestId}/quotes/new`} />}
+          nativeButton={false}
         >
           Create Quotation for Selected Items →
         </Button>

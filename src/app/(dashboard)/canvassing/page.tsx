@@ -81,6 +81,7 @@ export default function CanvassingPage() {
                   variant="outline"
                   size="sm"
                   render={<Link href="/purchase-requests" />}
+                  nativeButton={false}
                 >
                   View Purchase Requests Awaiting Canvassing
                 </Button>

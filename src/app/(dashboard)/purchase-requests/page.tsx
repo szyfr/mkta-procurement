@@ -58,6 +58,7 @@ export default async function PurchaseRequestsPage({
               variant="ghost"
               size="sm"
               render={<Link href="/purchase-requests/item-requests" />}
+              nativeButton={false}
             >
               Item Creation Requests →
             </Button>
@@ -65,6 +66,7 @@ export default async function PurchaseRequestsPage({
             <Button
               variant="outline"
               render={<Link href="/purchase-requests/new" />}
+              nativeButton={false}
             >
               <PlusIcon data-icon="inline-start" />
               New Purchase Request

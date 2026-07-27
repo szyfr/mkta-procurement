@@ -86,7 +86,9 @@ export function GlobalSearch({ className }: { className?: string }) {
       <InputGroup className="h-8">
         <InputGroupInput
           ref={inputRef}
-          type="search"
+          // Not type="search" — the native clear affordance would sit beside
+          // our own clear button.
+          type="text"
           value={query}
           placeholder="Search PRs, POs, vendors, items…"
           aria-label="Search purchase requests, purchase orders, vendors, and items"

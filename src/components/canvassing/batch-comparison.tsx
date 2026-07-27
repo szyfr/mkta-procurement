@@ -65,6 +65,7 @@ export function BatchComparison({
           <Button
             variant="outline"
             size="sm"
+            nativeButton={false}
             render={
               <Link
                 href={`/canvassing/${purchaseRequestId}/quotes/new?batch=${batch.batch}`}

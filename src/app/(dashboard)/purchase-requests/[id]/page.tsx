@@ -107,11 +107,17 @@ export default async function PurchaseRequestDetailPage({
         }
         actions={
           isDraft ? (
-            <Button render={<Link href="/purchase-requests/new" />}>
+            <Button
+              render={<Link href="/purchase-requests/new" />}
+              nativeButton={false}
+            >
               Continue Editing
             </Button>
           ) : isRejected ? (
-            <Button render={<Link href="/purchase-requests/new" />}>
+            <Button
+              render={<Link href="/purchase-requests/new" />}
+              nativeButton={false}
+            >
               Revise &amp; Resubmit
             </Button>
           ) : (
@@ -152,7 +158,7 @@ export default async function PurchaseRequestDetailPage({
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
               <CardTitle>Items</CardTitle>
@@ -227,7 +233,7 @@ export default async function PurchaseRequestDetailPage({
           )}
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           {request.actionPanelNote ? (
             <Card>
               <CardHeader>
@@ -243,6 +249,7 @@ export default async function PurchaseRequestDetailPage({
                     size="sm"
                     className="w-full"
                     render={<Link href={`/canvassing/${request.id}`} />}
+                    nativeButton={false}
                   >
                     View Canvassing — Batch {canvassingItem.batch ?? 1}
                   </Button>
