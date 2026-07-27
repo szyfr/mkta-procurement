@@ -3,7 +3,7 @@ import type { RolePermission, StatusTone, User, UserStatus } from "@/lib/types";
 /** The signed-in user. Drives the sidebar footer and the My Account panel. */
 export const currentUser = {
   name: "S. Galvis",
-  email: "j.santos@northfieldmfg.com",
+  email: "s.galvis@mkthemedattractions.com.ph",
   role: "Procurement Officer",
   department: "Procurement",
   avatar: "",

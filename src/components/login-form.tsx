@@ -44,7 +44,7 @@ export function LoginForm({
                   name="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="name@northfieldmfg.com"
+                  placeholder="name@mkthemedattractions.com.ph"
                   required
                 />
               </Field>
