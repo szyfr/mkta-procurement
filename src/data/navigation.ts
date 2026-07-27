@@ -22,11 +22,6 @@ export const mainNav = [
   { title: "Reports", url: "/reports", icon: ChartColumnIcon },
 ];
 
-/** Pinned to the sidebar footer, separate from the main nav. */
-export const secondaryNav = [
-  { title: "Settings", url: "/settings/account", icon: Settings2Icon },
-];
-
 export const settingsNav = [
   { title: "My Account", url: "/settings/account" },
   { title: "Users & Roles", url: "/settings/users", adminOnly: true },

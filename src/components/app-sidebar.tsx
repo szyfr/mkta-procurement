@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { appIdentity, mainNav, secondaryNav } from "@/data/navigation";
+import { appIdentity, mainNav } from "@/data/navigation";
 import { currentUser } from "@/data/users";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -45,7 +45,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={mainNav} />
       </SidebarContent>
       <SidebarFooter>
-        <NavMain items={secondaryNav} />
         <NavUser user={currentUser} />
       </SidebarFooter>
       <SidebarRail />
