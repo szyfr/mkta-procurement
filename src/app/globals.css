@@ -46,13 +46,17 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* The wireframes put the same 4px corner on every surface — cards, buttons,
+     inputs, selects, menus, badges — so the scale is flat from `md` up rather
+     than ramping. `sm` keeps a half step for the few hairline details
+     (chart swatches, tooltip arrows, nested kbd chips). */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
 }
 
 :root {
@@ -79,7 +83,11 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  /* Windows-first system stack: Segoe UI leads, then the wireframe's own
+     fallbacks so macOS/Linux still land on their native UI face. */
+  --font-sans: "Segoe UI", -apple-system, Helvetica, Arial, sans-serif;
+
+  --radius: 0.25rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -147,7 +155,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    /* The wireframes set `text-sm` on <body>, so 14px/20px is the inherited
+       baseline rather than the browser's 16px. Applied to <body>, not <html>,
+       so rem-based spacing stays anchored to the 16px root. */
+    @apply bg-background text-foreground text-sm;
   }
   html {
     @apply font-sans;
