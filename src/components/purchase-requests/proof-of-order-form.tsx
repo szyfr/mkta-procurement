@@ -53,13 +53,13 @@ export function ProofOfOrderForm({
   }
 
   return (
-    <Card>
-      <CardHeader className="border-b">
-        <CardTitle className="text-xs">
-          Add Proof of Order &amp; Confirm Delivery — {itemName}
-        </CardTitle>
-      </CardHeader>
-      <form ref={formRef} onSubmit={handleSubmit}>
+    <form ref={formRef} onSubmit={handleSubmit}>
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle className="text-xs">
+            Add Proof of Order &amp; Confirm Delivery — {itemName}
+          </CardTitle>
+        </CardHeader>
         <CardContent className="flex flex-col gap-4">
           {recordProof.isError ? (
             <DataError error={recordProof.error} title="Could not save" />
@@ -125,7 +125,7 @@ export function ProofOfOrderForm({
             )}
           </Button>
         </CardFooter>
-      </form>
-    </Card>
+      </Card>
+    </form>
   );
 }
