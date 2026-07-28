@@ -25,8 +25,10 @@ const MIGRATIONS_DIR = path.join(process.cwd(), "src", "db", "migrations");
 
 /**
  * `npm run db:clear` drops the database and leaves this marker behind so the
- * empty state sticks — without it, `ensureDatabaseReady` would just reseed on
- * the next request. `npm run db:reset` removes the marker along with the
+ * next seed only writes reference data (users, departments, vendors, ...) and
+ * skips the demo purchase requests, canvassing, and activity history — the
+ * app needs at least a signed-in user to function, so a fully empty database
+ * isn't a usable state. `npm run db:reset` removes the marker along with the
  * database, since a reset is meant to come back with fresh demo data.
  */
 const NO_SEED_MARKER = `${RESOLVED_DB_FILE}.no-seed`;
@@ -84,12 +86,8 @@ export async function ensureDatabaseReady(): Promise<void> {
   const cache = init();
   if (cache.seeded) return;
 
-  if (fs.existsSync(NO_SEED_MARKER)) {
-    cache.seeded = true;
-    return;
-  }
-
   const { seedIfEmpty } = await import("./seed");
-  await seedIfEmpty(cache.db);
+  const mode = fs.existsSync(NO_SEED_MARKER) ? "master" : "full";
+  await seedIfEmpty(cache.db, mode);
   cache.seeded = true;
 }

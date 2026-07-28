@@ -129,8 +129,18 @@ function isEmpty(db: Db): boolean {
  * The fixtures store display strings ("Jul 20", "10 minutes ago"); this writes
  * real calendar dates and instants, and the mappers render them back on the way
  * out. That is what stops the relative timestamps being frozen forever.
+ *
+ * `mode: "master"` (used by `npm run db:clear`) seeds only the reference data
+ * the app needs to function — departments, vendors, catalog items, payment
+ * terms, roles, and users — and leaves every transactional table (purchase
+ * requests, canvassing, orders, reports, notifications, dashboard panels)
+ * empty. `mode: "full"` (the default, used by `npm run db:reset`) seeds
+ * everything, including the demo purchase requests and activity history.
  */
-export async function seedIfEmpty(db: Db): Promise<void> {
+export async function seedIfEmpty(
+  db: Db,
+  mode: "full" | "master" = "full",
+): Promise<void> {
   if (!isEmpty(db)) return;
 
   const now = new Date();
@@ -227,6 +237,8 @@ export async function seedIfEmpty(db: Db): Promise<void> {
     );
     const currentUserId =
       userFixtures.find((user) => user.isCurrentUser)?.id ?? userFixtures[0].id;
+
+    if (mode !== "full") return;
 
     // ---- Purchase requests ----------------------------------------------
     const actionByRequest = new Map(
