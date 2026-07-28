@@ -33,9 +33,19 @@ import type { ReportFilters } from "@/types";
  * timer.
  */
 export function ReportWorkspace({ filters }: { filters: ReportFilters }) {
-  const [activeId, setActiveId] = React.useState<string>(defaultReportId);
+  // `null` until a report is explicitly picked, so the initial pick can fall
+  // back to whatever the database actually has instead of assuming
+  // `defaultReportId` exists — it does not after `npm run db:clear`, which
+  // seeds reference data only and leaves the reports table empty.
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
 
   const { data: reports = [], isPending: isLoadingList } = useReports();
+  const activeId =
+    selectedId ??
+    (reports.some((entry) => entry.id === defaultReportId)
+      ? defaultReportId
+      : (reports[0]?.id ?? null));
+
   const {
     data: report,
     isFetching,
@@ -112,7 +122,7 @@ export function ReportWorkspace({ filters }: { filters: ReportFilters }) {
                         // "regenerate", which a cached query would otherwise
                         // satisfy without a request.
                         if (entry.id === activeId) refetch();
-                        else setActiveId(entry.id);
+                        else setSelectedId(entry.id);
                       }}
                     >
                       {isGenerating ? (
