@@ -11,7 +11,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:reset": "node -e \"require('node:fs').rmSync('./procurement.db',{force:true});require('node:fs').rmSync('./procurement.db-shm',{force:true});require('node:fs').rmSync('./procurement.db-wal',{force:true});console.log('database removed — it will be recreated and reseeded on next boot')\""
+    "db:reset": "node -e \"const fs=require('node:fs');for(const f of ['./procurement.db','./procurement.db-shm','./procurement.db-wal','./procurement.db.no-seed'])fs.rmSync(f,{force:true});console.log('database removed — it will be recreated and reseeded on next boot')\"",
+    "db:clear": "node -e \"const fs=require('node:fs');for(const f of ['./procurement.db','./procurement.db-shm','./procurement.db-wal'])fs.rmSync(f,{force:true});fs.writeFileSync('./procurement.db.no-seed','');console.log('database removed — it will be recreated empty on next boot (not reseeded); run npm run db:reset to get seed data back')\""
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

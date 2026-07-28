@@ -1,5 +1,6 @@
 import "server-only";
 
+import fs from "node:fs";
 import path from "node:path";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
@@ -17,7 +18,18 @@ import * as schema from "./schema";
  */
 
 const DB_FILE = process.env.DATABASE_URL ?? "./procurement.db";
+const RESOLVED_DB_FILE = path.isAbsolute(DB_FILE)
+  ? DB_FILE
+  : path.join(process.cwd(), DB_FILE);
 const MIGRATIONS_DIR = path.join(process.cwd(), "src", "db", "migrations");
+
+/**
+ * `npm run db:clear` drops the database and leaves this marker behind so the
+ * empty state sticks — without it, `ensureDatabaseReady` would just reseed on
+ * the next request. `npm run db:reset` removes the marker along with the
+ * database, since a reset is meant to come back with fresh demo data.
+ */
+const NO_SEED_MARKER = `${RESOLVED_DB_FILE}.no-seed`;
 
 type DrizzleDb = ReturnType<typeof createConnection>;
 
@@ -31,9 +43,7 @@ const globalCache = globalThis as typeof globalThis & {
 };
 
 function createConnection() {
-  const sqlite = new Database(
-    path.isAbsolute(DB_FILE) ? DB_FILE : path.join(process.cwd(), DB_FILE),
-  );
+  const sqlite = new Database(RESOLVED_DB_FILE);
 
   // WAL keeps reads from blocking on the write that seeding performs.
   sqlite.pragma("journal_mode = WAL");
@@ -73,6 +83,11 @@ export { schema };
 export async function ensureDatabaseReady(): Promise<void> {
   const cache = init();
   if (cache.seeded) return;
+
+  if (fs.existsSync(NO_SEED_MARKER)) {
+    cache.seeded = true;
+    return;
+  }
 
   const { seedIfEmpty } = await import("./seed");
   await seedIfEmpty(cache.db);

@@ -298,6 +298,7 @@ repository layer.
 npm run dev           # migrates and seeds on first request
 npm run db:generate   # regenerate migrations after a schema change
 npm run db:reset      # delete the database; it is recreated and reseeded on next boot
+npm run db:clear      # delete the database; it is recreated empty (not reseeded) on next boot
 ```
 
 Seeded activity and notification timestamps are real instants anchored to seed
