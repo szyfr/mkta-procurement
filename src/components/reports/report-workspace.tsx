@@ -1,5 +1,6 @@
 "use client";
 
+import { ChartNoAxesColumnIcon } from "lucide-react";
 import * as React from "react";
 
 import { ReportResult } from "@/components/reports/report-result";
@@ -7,6 +8,13 @@ import { DataError } from "@/components/shared/query-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { useReport, useReports } from "@/hooks/reports";
@@ -35,6 +43,26 @@ export function ReportWorkspace({ filters }: { filters: ReportFilters }) {
     error,
     refetch,
   } = useReport(activeId, filters);
+
+  if (!isLoadingList && reports.length === 0) {
+    return (
+      <Card>
+        <CardContent>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <ChartNoAxesColumnIcon />
+              </EmptyMedia>
+              <EmptyTitle>No reports available</EmptyTitle>
+              <EmptyDescription>
+                There are no report types configured yet.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>

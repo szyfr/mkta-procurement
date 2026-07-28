@@ -1,11 +1,20 @@
 "use client";
 
+import { InboxIcon } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 import { DataError } from "@/components/shared/query-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -86,9 +95,33 @@ export function BatchComparison({
 
       <Card>
         {batch.quotes.length === 0 ? (
-          <CardContent className="py-8 text-center text-xs text-muted-foreground">
-            No quotes have been entered for this batch yet. Add a vendor quote
-            to start the comparison.
+          <CardContent>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <InboxIcon />
+                </EmptyMedia>
+                <EmptyTitle>No quotes yet</EmptyTitle>
+                <EmptyDescription>
+                  No quotes have been entered for this batch yet. Add a vendor
+                  quote to start the comparison.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  nativeButton={false}
+                  render={
+                    <Link
+                      href={`/canvassing/${purchaseRequestId}/quotes/new?batch=${batch.batch}`}
+                    />
+                  }
+                >
+                  + Add Vendor Quote
+                </Button>
+              </EmptyContent>
+            </Empty>
           </CardContent>
         ) : (
           <>

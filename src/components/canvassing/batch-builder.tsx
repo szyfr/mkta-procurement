@@ -1,5 +1,6 @@
 "use client";
 
+import { PackageXIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -15,6 +16,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
@@ -69,6 +77,29 @@ export function BatchBuilder({
           );
         },
       },
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="border-b">
+          <CardTitle>Items in this Purchase Request</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <PackageXIcon />
+              </EmptyMedia>
+              <EmptyTitle>No items to canvass</EmptyTitle>
+              <EmptyDescription>
+                This purchase request has no items available for quotation.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </CardContent>
+      </Card>
     );
   }
 

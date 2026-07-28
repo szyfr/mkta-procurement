@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  CalendarCheckIcon,
+  CircleCheckBigIcon,
+  ClipboardListIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
@@ -13,6 +18,13 @@ import {
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -47,6 +59,19 @@ export function DashboardView() {
             <CardContent className="px-0">
               {isPending ? (
                 <TableSkeleton rows={6} columns={6} />
+              ) : data.actionableRequests.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <CircleCheckBigIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>Nothing needs your attention</EmptyTitle>
+                    <EmptyDescription>
+                      All caught up — no purchase requests are waiting on you
+                      right now.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               ) : (
                 <Table>
                   <TableHeader>
@@ -111,6 +136,18 @@ export function DashboardView() {
             <CardContent className="px-0">
               {isPending ? (
                 <PanelSkeleton />
+              ) : data.pendingQuotations.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <ClipboardListIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>No pending quotations</EmptyTitle>
+                    <EmptyDescription>
+                      Nothing is currently awaiting vendor quotes.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               ) : (
                 <ul className="divide-y">
                   {data.pendingQuotations.map((quotation) => (
@@ -141,6 +178,16 @@ export function DashboardView() {
             <CardContent className="px-0">
               {isPending ? (
                 <PanelSkeleton />
+              ) : data.upcomingDeadlines.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <CalendarCheckIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>No upcoming deadlines</EmptyTitle>
+                    <EmptyDescription>Nothing is due soon.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               ) : (
                 <ul className="divide-y">
                   {data.upcomingDeadlines.map((deadline) => (

@@ -1,5 +1,7 @@
 "use client";
 
+import { SearchXIcon } from "lucide-react";
+
 import { PurchaseRequestCard } from "@/components/purchase-requests/pr-card";
 import { PurchaseRequestTable } from "@/components/purchase-requests/pr-table";
 import type { ListView } from "@/components/purchase-requests/view-toggle";
@@ -11,6 +13,13 @@ import {
 } from "@/components/shared/query-state";
 import { StatusLegend } from "@/components/shared/status-legend";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { usePurchaseRequests } from "@/hooks/purchase-requests";
 import { useDepartments } from "@/hooks/reference";
 
@@ -53,6 +62,23 @@ export function PurchaseRequestsView({ view }: { view: ListView }) {
         ) : (
           <CardsSkeleton />
         )
+      ) : data.items.length === 0 ? (
+        <Card>
+          <CardContent>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <SearchXIcon />
+                </EmptyMedia>
+                <EmptyTitle>No purchase requests found</EmptyTitle>
+                <EmptyDescription>
+                  Nothing matches the current filters. Try adjusting or clearing
+                  them.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </CardContent>
+        </Card>
       ) : view === "table" ? (
         <PurchaseRequestTable requests={data.items} total={data.total} />
       ) : (

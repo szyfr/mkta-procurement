@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, ShieldIcon, UsersIcon } from "lucide-react";
 
 import { DataError, TableSkeleton } from "@/components/shared/query-state";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -12,6 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -51,6 +58,18 @@ export function UsersView() {
             </div>
           ) : users.isPending ? (
             <TableSkeleton rows={4} columns={5} />
+          ) : users.data.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <UsersIcon />
+                </EmptyMedia>
+                <EmptyTitle>No users yet</EmptyTitle>
+                <EmptyDescription>
+                  Invite someone to give them access to this procurement module.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <Table>
               <TableHeader>
@@ -109,6 +128,18 @@ export function UsersView() {
                 <Skeleton key={`role-${index}`} className="h-4 w-full" />
               ))}
             </div>
+          ) : (roles.data ?? []).length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <ShieldIcon />
+                </EmptyMedia>
+                <EmptyTitle>No roles defined</EmptyTitle>
+                <EmptyDescription>
+                  Role permissions will appear here once configured.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <dl className="divide-y text-xs">
               {(roles.data ?? []).map((permission) => (

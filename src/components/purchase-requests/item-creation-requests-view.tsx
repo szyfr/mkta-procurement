@@ -1,11 +1,19 @@
 "use client";
 
+import { SearchXIcon } from "lucide-react";
 import Link from "next/link";
 
 import { DataToolbar } from "@/components/shared/data-toolbar";
 import { DataError, TableSkeleton } from "@/components/shared/query-state";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -40,6 +48,19 @@ export function ItemCreationRequestsView() {
           <CardContent className="px-0">
             {isPending ? (
               <TableSkeleton rows={3} columns={6} />
+            ) : data.length === 0 ? (
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <SearchXIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>No item creation requests</EmptyTitle>
+                  <EmptyDescription>
+                    Nothing matches the current filters, or none have been
+                    submitted yet.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
             ) : (
               <Table>
                 <TableHeader>
