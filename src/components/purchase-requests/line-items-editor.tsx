@@ -349,14 +349,14 @@ export function LineItemsEditor({
         </Table>
       </CardContent>
 
+      <Separator />
+
       <CardContent>
         <Button variant="outline" size="sm" onClick={addLine}>
           <PlusIcon data-icon="inline-start" />
           Add Item
         </Button>
       </CardContent>
-
-      <Separator />
 
       <CardFooter className="justify-end">
         <div className="text-right">
