@@ -23,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import {
   type DraftLineItem,
   fetchMaterialOptions,
@@ -34,9 +34,12 @@ import {
  * Editable line items backed by the live material catalog.
  *
  * Sourcing is derived from the material's `is_needs_canvass` flag rather than
- * chosen here, matching the wireframe's "determined automatically" note. Line
- * totals are absent because materials currently sync without a cost — see the
- * note in the card footer.
+ * chosen here, matching the wireframe's "determined automatically" note.
+ *
+ * Cost estimates are entered by the requester and drive the on-screen totals
+ * only. FastAPI's item payload carries `material_id`, `quantity` and
+ * `vendor_id` and nothing else, so they are not persisted — the card footer
+ * says so plainly.
  */
 
 export function createDraftLine(key: string): DraftLineItem {
@@ -46,10 +49,17 @@ export function createDraftLine(key: string): DraftLineItem {
     materialName: null,
     unit: null,
     quantity: 1,
+    unitCost: null,
     sourcing: "canvassing",
     vendorId: null,
     vendorName: null,
   };
+}
+
+/** Null until a cost estimate is entered, so "Pending" can be shown instead of ₱0. */
+function lineTotal(line: DraftLineItem) {
+  if (line.unitCost === null) return null;
+  return line.quantity * line.unitCost;
 }
 
 export function LineItemsEditor({
@@ -60,6 +70,8 @@ export function LineItemsEditor({
   onChange: (lines: DraftLineItem[]) => void;
 }) {
   const nextKey = React.useRef(lines.length + 1);
+
+  const total = lines.reduce((sum, line) => sum + (lineTotal(line) ?? 0), 0);
 
   const loadMaterials = React.useCallback(
     (params: {
@@ -129,6 +141,8 @@ export function LineItemsEditor({
               </TableHead>
               <TableHead scope="col">Qty</TableHead>
               <TableHead scope="col">Unit</TableHead>
+              <TableHead scope="col">Est. Unit Cost</TableHead>
+              <TableHead scope="col">Est. Total</TableHead>
               <TableHead scope="col">Sourcing</TableHead>
               <TableHead scope="col" className="min-w-44">
                 Vendor
@@ -161,6 +175,9 @@ export function LineItemsEditor({
                         materialId: option.id,
                         materialName: option.label,
                         unit: option.unit ?? null,
+                        // Prefilled where the catalog has a cost; otherwise the
+                        // requester types their own estimate.
+                        unitCost: option.unitCost ?? null,
                         // Canvassed items get their vendor during canvassing,
                         // so any previously chosen vendor is dropped.
                         sourcing: option.needsCanvass ? "canvassing" : "direct",
@@ -188,6 +205,38 @@ export function LineItemsEditor({
 
                 <TableCell className="text-muted-foreground">
                   {line.unit ?? "—"}
+                </TableCell>
+
+                <TableCell>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={line.unitCost ?? ""}
+                    placeholder="—"
+                    aria-label={`Estimated unit cost for line ${index + 1}`}
+                    className="h-7 w-24"
+                    onChange={(event) =>
+                      updateLine(line.key, {
+                        unitCost:
+                          event.target.value === ""
+                            ? null
+                            : Number(event.target.value),
+                      })
+                    }
+                  />
+                </TableCell>
+
+                <TableCell
+                  className={cn(
+                    lineTotal(line) === null
+                      ? "text-muted-foreground"
+                      : "font-medium",
+                  )}
+                >
+                  {lineTotal(line) === null
+                    ? "Pending"
+                    : formatCurrency(lineTotal(line) as number, true)}
                 </TableCell>
 
                 <TableCell>
@@ -260,6 +309,8 @@ export function LineItemsEditor({
         </Table>
       </CardContent>
 
+      <Separator />
+
       <CardContent>
         <Button variant="outline" size="sm" type="button" onClick={addLine}>
           <PlusIcon data-icon="inline-start" />
@@ -267,13 +318,15 @@ export function LineItemsEditor({
         </Button>
       </CardContent>
 
-      <Separator />
-
-      <CardFooter className="justify-end">
-        <p className="text-right text-xs text-muted-foreground">
-          Estimated totals aren&apos;t available — materials sync without a unit
-          cost.
+      <CardFooter className="justify-between gap-4 bg-white">
+        <p className="text-xs text-muted-foreground">
         </p>
+        <div className="shrink-0 text-right">
+          <p className="text-xs text-muted-foreground">
+            Total Estimated Amount
+          </p>
+          <p className="text-lg font-semibold">{formatCurrency(total, true)}</p>
+        </div>
       </CardFooter>
     </Card>
   );

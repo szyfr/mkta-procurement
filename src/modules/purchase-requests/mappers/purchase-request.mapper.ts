@@ -5,6 +5,7 @@ import {
 } from "@/modules/purchase-requests/constants";
 import type {
   DepartmentDto,
+  MaterialDto,
   PaginationDto,
   PurchaseRequestDetailDto,
   PurchaseRequestDto,
@@ -119,18 +120,13 @@ export function toVendorOption(dto: VendorDto): LookupOption {
   return { id: dto._id, label: vendorName(dto), hint: dto.no };
 }
 
-export function toMaterialOption(dto: {
-  _id: string;
-  no: string;
-  description: string;
-  uom: string;
-  is_needs_canvass: boolean;
-}): LookupOption {
+export function toMaterialOption(dto: MaterialDto): LookupOption {
   return {
     id: dto._id,
     label: dto.description || dto.no,
     hint: dto.no,
     needsCanvass: dto.is_needs_canvass,
     unit: dto.uom || null,
+    unitCost: dto.last_cost ?? null,
   };
 }

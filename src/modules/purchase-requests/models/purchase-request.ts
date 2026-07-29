@@ -49,6 +49,11 @@ export interface LookupOption {
   needsCanvass?: boolean;
   /** Materials only: unit of measure. */
   unit?: string | null;
+  /**
+   * Materials only: last known cost, used to prefill an estimate. Null for
+   * every material currently synced from Business Central.
+   */
+  unitCost?: number | null;
 }
 
 export interface LookupPage {

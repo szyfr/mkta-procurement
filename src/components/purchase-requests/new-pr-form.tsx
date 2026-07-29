@@ -48,7 +48,7 @@ import {
 const submissionChecklist = [
   "Items that need canvassing are routed there automatically; direct items let you pick a vendor now.",
   "Every item needs a quantity before submitting.",
-  "Estimated costs aren't shown — materials currently sync without a unit cost.",
+  "Estimated costs are for approval routing only and aren't saved — the backend has no field for them yet.",
   "Attachments aren't wired up yet and won't be saved with the request.",
   "Every request is created as a draft — the backend doesn't distinguish saving from submitting yet.",
 ];
