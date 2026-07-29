@@ -84,20 +84,31 @@ export function LookupPicker({
    */
   const requestedPageRef = React.useRef<string | null>(null);
 
+  /**
+   * Mirrors `loading` for the scroll handler, which needs the answer before
+   * React has committed it. See `handleScroll`.
+   */
+  const pendingRef = React.useRef(false);
+
   React.useEffect(() => {
     if (!open) {
       // A reopened picker starts paging over, so drop the results it collected
       // last time — otherwise the refetched page is appended to rows already
       // holding it. Clearing the guard also lets a failed load retry.
       requestedPageRef.current = null;
+      pendingRef.current = false;
       setPage(1);
       setOptions((current) => (current.length === 0 ? current : []));
       return;
     }
 
     const key = `${debouncedSearch}::${page}`;
-    if (requestedPageRef.current === key) return;
+    if (requestedPageRef.current === key) {
+      pendingRef.current = false;
+      return;
+    }
     requestedPageRef.current = key;
+    pendingRef.current = true;
 
     const controller = new AbortController();
 
@@ -123,17 +134,34 @@ export function LookupPicker({
         );
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
+        // An aborted run has been superseded — the run that replaced it owns
+        // `pendingRef` now, so leave both flags to it.
+        if (controller.signal.aborted) return;
+        pendingRef.current = false;
+        setLoading(false);
       });
 
     return () => controller.abort();
   }, [open, page, debouncedSearch, loadPage]);
 
   function handleScroll(event: React.UIEvent<HTMLDivElement>) {
-    if (loading || page >= totalPages) return;
+    // `loading` only turns true once the fetch effect has run, a commit after
+    // the bump below. Scroll events fire faster than that, and until the new
+    // rows land the list is still scrolled to the bottom — so a second event
+    // would clear a `loading` guard and bump the page again. That aborts the
+    // request in flight and its rows never arrive. This ref closes the gap.
+    if (pendingRef.current || page >= totalPages) return;
 
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+
+    // Clearing the list for a new search term collapses this container, and the
+    // browser clamps `scrollTop` — which fires a scroll event before the effect
+    // has started fetching page 1. An empty list sits at the bottom by
+    // definition, so the check below would pass and bump straight to page 2.
+    if (scrollHeight <= clientHeight) return;
+
     if (scrollHeight - scrollTop - clientHeight < 48) {
+      pendingRef.current = true;
       setPage((current) => current + 1);
     }
   }
