@@ -2,7 +2,6 @@ import {
   ChartColumnIcon,
   ClipboardListIcon,
   LayoutDashboardIcon,
-  Settings2Icon,
   UsersIcon,
 } from "lucide-react";
 
