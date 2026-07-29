@@ -1,7 +1,32 @@
+import { HistoryIcon } from "lucide-react";
+
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import type { ActivityEntry } from "@/lib/types";
 
 /** Timeline of recent events, each with a marker dot. */
 export function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
+  if (entries.length === 0) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <HistoryIcon />
+          </EmptyMedia>
+          <EmptyTitle>No recent activity</EmptyTitle>
+          <EmptyDescription>
+            Activity will appear here as requests move through the workflow.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
   return (
     <ul className="divide-y">
       {entries.map((entry) => (

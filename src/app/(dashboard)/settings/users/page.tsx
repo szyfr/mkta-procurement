@@ -1,4 +1,4 @@
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, ShieldIcon, UsersIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -11,6 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -50,47 +57,61 @@ export default function UsersSettingsPage() {
         </CardHeader>
 
         <CardContent className="px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col" className="pl-4">
-                  Name
-                </TableHead>
-                <TableHead scope="col">Role</TableHead>
-                <TableHead scope="col">Department</TableHead>
-                <TableHead scope="col">Status</TableHead>
-                <TableHead scope="col" className="pr-4">
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="pl-4">
-                    {user.name}
-                    {user.isCurrentUser ? " (you)" : ""}
-                  </TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>{user.department}</TableCell>
-                  <TableCell>
-                    <StatusBadge tone={userStatusTone[user.status]}>
-                      {user.status === "active" ? "Active" : "Invited"}
-                    </StatusBadge>
-                  </TableCell>
-                  <TableCell className="pr-4">
-                    {user.isCurrentUser ? (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    ) : (
-                      <Button variant="link" size="sm" className="h-auto p-0">
-                        {user.status === "invited" ? "Resend" : "Edit"}
-                      </Button>
-                    )}
-                  </TableCell>
+          {users.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <UsersIcon />
+                </EmptyMedia>
+                <EmptyTitle>No users yet</EmptyTitle>
+                <EmptyDescription>
+                  Invite someone to give them access to this procurement module.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead scope="col" className="pl-4">
+                    Name
+                  </TableHead>
+                  <TableHead scope="col">Role</TableHead>
+                  <TableHead scope="col">Department</TableHead>
+                  <TableHead scope="col">Status</TableHead>
+                  <TableHead scope="col" className="pr-4">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="pl-4">
+                      {user.name}
+                      {user.isCurrentUser ? " (you)" : ""}
+                    </TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>{user.department}</TableCell>
+                    <TableCell>
+                      <StatusBadge tone={userStatusTone[user.status]}>
+                        {user.status === "active" ? "Active" : "Invited"}
+                      </StatusBadge>
+                    </TableCell>
+                    <TableCell className="pr-4">
+                      {user.isCurrentUser ? (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ) : (
+                        <Button variant="link" size="sm" className="h-auto p-0">
+                          {user.status === "invited" ? "Resend" : "Edit"}
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -99,19 +120,33 @@ export default function UsersSettingsPage() {
           <CardTitle className="text-xs">Role Permissions</CardTitle>
         </CardHeader>
         <CardContent>
-          <dl className="divide-y text-xs">
-            {rolePermissions.map((permission) => (
-              <div
-                key={permission.role}
-                className="flex flex-col justify-between gap-1 py-1.5 sm:flex-row sm:items-center sm:gap-4"
-              >
-                <dt>{permission.role}</dt>
-                <dd className="text-muted-foreground sm:text-right">
-                  {permission.description}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          {rolePermissions.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <ShieldIcon />
+                </EmptyMedia>
+                <EmptyTitle>No roles defined</EmptyTitle>
+                <EmptyDescription>
+                  Role permissions will appear here once configured.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <dl className="divide-y text-xs">
+              {rolePermissions.map((permission) => (
+                <div
+                  key={permission.role}
+                  className="flex flex-col justify-between gap-1 py-1.5 sm:flex-row sm:items-center sm:gap-4"
+                >
+                  <dt>{permission.role}</dt>
+                  <dd className="text-muted-foreground sm:text-right">
+                    {permission.description}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </CardContent>
       </Card>
     </>
