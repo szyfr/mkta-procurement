@@ -86,8 +86,12 @@ export function LookupPicker({
 
   React.useEffect(() => {
     if (!open) {
-      // Let a reopened picker retry, including after a failed load.
+      // A reopened picker starts paging over, so drop the results it collected
+      // last time — otherwise the refetched page is appended to rows already
+      // holding it. Clearing the guard also lets a failed load retry.
       requestedPageRef.current = null;
+      setPage(1);
+      setOptions((current) => (current.length === 0 ? current : []));
       return;
     }
 
