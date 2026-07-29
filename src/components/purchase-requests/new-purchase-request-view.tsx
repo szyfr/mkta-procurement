@@ -106,10 +106,13 @@ export function NewPurchaseRequestView() {
         const input = buildInput();
         if (!input) return;
 
-        createRequest.mutate(input, {
-            onSuccess: (created) =>
-                router.push(`/purchase-requests/${created.id}`),
-        });
+        createRequest.mutate(
+            { ...input, status: "draft" },
+            {
+                onSuccess: (created) =>
+                    router.push(`/purchase-requests/${created.id}`),
+            },
+        );
     }
 
     function submitForApproval() {

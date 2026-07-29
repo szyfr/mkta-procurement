@@ -54,6 +54,7 @@ export const createPurchaseRequest = z.object({
     priority,
     justification: z.string().nullish(),
     items: z.array(purchaseRequestItemInput).min(1, "Add at least one item."),
+    status: purchaseRequestStatus.optional(),
 });
 
 export const updatePurchaseRequest = z.object({

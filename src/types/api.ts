@@ -77,6 +77,8 @@ export interface CreatePurchaseRequestInput {
     priority: Priority;
     justification?: string | null;
     items: PurchaseRequestItemInput[];
+    /** Set to `"draft"` when saved without entering the approval workflow. */
+    status?: PurchaseRequestStatus;
 }
 
 export interface UpdatePurchaseRequestInput {

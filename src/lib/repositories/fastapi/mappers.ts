@@ -89,6 +89,10 @@ export function toPurchaseRequestStatus(
     return PR_STATUS_BY_UPSTREAM[String(value).toLowerCase()] ?? "draft";
 }
 
+export function toUpstreamStatus(value: PurchaseRequestStatus): string {
+    return value;
+}
+
 const ITEM_STATUS_BY_UPSTREAM: Record<string, PurchaseRequestItemStatus> = {
     pending: "pending",
     canvassing: "canvassing",

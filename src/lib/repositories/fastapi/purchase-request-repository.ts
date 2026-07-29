@@ -21,6 +21,7 @@ import {
     toIsoDatePart,
     toPurchaseRequest,
     toUpstreamPriority,
+    toUpstreamStatus,
 } from "./mappers";
 
 const DEFAULT_PAGE_SIZE = 25;
@@ -92,6 +93,11 @@ export class FastApiPurchaseRequestRepository
                 // The upstream request model types this as a required `str`.
                 justification: input.justification ?? "",
                 items: await this.items(input.items),
+                // TODO(backend): no `status` field exists upstream yet, so this
+                // is accepted and silently dropped until the workflow lands.
+                ...(input.status
+                    ? { status: toUpstreamStatus(input.status) }
+                    : {}),
             },
         );
 
