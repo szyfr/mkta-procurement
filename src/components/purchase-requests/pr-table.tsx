@@ -19,17 +19,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  purchaseRequestListTotal,
-  purchaseRequestTone,
-} from "@/data/purchase-requests";
+import { purchaseRequestTone } from "@/data/purchase-requests";
 import type { PurchaseRequest } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import type { PageInfo } from "@/modules/purchase-requests";
+
+/** Page numbers to render, windowed so long result sets stay readable. */
+function pageWindow(current: number, total: number) {
+  const start = Math.max(1, Math.min(current - 1, total - 2));
+  const end = Math.min(total, start + 2);
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
 
 export function PurchaseRequestTable({
   requests,
+  page,
+  buildPageHref,
 }: {
   requests: PurchaseRequest[];
+  page: PageInfo;
+  /** Keeps the current view (cards/table) intact while changing pages. */
+  buildPageHref: (page: number) => string;
 }) {
   return (
     <Card>
@@ -72,7 +83,18 @@ export function PurchaseRequestTable({
                   </TableCell>
                   <TableCell>{request.requester}</TableCell>
                   <TableCell>{request.department}</TableCell>
-                  <TableCell>{formatCurrency(request.amount)}</TableCell>
+                  <TableCell>
+                    {request.amount === null ? (
+                      <span
+                        className="text-muted-foreground"
+                        title="No estimated amount on file"
+                      >
+                        —
+                      </span>
+                    ) : (
+                      formatCurrency(request.amount)
+                    )}
+                  </TableCell>
                   <TableCell>
                     <PriorityBadge priority={request.priority} />
                   </TableCell>
@@ -107,25 +129,48 @@ export function PurchaseRequestTable({
       </CardContent>
       <CardFooter className="justify-between gap-2 text-xs text-muted-foreground">
         <span>
-          Showing {requests.length} of {purchaseRequestListTotal}
+          Showing {requests.length} of {page.totalItems}
         </span>
-        <Pagination className="mx-0 w-auto">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="?page=1" />
-            </PaginationItem>
-            {[1, 2, 3].map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink href={`?page=${page}`} isActive={page === 1}>
-                  {page}
-                </PaginationLink>
+        {page.totalPages > 1 ? (
+          <Pagination className="mx-0 w-auto">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href={buildPageHref(page.prevPage ?? 1)}
+                  aria-disabled={page.prevPage === null}
+                  className={
+                    page.prevPage === null
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
               </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext href="?page=2" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              {pageWindow(page.currentPage, page.totalPages).map(
+                (pageNumber) => (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      href={buildPageHref(pageNumber)}
+                      isActive={pageNumber === page.currentPage}
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                ),
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  href={buildPageHref(page.nextPage ?? page.totalPages)}
+                  aria-disabled={page.nextPage === null}
+                  className={
+                    page.nextPage === null
+                      ? "pointer-events-none opacity-50"
+                      : undefined
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        ) : null}
       </CardFooter>
     </Card>
   );

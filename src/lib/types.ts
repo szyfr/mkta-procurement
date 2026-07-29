@@ -27,31 +27,36 @@ export type PurchaseRequestStatus =
   | "completed"
   | "rejected";
 
+/**
+ * Items carry a wider set of states than their parent request, because a
+ * single item can be rejected or completed while the rest of the request moves
+ * on. Mirrors `Status` in the backend's purchase_request_item schema.
+ */
 export type PurchaseRequestItemStatus =
   | "pending"
+  | "draft"
   | "canvassing"
   | "po-created"
-  | "delivered"
-  | "awaiting-batch";
+  | "partially-completed"
+  | "completed"
+  | "rejected";
 
-/** How an item is sourced. Decided automatically, not editable by the requester. */
-export type SourcingMode = "direct" | "canvassing" | "pending-item-creation";
+/**
+ * How an item is sourced. Derived from the material's `is_needs_canvass` flag,
+ * not editable by the requester.
+ */
+export type SourcingMode = "direct" | "canvassing";
 
 export interface PurchaseRequestItem {
   id: string;
   name: string;
   quantity: number;
   unit: string | null;
+  /** Null whenever the material has no cost on file, which is currently always. */
   estimatedUnitCost: number | null;
   vendor: string | null;
   sourcing: SourcingMode;
   status: PurchaseRequestItemStatus;
-  /** Set once the item is delivered, e.g. "Jul 20". */
-  deliveredOn?: string;
-  /** Canvassing batch this item belongs to, if any. */
-  batch?: number;
-  /** Shown instead of the catalog picker when the item is not in the catalog. */
-  notInCatalog?: boolean;
 }
 
 export interface ActivityEntry {
@@ -81,11 +86,19 @@ export interface PurchaseRequest {
   autoTitle?: boolean;
   requester: string;
   department: string;
-  amount: number;
+  /**
+   * Null when the total can't be established — no amount is stored on the
+   * request and materials currently sync without a cost.
+   */
+  amount: number | null;
   priority: Priority;
   status: PurchaseRequestStatus;
   /** Human label for the status pill, e.g. "PO-3025 Created". */
   statusLabel: string;
+  /** Why the purchase is needed, as entered by the requester. */
+  justification: string;
+  /** When the requester needs the items, e.g. "Aug 17". */
+  dateNeeded: string | null;
   /** Date shown on list rows and cards. Null while still a draft. */
   createdAt: string | null;
   submittedOn?: string;

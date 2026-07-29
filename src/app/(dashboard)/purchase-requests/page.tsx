@@ -2,50 +2,30 @@ import { PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { PurchaseRequestCard } from "@/components/purchase-requests/pr-card";
-import { PurchaseRequestTable } from "@/components/purchase-requests/pr-table";
+import { PurchaseRequestListView } from "@/components/purchase-requests/pr-list-view";
 import {
   type ListView,
   ViewToggle,
 } from "@/components/purchase-requests/view-toggle";
-import { DataToolbar } from "@/components/shared/data-toolbar";
 import { PageHeader } from "@/components/shared/page-header";
-import { StatusLegend } from "@/components/shared/status-legend";
 import { Button } from "@/components/ui/button";
-import {
-  departments,
-  getListedPurchaseRequests,
-} from "@/data/purchase-requests";
 
 export const metadata: Metadata = {
   title: "Purchase Requests",
 };
 
-const filters = [
-  {
-    label: "Status",
-    options: [
-      "Draft",
-      "Canvassing",
-      "PO Created",
-      "Partially Completed",
-      "Completed",
-      "Rejected",
-    ],
-  },
-  { label: "Priority", options: ["High", "Normal", "Low"] },
-  { label: "Department", options: departments },
-  { label: "Date", options: ["Last 7 days", "Last 30 days", "Last 90 days"] },
-];
-
+/**
+ * Thin server shell: it owns the page metadata and reads the URL state, then
+ * hands off to the client view that fetches from the BFF.
+ */
 export default async function PurchaseRequestsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{ view?: string; page?: string }>;
 }) {
-  const { view } = await searchParams;
+  const { view, page } = await searchParams;
   const activeView: ListView = view === "table" ? "table" : "cards";
-  const requests = getListedPurchaseRequests();
+  const activePage = Math.max(Number(page) || 1, 1);
 
   return (
     <>
@@ -75,19 +55,7 @@ export default async function PurchaseRequestsPage({
         }
       />
 
-      <DataToolbar placeholder="Filter requests…" filters={filters} />
-
-      <StatusLegend />
-
-      {activeView === "table" ? (
-        <PurchaseRequestTable requests={requests} />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {requests.map((request) => (
-            <PurchaseRequestCard key={request.id} request={request} />
-          ))}
-        </div>
-      )}
+      <PurchaseRequestListView view={activeView} page={activePage} />
     </>
   );
 }

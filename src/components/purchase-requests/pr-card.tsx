@@ -81,7 +81,18 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
         <p className="text-sm text-muted-foreground">
           {request.requester} · {request.department}
         </p>
-        <p className="font-semibold">{formatCurrency(request.amount)}</p>
+        <p className="font-semibold">
+          {request.amount === null ? (
+            <span
+              className="text-muted-foreground"
+              title="No estimated amount on file"
+            >
+              —
+            </span>
+          ) : (
+            formatCurrency(request.amount)
+          )}
+        </p>
 
         <div className="flex items-center justify-between gap-2">
           <StatusBadge tone={tone}>{request.statusLabel}</StatusBadge>
