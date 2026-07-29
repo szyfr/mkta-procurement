@@ -93,11 +93,9 @@ export class FastApiPurchaseRequestRepository
                 // The upstream request model types this as a required `str`.
                 justification: input.justification ?? "",
                 items: await this.items(input.items),
-                // TODO(backend): no `status` field exists upstream yet, so this
-                // is accepted and silently dropped until the workflow lands.
-                ...(input.status
-                    ? { status: toUpstreamStatus(input.status) }
-                    : {}),
+                ...(input.status === undefined
+                    ? {}
+                    : { status: toUpstreamStatus(input.status) }),
             },
         );
 
@@ -145,6 +143,9 @@ export class FastApiPurchaseRequestRepository
                 ...(input.priority === undefined
                     ? {}
                     : { priority: toUpstreamPriority(input.priority) }),
+                ...(input.status === undefined
+                    ? {}
+                    : { status: toUpstreamStatus(input.status) }),
                 items,
             },
         );
@@ -171,12 +172,8 @@ export class FastApiPurchaseRequestRepository
         await this.client.delete<void>(`/purchase-requests/${id}`);
     }
 
-    async submit(_id: string, _actor: Actor): Promise<PurchaseRequest> {
-        // TODO(backend): submitting has to set a status, route items to canvassing
-        // and raise purchase orders. None of that exists upstream yet.
-        throw ApiError.notImplemented(
-            "Submitting a purchase request is not supported by the backend yet.",
-        );
+    async submit(id: string, actor: Actor): Promise<PurchaseRequest> {
+        return this.update(id, { status: "pending" }, actor);
     }
 
     async recordProofOfOrder(): Promise<PurchaseRequest> {

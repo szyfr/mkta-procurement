@@ -21,6 +21,7 @@ export type Priority = "High" | "Normal" | "Low";
 
 export type PurchaseRequestStatus =
     | "draft"
+    | "pending"
     | "canvassing"
     | "po-created"
     | "partially-completed"

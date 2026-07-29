@@ -87,6 +87,7 @@ export interface UpdatePurchaseRequestInput {
     dateNeeded?: string;
     priority?: Priority;
     items?: PurchaseRequestItemInput[];
+    status?: PurchaseRequestStatus;
 }
 
 export interface CatalogItem {

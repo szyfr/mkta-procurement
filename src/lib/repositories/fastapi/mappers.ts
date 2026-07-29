@@ -67,6 +67,7 @@ export function toUpstreamPriority(value: Priority | undefined): string {
 
 const PR_STATUS_BY_UPSTREAM: Record<string, PurchaseRequestStatus> = {
     draft: "draft",
+    pending: "pending",
     canvassing: "canvassing",
     "po-created": "po-created",
     "partially-completed": "partially-completed",
@@ -76,6 +77,7 @@ const PR_STATUS_BY_UPSTREAM: Record<string, PurchaseRequestStatus> = {
 
 const PR_STATUS_LABEL: Record<PurchaseRequestStatus, string> = {
     draft: "Draft",
+    pending: "Pending Approval",
     canvassing: "Canvassing",
     "po-created": "PO Created",
     "partially-completed": "Partially Completed",

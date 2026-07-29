@@ -121,13 +121,16 @@ export function NewPurchaseRequestView() {
 
         // Create then submit: the API keeps the two steps distinct so a draft can
         // also be saved without entering the workflow.
-        createRequest.mutate(input, {
-            onSuccess: (created) =>
-                submitRequest.mutate(created.id, {
-                    onSuccess: () =>
-                        router.push(`/purchase-requests/${created.id}`),
-                }),
-        });
+        createRequest.mutate(
+            { ...input, status: "draft" },
+            {
+                onSuccess: (created) =>
+                    submitRequest.mutate(created.id, {
+                        onSuccess: () =>
+                            router.push(`/purchase-requests/${created.id}`),
+                    }),
+            },
+        );
     }
 
     const error = createRequest.error ?? submitRequest.error;

@@ -17,6 +17,7 @@ import type {
 
 export const purchaseRequestTone: Record<PurchaseRequestStatus, StatusTone> = {
     draft: "neutral",
+    pending: "warning",
     canvassing: "info",
     "po-created": "ordered",
     "partially-completed": "partial",
@@ -49,6 +50,7 @@ export const userStatusTone: Record<UserStatus, StatusTone> = {
 export const statusLegend: { label: string; status: PurchaseRequestStatus }[] =
     [
         { label: "Draft", status: "draft" },
+        { label: "Pending Approval", status: "pending" },
         { label: "Canvassing", status: "canvassing" },
         { label: "PO Created", status: "po-created" },
         { label: "Partially Completed", status: "partially-completed" },

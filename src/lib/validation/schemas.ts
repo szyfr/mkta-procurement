@@ -12,6 +12,7 @@ export const priority = z.enum(["High", "Normal", "Low"]);
 
 export const purchaseRequestStatus = z.enum([
     "draft",
+    "pending",
     "canvassing",
     "po-created",
     "partially-completed",
@@ -63,6 +64,7 @@ export const updatePurchaseRequest = z.object({
     dateNeeded: isoDate.optional(),
     priority: priority.optional(),
     items: z.array(purchaseRequestItemInput).optional(),
+    status: purchaseRequestStatus.optional(),
 });
 
 export const proofOfOrder = z.object({
