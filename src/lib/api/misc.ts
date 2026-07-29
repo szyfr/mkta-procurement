@@ -76,15 +76,18 @@ export const referenceApi = {
     /**
      * One page of the catalog. Unlike the lists above this is not static — the
      * picker walks it as the user scrolls — so it carries the paging meta back.
+     * With a `search` term the page is drawn from the whole catalog upstream
+     * rather than from what the picker happens to have loaded.
      */
     async catalogItems(
         page: number,
         pageSize: number,
+        search?: string,
         signal?: AbortSignal,
     ): Promise<CatalogItemPage> {
         const { data, meta } = await apiClient.getWithMeta<CatalogItem[]>(
             "/catalog-items",
-            { page, pageSize },
+            search ? { page, pageSize, search } : { page, pageSize },
             signal,
         );
 

@@ -51,6 +51,7 @@ export const queryKeys = {
         departments: ["reference", "departments"] as const,
         vendors: ["reference", "vendors"] as const,
         paymentTerms: ["reference", "payment-terms"] as const,
-        catalogItems: ["reference", "catalog-items"] as const,
+        catalogItems: (search?: string) =>
+            ["reference", "catalog-items", search ?? ""] as const,
     },
 } as const;

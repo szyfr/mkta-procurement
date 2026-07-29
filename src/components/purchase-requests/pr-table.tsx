@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { KeyboardEvent, MouseEvent } from "react";
 
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -31,6 +35,8 @@ export function PurchaseRequestTable({
     requests: PurchaseRequest[];
     total?: number;
 }) {
+    const router = useRouter();
+
     return (
         <Card>
             <CardContent className="px-0">
@@ -62,8 +68,33 @@ export function PurchaseRequestTable({
                                 request.status === "po-created" ||
                                 request.status === "partially-completed";
 
+                            const stopRowNavigation = (
+                                event: MouseEvent<HTMLAnchorElement>,
+                            ) => {
+                                event.stopPropagation();
+                            };
+
+                            const handleRowKeyDown = (
+                                event: KeyboardEvent<HTMLTableRowElement>,
+                            ) => {
+                                if (event.key !== "Enter") return;
+                                if (event.target !== event.currentTarget) {
+                                    return;
+                                }
+                                router.push(href);
+                            };
+
                             return (
-                                <TableRow key={request.id}>
+                                // biome-ignore lint/a11y/useSemanticElements: an <a> can't wrap a <tr>; this is a table row acting as a navigation target.
+                                <TableRow
+                                    key={request.id}
+                                    tabIndex={0}
+                                    role="link"
+                                    aria-label={`Open ${request.id}`}
+                                    onClick={() => router.push(href)}
+                                    onKeyDown={handleRowKeyDown}
+                                    className="cursor-pointer"
+                                >
                                     <TableCell className="pl-4 font-medium">
                                         {request.id}
                                     </TableCell>
@@ -102,6 +133,7 @@ export function PurchaseRequestTable({
                                         <div className="flex flex-col items-start gap-1 text-xs">
                                             <Link
                                                 href={href}
+                                                onClick={stopRowNavigation}
                                                 className="hover:underline"
                                             >
                                                 Open →
@@ -109,6 +141,7 @@ export function PurchaseRequestTable({
                                             {needsProof ? (
                                                 <Link
                                                     href={`/purchase-requests/${request.id}`}
+                                                    onClick={stopRowNavigation}
                                                     className="text-status-ordered hover:underline"
                                                 >
                                                     + Add Proof of Order

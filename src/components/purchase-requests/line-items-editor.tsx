@@ -13,6 +13,14 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+import {
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+} from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -32,7 +40,9 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { useCatalogItems, useVendors } from "@/hooks/reference";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn, formatCurrency } from "@/lib/utils";
+import type { CatalogItem } from "@/types";
 
 export interface DraftLine {
     key: string;
@@ -64,61 +74,99 @@ function lineTotal(line: DraftLine) {
     return line.quantity * line.unitCost;
 }
 
+/** How close to the end of the loaded list counts as "pull the next page". */
+const PAGE_AHEAD_PX = 48;
+
 /**
- * Pulls the next catalog page in when it scrolls into view.
+ * Searchable item picker over the paged catalog.
  *
- * Rendered as the last child of the dropdown, so reaching it means the user has
- * scrolled to the end of what is loaded. It also doubles as the "loading more"
- * row, which keeps the list from appearing to simply stop.
+ * Typing searches upstream rather than filtering the loaded pages — the catalog
+ * runs to ~1,900 materials, so anything else would answer "no items found" for
+ * a match the picker simply had not scrolled to yet. Hence `filter={null}`:
+ * the list is already narrowed by the time it arrives, and filtering it a
+ * second time in the browser would only re-hide rows the server just matched.
+ *
+ * Upstream also matches the item code, not just the description, so a code
+ * typed into the box finds its material.
  */
-function CatalogScrollSentinel({
-    onVisible,
-    loading,
-    loadedCount,
+function CatalogItemCombobox({
+    value,
+    onSelect,
 }: {
-    onVisible: () => void;
-    loading: boolean;
-    /**
-     * How many rows are currently loaded. Only a dependency, never rendered —
-     * see the re-observe note below.
-     */
-    loadedCount: number;
+    value: string | null;
+    onSelect: (item: CatalogItem | null) => void;
 }) {
-    const ref = React.useRef<HTMLDivElement>(null);
-    // Read through a ref so re-creating the callback does not tear down and
-    // rebuild the observer on every render.
-    const handler = React.useRef(onVisible);
-    handler.current = onVisible;
+    const [query, setQuery] = React.useState("");
+    // Each distinct term is its own query and its own upstream request, so the
+    // raw keystrokes never reach it.
+    const search = useDebouncedValue(query.trim()) || undefined;
 
-    // `loadedCount` is not read in the body. It is there precisely to re-run the
-    // effect, and removing it — which is what the lint's suggested fix does —
-    // silently breaks paging. An observer reports threshold *crossings*: when a
-    // page arrives and the sentinel is still on screen (a short page, or a
-    // dropdown taller than its content) it never stops intersecting, so no
-    // further callback fires and the list stalls short of the end. Observing
-    // afresh re-reports the current state instead.
-    // biome-ignore lint/correctness/useExhaustiveDependencies: re-observes per page
-    React.useEffect(() => {
-        const element = ref.current;
-        if (!element) return;
+    const {
+        items,
+        fetchNextPage,
+        hasNextPage,
+        isFetching,
+        isFetchingNextPage,
+    } = useCatalogItems(search);
 
-        const observer = new IntersectionObserver((entries) => {
-            if (entries.some((entry) => entry.isIntersecting))
-                handler.current();
-        });
+    // Deduped across pages, not just within one: a name is the item's key here,
+    // and pages are collapsed by name individually, so only the flattened list
+    // can catch the same description arriving on two of them.
+    const names = [...new Set(items.map((item) => item.name))];
+    // A search response need not contain the item this line already holds, and
+    // a value with no matching item would leave the input blank.
+    if (value && !names.includes(value)) names.unshift(value);
 
-        observer.observe(element);
-        return () => observer.disconnect();
-    }, [loadedCount]);
+    function handleScroll(event: React.UIEvent<HTMLDivElement>) {
+        if (!hasNextPage || isFetchingNextPage) return;
+
+        const list = event.currentTarget;
+        const remaining =
+            list.scrollHeight - list.scrollTop - list.clientHeight;
+        if (remaining < PAGE_AHEAD_PX) fetchNextPage();
+    }
 
     return (
-        <div
-            ref={ref}
-            role="presentation"
-            className="px-2 py-1.5 text-center text-xs text-muted-foreground"
+        <Combobox
+            items={names}
+            value={value}
+            filter={null}
+            onValueChange={(next) =>
+                onSelect(items.find((item) => item.name === next) ?? null)
+            }
+            onInputValueChange={setQuery}
         >
-            {loading ? "Loading more…" : null}
-        </div>
+            <ComboboxInput
+                showClear
+                placeholder="Search items"
+                aria-label="Item"
+                className="h-7 w-full"
+            />
+            <ComboboxContent>
+                <ComboboxEmpty>
+                    {isFetching ? (
+                        "Searching catalog…"
+                    ) : (
+                        <span className="flex items-center gap-2">
+                            No items found.
+                            <Link
+                                href="/purchase-requests/item-requests"
+                                className="underline"
+                            >
+                                Request New Item →
+                            </Link>
+                        </span>
+                    )}
+                </ComboboxEmpty>
+                <ComboboxList onScroll={handleScroll}>
+                    {(itemName: string) => (
+                        <ComboboxItem key={itemName} value={itemName}>
+                            {itemName}
+                        </ComboboxItem>
+                    )}
+                </ComboboxList>
+            </ComboboxContent>
+        </Combobox>
     );
 }
 
@@ -134,23 +182,12 @@ export function LineItemsEditor({
     lines: DraftLine[];
     onLinesChange: (lines: DraftLine[]) => void;
 }) {
-    // The catalog and vendor list come from the API rather than module scope, so
-    // the picker reflects whatever the backend actually has. The catalog is far
-    // too large to fetch whole, so it arrives a page at a time as the user
-    // scrolls the dropdown.
-    const {
-        items: catalogItems,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage,
-    } = useCatalogItems();
+    // The vendor list comes from the API rather than module scope, so the picker
+    // reflects whatever the backend actually has. The catalog is not fetched
+    // here: each row's picker searches it independently and hands back the entry
+    // it matched, so nothing up here needs the whole list to look one up.
     const { data: vendors = [] } = useVendors();
     const nextKey = React.useRef(lines.length + 1);
-
-    const catalogOptions = [
-        { label: "Select an item", value: null },
-        ...catalogItems.map((item) => ({ label: item.name, value: item.name })),
-    ];
 
     const vendorOptions = [
         { label: "Select a vendor", value: null },
@@ -176,15 +213,18 @@ export function LineItemsEditor({
         onLinesChange(lines.filter((line) => line.key !== key));
     }
 
-    function selectItem(key: string, itemName: string | null) {
-        const catalogEntry = catalogItems.find(
-            (item) => item.name === itemName,
-        );
+    /**
+     * Clearing the picker returns the row to the blank state it started in.
+     * "Not in catalog" is no longer reachable from here — a search box cannot
+     * offer an item the catalog does not have — so that prompt moved to the
+     * picker's own empty state, where the user is actually looking for it.
+     */
+    function selectItem(key: string, entry: CatalogItem | null) {
         updateLine(key, {
-            itemName,
-            unit: catalogEntry?.unit ?? null,
-            unitCost: catalogEntry?.unitCost ?? null,
-            sourcing: catalogEntry ? "canvassing" : "pending-item-creation",
+            itemName: entry?.name ?? null,
+            unit: entry?.unit ?? null,
+            unitCost: entry?.unitCost ?? null,
+            sourcing: "canvassing",
             vendor: null,
         });
     }
@@ -257,60 +297,12 @@ export function LineItemsEditor({
                                                 </Link>
                                             </div>
                                         ) : (
-                                            <Select
-                                                items={catalogOptions}
+                                            <CatalogItemCombobox
                                                 value={line.itemName}
-                                                onValueChange={(value) =>
-                                                    selectItem(
-                                                        line.key,
-                                                        value as string | null,
-                                                    )
+                                                onSelect={(entry) =>
+                                                    selectItem(line.key, entry)
                                                 }
-                                            >
-                                                <SelectTrigger
-                                                    size="sm"
-                                                    className="w-full"
-                                                    aria-label="Item"
-                                                >
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectGroup>
-                                                        {catalogOptions.map(
-                                                            (option) => (
-                                                                <SelectItem
-                                                                    key={
-                                                                        option.label
-                                                                    }
-                                                                    value={
-                                                                        option.value
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        option.label
-                                                                    }
-                                                                </SelectItem>
-                                                            ),
-                                                        )}
-                                                    </SelectGroup>
-                                                    {hasNextPage ? (
-                                                        <CatalogScrollSentinel
-                                                            loading={
-                                                                isFetchingNextPage
-                                                            }
-                                                            loadedCount={
-                                                                catalogItems.length
-                                                            }
-                                                            onVisible={() => {
-                                                                if (
-                                                                    !isFetchingNextPage
-                                                                )
-                                                                    fetchNextPage();
-                                                            }}
-                                                        />
-                                                    ) : null}
-                                                </SelectContent>
-                                            </Select>
+                                            />
                                         )}
                                     </TableCell>
 

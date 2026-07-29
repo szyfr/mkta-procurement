@@ -64,7 +64,12 @@ export interface ReferenceRepository {
     listPaymentTerms(): Promise<string[]>;
     /**
      * Paged, unlike the other three: the catalog is large enough that the picker
-     * loads it a page at a time as the user scrolls.
+     * loads it a page at a time as the user scrolls. A `search` term narrows it
+     * upstream, which is the only way to reach items beyond the loaded pages.
      */
-    listCatalogItems(page: number, pageSize: number): Promise<CatalogItemPage>;
+    listCatalogItems(
+        page: number,
+        pageSize: number,
+        search?: string,
+    ): Promise<CatalogItemPage>;
 }

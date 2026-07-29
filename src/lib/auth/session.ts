@@ -24,7 +24,7 @@ import type { Actor, SessionUser } from "@/types";
  */
 
 const DEFAULT_USER: SessionUser = {
-    id: "default-user",
+    id: "1",
     name: "Procurement User",
     email: "procurement@mkta.local",
     role: "Procurement Officer",

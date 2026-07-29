@@ -231,6 +231,49 @@ export async function catalogPage(
     };
 }
 
+/**
+ * A page of catalog search results, straight from upstream.
+ *
+ * This deliberately bypasses the snapshot. The snapshot indexes materials by
+ * `description` only, whereas `/materials?search=` also matches `title` and
+ * `no` — the item code people actually type — so filtering in memory here would
+ * silently answer a narrower question. The cost is one upstream request per
+ * search; callers are expected to debounce.
+ */
+export async function catalogSearchPage(
+    client: FastApiClient,
+    page: number,
+    pageSize: number,
+    search: string,
+): Promise<CatalogItemPage> {
+    const response = await client.get<Paginated<MaterialDoc>>("/materials", {
+        page,
+        page_size: Math.min(pageSize, MAX_PAGE_SIZE),
+        search,
+    });
+
+    // Descriptions are not unique upstream, and unlike the snapshot a raw search
+    // response has not been collapsed by name — so do it here too, first one
+    // wins, or the picker would offer the same option twice.
+    const byName = new Map<string, CatalogItem>();
+    for (const doc of response.data) {
+        const entry = toMaterialEntry(doc);
+        if (!entry.name || byName.has(entry.name)) continue;
+        byName.set(entry.name, {
+            name: entry.name,
+            unit: entry.unit,
+            unitCost: entry.unitCost,
+        });
+    }
+
+    return {
+        items: [...byName.values()],
+        total: response.pagination.total_items,
+        page,
+        pageSize,
+    };
+}
+
 /** Display name for a stored id, falling back to the id when it is unknown. */
 export async function departmentName(
     client: FastApiClient,

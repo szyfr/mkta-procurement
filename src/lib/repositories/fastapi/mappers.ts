@@ -3,6 +3,8 @@ import type {
     Priority,
     PurchaseRequest,
     PurchaseRequestItem,
+    PurchaseRequestItemStatus,
+    PurchaseRequestStatus,
     SourcingMode,
 } from "@/types";
 
@@ -13,10 +15,10 @@ import { departmentName, materialById, vendorName } from "./directory";
  * Upstream documents → the DTO contract in `@/lib/types`.
  *
  * The gap this bridges is wider than a rename. The Mongo document stores a
- * request's identity (title, priority, justification, dates) but none of its
- * workflow: there is no status, no amount, no submitted/completed date, no
- * documents, comments or activity. Those fields are derived or omitted here,
- * and every one of them is a `TODO(backend)`.
+ * request's identity (title, priority, justification, dates, status) but
+ * still lacks amount, submitted/completed date, documents, comments or
+ * activity. Those fields are derived or omitted here, and every one of them
+ * is a `TODO(backend)`.
  */
 
 export interface PurchaseRequestDoc {
@@ -24,6 +26,7 @@ export interface PurchaseRequestDoc {
     title: string | null;
     date_needed: string;
     priority: string;
+    status: string;
     justification: string | null;
     requester_id: string | null;
     department_id: string | null;
@@ -35,6 +38,7 @@ export interface PurchaseRequestDoc {
 export interface PurchaseRequestItemDoc {
     _id: string;
     quantity: number;
+    status: string;
     is_needs_canvass: boolean | null;
     purchase_request_id: string;
     material_id: string | null;
@@ -59,6 +63,45 @@ export function toPriority(value: string | null | undefined): Priority {
 
 export function toUpstreamPriority(value: Priority | undefined): string {
     return (value ?? "Normal").toLowerCase();
+}
+
+const PR_STATUS_BY_UPSTREAM: Record<string, PurchaseRequestStatus> = {
+    draft: "draft",
+    canvassing: "canvassing",
+    "po-created": "po-created",
+    "partially-completed": "partially-completed",
+    completed: "completed",
+    rejected: "rejected",
+};
+
+const PR_STATUS_LABEL: Record<PurchaseRequestStatus, string> = {
+    draft: "Draft",
+    canvassing: "Canvassing",
+    "po-created": "PO Created",
+    "partially-completed": "Partially Completed",
+    completed: "Completed",
+    rejected: "Rejected",
+};
+
+export function toPurchaseRequestStatus(
+    value: string | null | undefined,
+): PurchaseRequestStatus {
+    return PR_STATUS_BY_UPSTREAM[String(value).toLowerCase()] ?? "draft";
+}
+
+const ITEM_STATUS_BY_UPSTREAM: Record<string, PurchaseRequestItemStatus> = {
+    pending: "pending",
+    canvassing: "canvassing",
+    "po-created": "po-created",
+    delivered: "delivered",
+    "awaiting-batch": "awaiting-batch",
+    rejected: "rejected",
+};
+
+export function toItemStatus(
+    value: string | null | undefined,
+): PurchaseRequestItemStatus {
+    return ITEM_STATUS_BY_UPSTREAM[String(value).toLowerCase()] ?? "pending";
 }
 
 /**
@@ -101,9 +144,7 @@ export async function toPurchaseRequestItem(
         estimatedUnitCost: material?.unitCost ?? null,
         vendor: await vendorName(client, doc.vendor_id),
         sourcing: toSourcing(doc),
-        // TODO(backend): items carry no lifecycle state upstream, so every one
-        // reads as pending. Needs a `status` field before the workflow can move.
-        status: "pending",
+        status: toItemStatus(doc.status),
     };
 }
 
@@ -125,6 +166,8 @@ export async function toPurchaseRequest(
         0,
     );
 
+    const status = toPurchaseRequestStatus(doc.status);
+
     return {
         id: doc._id,
         title: doc.title ?? null,
@@ -134,10 +177,8 @@ export async function toPurchaseRequest(
         // synced, so this is zero until Business Central costs land.
         amount,
         priority: toPriority(doc.priority),
-        // TODO(backend): purchase requests have no `status` field at all. Until
-        // one exists every request is reported as a draft.
-        status: "draft",
-        statusLabel: "Draft",
+        status,
+        statusLabel: PR_STATUS_LABEL[status],
         createdAt: toDisplayDate(doc.created_at),
         items,
     };

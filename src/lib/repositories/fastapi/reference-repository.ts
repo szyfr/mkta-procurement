@@ -2,7 +2,12 @@ import type { CatalogItemPage } from "@/types";
 
 import type { ReferenceRepository } from "../interfaces";
 import type { FastApiClient } from "./client";
-import { catalogPage, listDepartmentNames, listVendorNames } from "./directory";
+import {
+    catalogPage,
+    catalogSearchPage,
+    listDepartmentNames,
+    listVendorNames,
+} from "./directory";
 
 /**
  * Master data for the pickers.
@@ -31,7 +36,13 @@ export class FastApiReferenceRepository implements ReferenceRepository {
         return [];
     }
 
-    listCatalogItems(page: number, pageSize: number): Promise<CatalogItemPage> {
-        return catalogPage(this.client, page, pageSize);
+    listCatalogItems(
+        page: number,
+        pageSize: number,
+        search?: string,
+    ): Promise<CatalogItemPage> {
+        return search
+            ? catalogSearchPage(this.client, page, pageSize, search)
+            : catalogPage(this.client, page, pageSize);
     }
 }

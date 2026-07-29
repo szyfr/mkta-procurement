@@ -26,6 +26,7 @@ const itemStatus: Record<
     "po-created": { label: "PO Created", tone: "ordered" },
     delivered: { label: "Delivered", tone: "success" },
     "awaiting-batch": { label: "Awaiting Batch Assignment", tone: "neutral" },
+    rejected: { label: "Rejected", tone: "danger" },
 };
 
 /** Per-item sourcing status, with the follow-up action for each row. */

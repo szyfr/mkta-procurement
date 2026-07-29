@@ -32,7 +32,8 @@ export type PurchaseRequestItemStatus =
     | "canvassing"
     | "po-created"
     | "delivered"
-    | "awaiting-batch";
+    | "awaiting-batch"
+    | "rejected";
 
 /** How an item is sourced. Decided automatically, not editable by the requester. */
 export type SourcingMode = "direct" | "canvassing" | "pending-item-creation";

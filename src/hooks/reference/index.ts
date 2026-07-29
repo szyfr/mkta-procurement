@@ -46,12 +46,22 @@ const CATALOG_PAGE_SIZE = 50;
  * of blocking on the whole list. Pages are flattened into a single `items`
  * array, which is what the picker binds to and what makes selecting an item
  * work exactly as it did when the list arrived whole.
+ *
+ * `search` is answered upstream rather than by filtering what is loaded, so a
+ * match on page 30 is reachable without scrolling there. Each term is its own
+ * infinite query — and its own cache entry, which is why callers must pass a
+ * debounced term rather than raw keystrokes.
  */
-export function useCatalogItems() {
+export function useCatalogItems(search?: string) {
     const query = useInfiniteQuery({
-        queryKey: queryKeys.reference.catalogItems,
+        queryKey: queryKeys.reference.catalogItems(search),
         queryFn: ({ pageParam, signal }) =>
-            referenceApi.catalogItems(pageParam, CATALOG_PAGE_SIZE, signal),
+            referenceApi.catalogItems(
+                pageParam,
+                CATALOG_PAGE_SIZE,
+                search,
+                signal,
+            ),
         initialPageParam: 1,
         getNextPageParam: (lastPage) =>
             lastPage.page * lastPage.pageSize < lastPage.total

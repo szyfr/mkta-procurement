@@ -134,6 +134,12 @@ export const purchaseRequestQuery = z.object({
 export const catalogItemQuery = z.object({
     page: z.coerce.number().int().positive().default(1),
     pageSize: z.coerce.number().int().positive().max(100).default(50),
+    /** Blank and whitespace-only terms mean "no search", not "match nothing". */
+    search: z
+        .string()
+        .trim()
+        .optional()
+        .transform((value) => value || undefined),
 });
 
 export const canvassingQuery = z.object({
