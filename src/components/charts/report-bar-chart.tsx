@@ -3,10 +3,10 @@
 import { Bar, BarChart, Cell, XAxis } from "recharts";
 
 import {
-  type ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
+    type ChartConfig,
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
 } from "@/components/ui/chart";
 import { formatCurrency } from "@/lib/utils";
 import type { ReportChartDatum } from "@/types";
@@ -21,71 +21,71 @@ import type { ReportChartDatum } from "@/types";
  * config colour.
  */
 export function ReportBarChart({
-  data,
-  config,
-  dataKey = "value",
-  categoryKey = "category",
-  unit,
-  currency,
-  className,
+    data,
+    config,
+    dataKey = "value",
+    categoryKey = "category",
+    unit,
+    currency,
+    className,
 }: {
-  data: ReportChartDatum[];
-  config: ChartConfig;
-  dataKey?: string;
-  categoryKey?: string;
-  unit?: string;
-  currency?: boolean;
-  className?: string;
+    data: ReportChartDatum[];
+    config: ChartConfig;
+    dataKey?: string;
+    categoryKey?: string;
+    unit?: string;
+    currency?: boolean;
+    className?: string;
 }) {
-  const hasPerBarColours = data.some((entry) => entry.fill);
+    const hasPerBarColours = data.some((entry) => entry.fill);
 
-  return (
-    <ChartContainer
-      config={config}
-      className={className ?? "aspect-auto h-56 w-full"}
-    >
-      <BarChart accessibilityLayer data={data} margin={{ top: 8 }}>
-        <XAxis
-          dataKey={categoryKey}
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-          interval={0}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={
-            <ChartTooltipContent
-              formatter={(value) => {
-                const numeric = Number(value);
-                return currency
-                  ? formatCurrency(numeric)
-                  : `${numeric}${unit ?? ""}`;
-              }}
-            />
-          }
-        />
-        <Bar
-          dataKey={dataKey}
-          radius={4}
-          // Keeps bars close to the wireframe's narrow columns instead of
-          // stretching to fill the container.
-          maxBarSize={48}
-          fill={`var(--color-${dataKey})`}
-          // The grow-in animation starts when the chart mounts. Now that the
-          // report arrives from a query, the chart mounts into a container that
-          // has just been resized, and the animation reliably stalls on its
-          // first frame — leaving flat bars until some unrelated re-render
-          // knocks it loose. The report panel does not need the flourish.
-          isAnimationActive={false}
+    return (
+        <ChartContainer
+            config={config}
+            className={className ?? "aspect-auto h-56 w-full"}
         >
-          {hasPerBarColours
-            ? data.map((entry) => (
-                <Cell key={entry.category} fill={entry.fill} />
-              ))
-            : null}
-        </Bar>
-      </BarChart>
-    </ChartContainer>
-  );
+            <BarChart accessibilityLayer data={data} margin={{ top: 8 }}>
+                <XAxis
+                    dataKey={categoryKey}
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    interval={0}
+                />
+                <ChartTooltip
+                    cursor={false}
+                    content={
+                        <ChartTooltipContent
+                            formatter={(value) => {
+                                const numeric = Number(value);
+                                return currency
+                                    ? formatCurrency(numeric)
+                                    : `${numeric}${unit ?? ""}`;
+                            }}
+                        />
+                    }
+                />
+                <Bar
+                    dataKey={dataKey}
+                    radius={4}
+                    // Keeps bars close to the wireframe's narrow columns instead of
+                    // stretching to fill the container.
+                    maxBarSize={48}
+                    fill={`var(--color-${dataKey})`}
+                    // The grow-in animation starts when the chart mounts. Now that the
+                    // report arrives from a query, the chart mounts into a container that
+                    // has just been resized, and the animation reliably stalls on its
+                    // first frame — leaving flat bars until some unrelated re-render
+                    // knocks it loose. The report panel does not need the flourish.
+                    isAnimationActive={false}
+                >
+                    {hasPerBarColours
+                        ? data.map((entry) => (
+                              <Cell key={entry.category} fill={entry.fill} />
+                          ))
+                        : null}
+                </Bar>
+            </BarChart>
+        </ChartContainer>
+    );
 }

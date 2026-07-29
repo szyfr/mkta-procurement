@@ -1,12 +1,18 @@
 # BFF Architecture
 
 The React app never talks to a database or to a remote service. It talks to
-Next.js Route Handlers, which talk to a repository interface, which has one
-implementation today (SQLite) and one waiting (FastAPI).
+Next.js Route Handlers, which talk to a repository interface, which now has two
+implementations: FastAPI over HTTP, and a set of empty stand-ins.
 
-SQLite is temporary. Replacing it means filling in method bodies in
-`src/lib/repositories/fastapi/` and setting one environment variable. No
-component, hook, API client module or route handler changes.
+The split is not a configuration choice. It is a statement of what the backend
+implements. FastAPI serves purchase requests, departments, materials and
+vendors; it has no endpoints for the dashboard, canvassing, reports,
+notifications, search or settings. Those **read** as empty — an empty list, a
+dashboard of empty panels — so the UI shows the empty state it already has for
+each of them, and nothing invents data that does not exist. Their **writes**
+still return 501, because each has to hand back the record it claims to have
+stored. As endpoints land, entries move from one bundle to the other in
+`repository-factory.ts` and nothing above that line changes.
 
 ---
 
@@ -38,9 +44,9 @@ src/
     api/                          browser → BFF client (client.ts + per-feature modules)
     repositories/
       interfaces/                 the contract
-      sqlite/                     Drizzle implementation
-      fastapi/                    HTTP implementation (transport done, methods stubbed)
-      repository-factory.ts       the single switch point
+      fastapi/                    HTTP implementation — client, directory cache, mappers
+      unimplemented.ts            empty stand-ins for the unbuilt endpoints
+      repository-factory.ts       the single composition point
     auth/session.ts               cookie → principal
     http/                         ok/created/ApiError/withRoute/defineRoute
     validation/schemas.ts         zod schemas
@@ -48,14 +54,7 @@ src/
     reports/presentation.ts       report icons + chart config (client-only)
     status-tones.ts               status → pill tone (shared by client and mappers)
 
-  db/
-    schema/                       24 tables
-    migrations/                   drizzle-kit output
-    mappers/                      row → DTO
-    index.ts                      connection singleton, migrate, ensureDatabaseReady
-    seed.ts                       fixtures → real records
-
-  data/                           seed fixtures ONLY (+ navigation.ts, which is app config)
+  data/navigation.ts              app config (the sidebar)
   types/                          the DTO contract
 ```
 
@@ -68,13 +67,14 @@ Browser
           └─ API client .......... typed fetch, unwraps the envelope, throws ApiClientError
               └─ Route Handlers .. validate → resolve actor → call one repository method
                   └─ Repository interface
-                      ├─ SQLite (Drizzle)        ← active
-                      └─ FastAPI (HTTP + cookies) ← future
+                      ├─ FastAPI (HTTP + cookies)  purchase requests, reference data
+                      └─ Empty stand-ins           everything not built yet
 ```
 
 **The contract is the interface set in `src/lib/types.ts`.** The REST API returns
 exactly those shapes. That is why the presentational components did not change
-when the data moved behind an API, and it is what a future FastAPI must satisfy.
+when the data moved behind an API, and why swapping SQLite for FastAPI beneath
+them changed no component at all.
 
 Every response uses one envelope:
 
@@ -89,43 +89,58 @@ bare `500` with the detail logged server-side, never returned.
 ## 3. API endpoints
 
 ```
-GET    /api/health                                        readiness + row counts
+GET    /api/health                                        upstream reachability + unbuilt module list
 GET    /api/session                                       who am I
 POST   /api/auth/login                                    sets HttpOnly cookie
 POST   /api/auth/logout
 
-GET    /api/dashboard                                     kpis, actionable, activity, quotations, deadlines
+GET    /api/dashboard                                     empty — kpis, actionable, activity, quotations, deadlines
 
-GET    /api/purchase-requests                             ?status&priority&department&q&page&pageSize&listedOnly
+GET    /api/purchase-requests                             ?q&page&pageSize  (status/priority/department accepted, not yet applied)
 POST   /api/purchase-requests
 GET    /api/purchase-requests/[id]
 PATCH  /api/purchase-requests/[id]
 DELETE /api/purchase-requests/[id]
-POST   /api/purchase-requests/[id]/submit
-POST   /api/purchase-requests/[id]/items/[itemId]/proof-of-order
+POST   /api/purchase-requests/[id]/submit                 501
+POST   /api/purchase-requests/[id]/items/[itemId]/proof-of-order   501
 
-GET    /api/item-creation-requests
-POST   /api/item-creation-requests
+GET    /api/item-creation-requests                        empty
+POST   /api/item-creation-requests                        501
 
-GET    /api/canvassing                                    ?department&status
-GET    /api/canvassing/[id]
-POST   /api/canvassing/[id]/batches                       { itemIds } → { batch }
-POST   /api/canvassing/[id]/batches/[batch]/quotes
-POST   /api/canvassing/[id]/batches/[batch]/select-vendor  { quoteId }
+GET    /api/canvassing                                    empty  ?department&status
+GET    /api/canvassing/[id]                               404 (no case exists)
+POST   /api/canvassing/[id]/batches                       501
+POST   /api/canvassing/[id]/batches/[batch]/quotes        501
+POST   /api/canvassing/[id]/batches/[batch]/select-vendor  501
 
-GET    /api/reports
-GET    /api/reports/[id]                                  ?dateRange&department&vendor
+GET    /api/reports                                       empty
+GET    /api/reports/[id]                                  404  ?dateRange&department&vendor
 
-GET    /api/notifications
-PATCH  /api/notifications/[id]/read
-POST   /api/notifications/read-all
+GET    /api/notifications                                 empty
+PATCH  /api/notifications/[id]/read                       501
+POST   /api/notifications/read-all                        empty
 
-GET    /api/search                                        ?q
-GET    /api/vendors  /api/departments  /api/catalog-items  /api/payment-terms
+GET    /api/search                                        empty  ?q
+GET    /api/vendors  /api/departments
+GET    /api/payment-terms                                 empty
+GET    /api/catalog-items                                 ?page&pageSize (paged; the rest are whole lists)
 
-GET    /api/settings/account      PATCH /api/settings/account
-GET    /api/settings/users        GET   /api/settings/roles
+GET    /api/settings/account      PATCH /api/settings/account  501
+GET    /api/settings/users        empty
+GET    /api/settings/roles        empty
 ```
+
+Routes marked `empty` have no upstream endpoint and answer with an empty
+payload, which the UI renders as its own empty state — the `404`s are the same
+thing for a single record, and the detail views already render those as an
+empty panel rather than an error. Routes marked `501` are the writes behind
+those same unbuilt modules: each has to return the record it stored, so a
+success would be a lie about a save that never happened. Nothing in the UI can
+reach one, because nothing is listed to act on.
+
+The contract itself is unchanged — every path, verb and payload shape is the
+same as it was over SQLite, apart from `/api/catalog-items` gaining paging and
+`POST /api/purchase-requests` gaining a required `dateNeeded`.
 
 ## 4. Repository interfaces
 
@@ -146,105 +161,117 @@ export interface PurchaseRequestRepository {
 }
 ```
 
-They are bundled as `Repositories` and resolved by
-`getRepositories(ctx: RequestContext)` — the **only** place the backend is chosen:
+They are bundled as `Repositories` and composed by
+`getRepositories(ctx: RequestContext)` — the **only** place a data source is
+chosen:
 
 ```ts
-process.env.PROCUREMENT_BACKEND === "fastapi" ? fastApi : sqlite   // default: sqlite
+{ ...createUnimplementedRepositories(), ...createFastApiRepositories(ctx) }
 ```
+
+The order is the point: FastAPI wins wherever it implements something, and a
+module graduates by being added to the second bundle.
 
 `RequestContext` carries the incoming `Cookie` header and a `relaySetCookie`
-callback. SQLite ignores both; FastAPI uses them.
+callback. The stand-ins ignore both; FastAPI forwards them.
 
-## 5. SQLite implementation
+## 5. FastAPI implementation
 
-Drizzle ORM over `better-sqlite3`, pinned to `^12.11.1` — v13 dropped
-`prebuild-install` and compiles from source, which needs a C++ toolchain.
+`src/lib/repositories/fastapi/`. Four files:
 
-- Multi-table writes run in `db.transaction()`. Submitting a request writes item
-  statuses, purchase orders, order lines and an activity entry atomically;
-  awarding a batch writes the batch, the PO, its lines, the item vendors and the
-  rolled-up request status atomically.
-- Aggregates load in a fixed number of queries — `loadAggregates` fetches items,
-  documents, comments and activity for N requests in four queries, not 4N.
-- **Mappers** (`src/db/mappers/`) turn stored values into the display strings the
-  DTO promises: `2026-07-20 → "Jul 20"`, an instant → `"10 minutes ago"`,
-  a batch's state → `"Comparison Ready"` plus its tone.
-- Dates are stored as `YYYY-MM-DD` text and formatted by string manipulation.
-  `new Date("2026-07-20")` parses as UTC midnight, so any timezone west of UTC
-  renders it a day early.
+- **`client.ts`** — base URL, cookie forwarding, `Set-Cookie` relaying, error
+  translation. The upstream is not consistent about error shape: `HTTPException`
+  produces `{"detail": …}`, the controllers hand-roll `{"message": …}` for the
+  400s and 404s they return directly, and Pydantic's 422 makes `detail` a list.
+  All three are read, or every "… not found" message would be dropped.
+- **`directory.ts`** — the reference cache. The DTO speaks in names, Mongo in
+  ObjectIds, so this pages `/departments`, `/vendors` and `/materials` in once
+  (~24 calls at the upstream cap of 100/page), indexes them both ways, and holds
+  the result for 5 minutes. The in-flight promise is cached too, so a cold start
+  under concurrency warms up once rather than once per request. The catalog
+  picker's pages are sliced from the same snapshot, so scrolling costs nothing
+  upstream.
+- **`mappers.ts`** — documents → DTOs, and the honest record of what is missing.
+- **`purchase-request-repository.ts`** — the aggregate, plus the two workarounds
+  described in §6.
 
-## 6. FastAPI placeholder
+## 6. What the backend does not store
 
-`src/lib/repositories/fastapi/` contains real classes implementing every
-interface. Each method throws `NOT_IMPLEMENTED` (surfaced as HTTP 501). The
-**transport is complete**: `FastApiClient` handles base URL, cookie forwarding,
-`Set-Cookie` relaying and error translation, because that is where the migration
-risk actually is.
+The upstream purchase request holds a title, priority, justification, a needed
+date, a department id, a requester id and its items. The DTO needs rather more.
+These are derived in the mapper, each with a `TODO(backend)`:
 
-Implementing an endpoint is one line:
+| DTO field | Today | Blocked on |
+|---|---|---|
+| `status`, `statusLabel` | always `draft` / `"Draft"` | no `status` field exists — the whole draft → canvassing → PO → completed workflow is unrepresented |
+| `amount`, `estimatedUnitCost` | always `0` | `MaterialSyncJob` never writes `last_cost`, though `MaterialBase` declares it required |
+| `requester` | resolved against the fixture users | `requester_id` is an opaque Cognito id and there is no user collection |
+| `sourcing` | from the item's `is_needs_canvass` | the only sourcing signal stored |
+| `submittedOn`, `documents`, `comments`, `activity` | omitted | not stored |
+| item `status`, `batch`, `deliveredOn` | `pending`, omitted | items carry no lifecycle state |
 
-```ts
-getById(id: string) {
-  return this.client.request<PurchaseRequest>(`/purchase-requests/${id}`);
-}
+`submit` and `recordProofOfOrder` throw `NOT_IMPLEMENTED` (501), which the UI
+surfaces as an error state rather than a crash.
+
+Two upstream bugs are worked around rather than waited on:
+
+- **`PUT` cannot take a partial body.** The controller iterates
+  `payload["items"]` unconditionally and the field defaults to `None`, so
+  editing only a title returns `500 'NoneType' object is not iterable`. `update`
+  reads the request's current items back and re-sends them.
+- **404s arrive as 400s.** Every controller catches `HTTPException` and returns a
+  flat `{"message": "Bad Request"}` *after* the inner code has raised a real 404,
+  so deleting a missing request reports 400. `ApiClientError.isNotFound` will not
+  fire on those paths.
+
+Also worth knowing: `PUT` deletes and recreates every item, so item ids do not
+survive an edit; and the material sync hard-deletes and recreates materials with
+fresh `_id`s, orphaning the `material_id` on any pre-existing item — those render
+as `Unknown item (<id>)` rather than failing.
+
+## 7. The unbuilt modules
+
+`src/lib/repositories/unimplemented.ts`. The dashboard, reports, notifications,
+search, settings, item creation requests, payment terms and canvassing have no
+upstream endpoints. Their reads answer with an empty payload — `[]`, a
+`DashboardData` whose five panels are all empty, `null` for a single record —
+so each page renders the empty state it already ships (`components/ui/empty`)
+and no component has to know its module is unbuilt.
+
+Empty is not the same as fabricated. Nothing there invents a row, a total or a
+name, which is why the **writes** still throw 501: `create`, `markRead`,
+`updateAccount` and the three canvassing writes each have to return the record
+they stored, and returning one would report a save that never happened.
+Awarding a batch in particular raises a purchase order, sets item vendors and
+rolls the request status up — business logic the backend has to own. None of
+these is reachable anyway: with nothing listed, there is nothing to act on.
+
+Two reads bend the rule, and both are called out in the file:
+
+- `getAccount` echoes the signed-in principal — the same one `/api/session`
+  already serves — rather than a blank profile. The account panel is a form,
+  not a list; it has no empty state, and empty strings would read as a wiped
+  profile.
+- `markAllRead` returns `[]` rather than throwing. There are no notifications
+  to mark, so it stores nothing and claims nothing.
+
+## 8. Authentication
+
+Out of scope, and the backend has none — no login, no user collection, and
+`requester_id` is reserved for a Cognito user pool id. `getCurrentUser` returns a
+single fixture principal and every request is treated as coming from them.
+
+The cookie machinery in `lib/auth/session.ts` is kept deliberately:
+
 ```
-
-Because the stubs compile against the same interfaces, the type checker already
-proves the remote backend can satisfy the contract.
-
-## 7. Database schema
-
-24 tables. Migrations in `src/db/migrations`, generated by `drizzle-kit generate`
-and applied at boot.
-
-| Group | Tables |
-|---|---|
-| Master data | `users`, `departments`, `vendors`, `catalog_items`, `payment_terms`, `role_permissions` |
-| Purchase requests | `purchase_requests`, `purchase_request_items`, `pr_documents`, `pr_comments`, `pr_activity`, `item_creation_requests` |
-| Canvassing | `canvassing_batches`, `canvassing_batch_items`, `vendor_quotes`, `vendor_quote_lines` |
-| Orders | `purchase_orders`, `purchase_order_items` |
-| Presentation-backed | `reports`, `notifications`, `dashboard_kpis`, `activity_feed`, `pending_quotations`, `deadlines` |
-
-Decisions the seed data forced:
-
-- **`purchase_requests.amount` is stored, not summed.** Only 4 of the 10 seeded
-  requests equal their item total (PR-2026-0114 stores 84,200 against 14,000
-  computed). Recomputing would silently change the specified figures.
-- **`action_step` / `action_step_tone` / `action_order`** are columns. The
-  dashboard's step text and tone are not a function of status — they diverge
-  from `statusLabel` on 3 of 6 rows and from the tone map on 4 of 6.
-- **`list_order`** preserves the hand-curated wireframe ordering; it is not a
-  sort key that can be recomputed.
-- **`quotes_received_baseline`** holds quotes counted before their individual
-  rows existed, so `quotesReceived = baseline + rows` and a newly submitted
-  quote still moves the number.
-- **`selected_quote_id`** is named for what it holds; the DTO field is
-  `selectedVendorId` but the value is a *quote* id.
-- **`notifications.created_at`** is a real instant. `timestamp` and `group` are
-  derived on read, which is what stops them being frozen at seed time.
-
-## 8. Authentication flow
-
-Structure is in place; enforcement is deliberately off. An unauthenticated
-request resolves to the seeded procurement officer rather than being rejected,
-so the app can be exercised end to end without a login step.
-
-```
-today:   Browser ──cookie──▶ BFF ──▶ getCurrentUser() ──▶ Actor ──▶ repository
+today:   Browser ──cookie──▶ BFF ──▶ fixture principal ──▶ Actor ──▶ repository
 future:  Browser ──cookie──▶ BFF ──forwards Cookie──▶ FastAPI
                                  ◀──relays Set-Cookie──
 ```
 
-- The cookie is `HttpOnly`, `sameSite=lax`, `secure` in production.
-- No JWT ever reaches React. Nothing is stored in `localStorage` or
-  `sessionStorage`. The client asks `/api/session` who it is.
-- Route handlers already thread an `Actor` into every write, so authorship is
-  recorded correctly from day one.
-
-To turn enforcement on: have `getCurrentUser` throw `UNAUTHORIZED` instead of
-falling back, and add the guard to `proxy.ts` (Next.js 16 renamed
-`middleware.ts` → `proxy.ts`). No call site changes.
+`FastApiClient` already forwards `Cookie` upstream and relays `Set-Cookie` back.
+What changes when FastAPI issues sessions is where the principal comes from, not
+how it travels. No JWT ever reaches React; the client asks `/api/session`.
 
 ## 9. Request flow
 
@@ -256,51 +283,55 @@ PurchaseRequestDetailView
       └─ purchaseRequestsApi.get(id)           lib/api/
           └─ GET /api/purchase-requests/[id]   app/api/…/route.ts
               └─ defineRoute: await params → getCurrentUser() → getRepositories()
-                  └─ SqlitePurchaseRequestRepository.getById()
-                      └─ Drizzle: request + items + documents + comments + activity
-                          └─ toPurchaseRequest() → "Jul 20", "PO-3025 Created"
+                  └─ FastApiPurchaseRequestRepository.getById()
+                      └─ GET {FASTAPI_BASE_URL}/purchase-requests/{id}
+                          └─ directory lookups resolve department, material, vendor
+                          └─ toPurchaseRequest() → "Jul 28", "Draft"
               ◀── { data: PurchaseRequest }
       ◀── cached under ["purchase-requests","detail",id]
 ```
 
-Writing (awarding a vendor) additionally invalidates the canvassing detail, the
-canvassing list, the request, the request list and the dashboard — grouped in
-one helper so no mutation can forget one.
+The catalog picker is the one paged read: `useCatalogItems` is a
+`useInfiniteQuery`, and the dropdown's sentinel re-observes after each page so a
+short page cannot stall it short of the end.
 
-## 10. Migration strategy
+## 10. What is left
 
-The frontend does not change. In order:
-
-1. Stand up FastAPI exposing the DTO shapes in `src/types/`. The contract is
-   already written down; `/api/health` and the route handlers are the reference.
-2. Implement one repository method at a time in
-   `src/lib/repositories/fastapi/`, replacing a `notImplemented()` with a
-   `this.client.request(...)`. Ship incrementally — a partially migrated backend
-   returns 501 for the rest, which the UI surfaces as an error state rather than
-   a crash.
-3. Move date formatting and status-label derivation upstream, or keep the
-   mappers in the BFF. Either works; the DTO is what matters.
-4. Set `FASTAPI_BASE_URL` and `PROCUREMENT_BACKEND=fastapi`.
-5. Hand cookie issuance to FastAPI: `/api/auth/login` forwards credentials and
-   relays the upstream `Set-Cookie`. `FastApiClient` already does this.
-6. Delete `src/db/`, `src/data/` and the `better-sqlite3` and `drizzle-*`
-   dependencies.
-
-**Verifying the boundary:** run with `PROCUREMENT_BACKEND=fastapi`. Every data
-endpoint must return 501. Anything that still returns data is bypassing the
-repository layer.
-
----
+1. Backend: add a `status` field and the workflow transitions behind it.
+2. Backend: populate `materials.last_cost` from Business Central.
+3. Backend: stop orphaning `material_id` on every material sync.
+4. Backend: let `PUT` accept a partial body; stop collapsing 404s into 400s.
+5. Backend: endpoints for canvassing, dashboard, reports, notifications, search,
+   settings and item creation requests. Each one is a line moved in
+   `repository-factory.ts` and a class deleted from `unimplemented.ts`.
+6. Backend: list filtering by status, priority and department — `search` is the
+   only filter the index supports today.
+7. Auth, once the backend has it.
 
 ## Running it
 
+FastAPI must be up first — the BFF has no local store to fall back on.
+
 ```bash
-npm run dev           # migrates and seeds on first request
-npm run db:generate   # regenerate migrations after a schema change
-npm run db:reset      # delete the database; it is recreated and reseeded on next boot
-npm run db:clear      # delete the database; it is recreated with reference data only (no demo requests/activity) on next boot
+cd ../purchasing-backend && python -m app.main   # or: uvicorn app.main:app --port 8000
+npm run dev
 ```
 
-Seeded activity and notification timestamps are real instants anchored to seed
-time, so they age — "10 minutes ago" becomes "Yesterday" the next day. That is
-correct behaviour for real data; `npm run db:reset` gives a fresh demo.
+`.env.local` points the BFF at it:
+
+```
+FASTAPI_BASE_URL=http://localhost:8000
+```
+
+`GET /api/health` reports whether the upstream is reachable and lists which
+modules are still unbuilt — the quickest way to tell a misconfigured base URL
+from an application error, and to tell an empty page apart from a broken one.
+
+```bash
+npm run lint      # biome check
+npm run format    # biome format --write
+npm run build
+```
+
+Fixture activity and notification timestamps are frozen strings, not instants —
+they no longer age, because there is no seed step to anchor them to.

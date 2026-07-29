@@ -11,19 +11,19 @@ import { PurchaseRequestDetailView } from "@/components/purchase-requests/purcha
  * client, so there is nothing to prerender per id.
  */
 export async function generateMetadata({
-  params,
+    params,
 }: {
-  params: Promise<{ id: string }>;
+    params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  return { title: id };
+    const { id } = await params;
+    return { title: id };
 }
 
 export default async function PurchaseRequestDetailPage({
-  params,
+    params,
 }: {
-  params: Promise<{ id: string }>;
+    params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  return <PurchaseRequestDetailView id={id} />;
+    const { id } = await params;
+    return <PurchaseRequestDetailView id={id} />;
 }

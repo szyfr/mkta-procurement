@@ -12,15 +12,15 @@ import { searchApi } from "@/lib/api";
  * next ones load instead of collapsing to empty between keystrokes.
  */
 export function useSearch(query: string) {
-  const debounced = useDebouncedValue(query.trim());
+    const debounced = useDebouncedValue(query.trim());
 
-  const result = useQuery({
-    queryKey: queryKeys.search(debounced),
-    queryFn: ({ signal }) => searchApi.search(debounced, signal),
-    enabled: debounced.length > 0,
-    placeholderData: keepPreviousData,
-    staleTime: 60_000,
-  });
+    const result = useQuery({
+        queryKey: queryKeys.search(debounced),
+        queryFn: ({ signal }) => searchApi.search(debounced, signal),
+        enabled: debounced.length > 0,
+        placeholderData: keepPreviousData,
+        staleTime: 60_000,
+    });
 
-  return { ...result, debouncedQuery: debounced };
+    return { ...result, debouncedQuery: debounced };
 }

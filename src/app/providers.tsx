@@ -12,29 +12,34 @@ import { ApiClientError } from "@/lib/api";
  * leaking one user's cached data into another's response.
  */
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 30_000,
-            refetchOnWindowFocus: false,
-            // Retrying a 404 or a validation failure only delays the error the
-            // user needs to see; only infrastructure failures are worth another
-            // attempt.
-            retry: (failureCount, error) => {
-              if (error instanceof ApiClientError && error.status < 500) {
-                return false;
-              }
-              return failureCount < 2;
-            },
-          },
-          mutations: { retry: false },
-        },
-      }),
-  );
+    const [queryClient] = useState(
+        () =>
+            new QueryClient({
+                defaultOptions: {
+                    queries: {
+                        staleTime: 30_000,
+                        refetchOnWindowFocus: false,
+                        // Retrying a 404 or a validation failure only delays the error the
+                        // user needs to see; only infrastructure failures are worth another
+                        // attempt.
+                        retry: (failureCount, error) => {
+                            if (
+                                error instanceof ApiClientError &&
+                                error.status < 500
+                            ) {
+                                return false;
+                            }
+                            return failureCount < 2;
+                        },
+                    },
+                    mutations: { retry: false },
+                },
+            }),
+    );
 
-  return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+    return (
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
+    );
 }

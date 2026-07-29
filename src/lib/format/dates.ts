@@ -9,67 +9,44 @@
  */
 
 const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
 ] as const;
-
-/** The year the fixture dates belong to, taken from the PR id scheme. */
-export const FIXTURE_YEAR = 2026;
-
-/**
- * Turns a fixture label like "Jul 20" into an ISO date. Seed-time only — the
- * fixtures omit the year entirely.
- */
-export function parseFixtureDate(label: string, year = FIXTURE_YEAR): string {
-  const match = /^([A-Za-z]{3})\s+(\d{1,2})$/.exec(label.trim());
-  if (!match) {
-    throw new Error(`Unrecognised fixture date: "${label}"`);
-  }
-
-  const monthIndex = MONTHS.indexOf(match[1] as (typeof MONTHS)[number]);
-  if (monthIndex < 0) {
-    throw new Error(`Unrecognised month in fixture date: "${label}"`);
-  }
-
-  const month = String(monthIndex + 1).padStart(2, "0");
-  const day = String(Number(match[2])).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 /** `2026-07-20` → `Jul 20`, the form every list row and timeline uses. */
 export function formatShortDate(iso: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (!match) return iso;
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (!match) return iso;
 
-  const monthIndex = Number(match[2]) - 1;
-  const month = MONTHS[monthIndex];
-  if (!month) return iso;
+    const monthIndex = Number(match[2]) - 1;
+    const month = MONTHS[monthIndex];
+    if (!month) return iso;
 
-  return `${month} ${Number(match[3])}`;
+    return `${month} ${Number(match[3])}`;
 }
 
 /** Local-calendar date parts, used to compare days without timezone drift. */
 function startOfDay(date: Date): number {
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  ).getTime();
+    return new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+    ).getTime();
 }
 
 function calendarDaysBetween(from: Date, to: Date): number {
-  const msPerDay = 86_400_000;
-  return Math.round((startOfDay(to) - startOfDay(from)) / msPerDay);
+    const msPerDay = 86_400_000;
+    return Math.round((startOfDay(to) - startOfDay(from)) / msPerDay);
 }
 
 /**
@@ -81,47 +58,47 @@ function calendarDaysBetween(from: Date, to: Date): number {
  * "Yesterday", which is what a reader expects.
  */
 export function formatRelative(
-  value: Date | number,
-  now: Date = new Date(),
+    value: Date | number,
+    now: Date = new Date(),
 ): string {
-  const date = value instanceof Date ? value : new Date(value);
-  const elapsedMs = now.getTime() - date.getTime();
+    const date = value instanceof Date ? value : new Date(value);
+    const elapsedMs = now.getTime() - date.getTime();
 
-  if (elapsedMs < 60_000) return "Just now";
+    if (elapsedMs < 60_000) return "Just now";
 
-  const minutes = Math.floor(elapsedMs / 60_000);
-  if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+    const minutes = Math.floor(elapsedMs / 60_000);
+    if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
 
-  const dayDelta = calendarDaysBetween(date, now);
+    const dayDelta = calendarDaysBetween(date, now);
 
-  if (dayDelta === 0) {
-    const hours = Math.floor(elapsedMs / 3_600_000);
-    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  }
+    if (dayDelta === 0) {
+        const hours = Math.floor(elapsedMs / 3_600_000);
+        return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+    }
 
-  if (dayDelta === 1) return "Yesterday";
-  if (dayDelta < 7) return `${dayDelta} days ago`;
+    if (dayDelta === 1) return "Yesterday";
+    if (dayDelta < 7) return `${dayDelta} days ago`;
 
-  return formatShortDate(toIsoDate(date));
+    return formatShortDate(toIsoDate(date));
 }
 
 /** Whether a notification belongs in the "Today" group or the "Earlier" one. */
 export function notificationGroup(
-  value: Date | number,
-  now: Date = new Date(),
+    value: Date | number,
+    now: Date = new Date(),
 ): "today" | "earlier" {
-  const date = value instanceof Date ? value : new Date(value);
-  return calendarDaysBetween(date, now) === 0 ? "today" : "earlier";
+    const date = value instanceof Date ? value : new Date(value);
+    return calendarDaysBetween(date, now) === 0 ? "today" : "earlier";
 }
 
 /** Local-calendar `YYYY-MM-DD` for a `Date`. */
 export function toIsoDate(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${date.getFullYear()}-${month}-${day}`;
 }
 
 /** Today, as a storable calendar date. */
 export function todayIso(now: Date = new Date()): string {
-  return toIsoDate(now);
+    return toIsoDate(now);
 }

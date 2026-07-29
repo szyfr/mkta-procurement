@@ -1,30 +1,29 @@
 import {
-  ChartColumnIcon,
-  ClipboardListIcon,
-  LayoutDashboardIcon,
-  Settings2Icon,
-  UsersIcon,
+    ChartColumnIcon,
+    ClipboardListIcon,
+    LayoutDashboardIcon,
+    UsersIcon,
 } from "lucide-react";
 
 export const appIdentity = {
-  name: "Procurement",
-  organization: "MK Themed Attractions Phils.",
+    name: "Procurement",
+    organization: "MK Themed Attractions Phils.",
 };
 
 export const mainNav = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
-  {
-    title: "Purchase Requests",
-    url: "/purchase-requests",
-    icon: ClipboardListIcon,
-  },
-  { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
-  { title: "Reports", url: "/reports", icon: ChartColumnIcon },
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
+    {
+        title: "Purchase Requests",
+        url: "/purchase-requests",
+        icon: ClipboardListIcon,
+    },
+    { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
+    { title: "Reports", url: "/reports", icon: ChartColumnIcon },
 ];
 
 export const settingsNav = [
-  { title: "My Account", url: "/settings/account" },
-  { title: "Users & Roles", url: "/settings/users", adminOnly: true },
+    { title: "My Account", url: "/settings/account" },
+    { title: "Users & Roles", url: "/settings/users", adminOnly: true },
 ];
 
 /**
@@ -32,16 +31,16 @@ export const settingsNav = [
  * ids such as `PR-2026-0117` — render as-is.
  */
 export const breadcrumbLabels: Record<string, string> = {
-  dashboard: "Dashboard",
-  "purchase-requests": "Purchase Requests",
-  new: "New",
-  "item-requests": "Item Creation Requests",
-  canvassing: "Canvassing",
-  quotes: "Quotes",
-  reports: "Reports",
-  settings: "Settings",
-  account: "My Account",
-  users: "Users & Roles",
+    dashboard: "Dashboard",
+    "purchase-requests": "Purchase Requests",
+    new: "New",
+    "item-requests": "Item Creation Requests",
+    canvassing: "Canvassing",
+    quotes: "Quotes",
+    reports: "Reports",
+    settings: "Settings",
+    account: "My Account",
+    users: "Users & Roles",
 };
 
 /** Segments that exist only to nest routes and should not appear as a crumb. */

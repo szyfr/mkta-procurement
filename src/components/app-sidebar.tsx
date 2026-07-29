@@ -7,58 +7,61 @@ import type * as React from "react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail,
 } from "@/components/ui/sidebar";
 import { appIdentity, mainNav } from "@/data/navigation";
 import { useSession } from "@/hooks/session";
 
 /** Shown while the session query is in flight, so the footer never collapses. */
 const PLACEHOLDER_USER = {
-  name: "…",
-  email: "",
-  role: "",
-  department: "",
-  avatar: "",
+    name: "…",
+    email: "",
+    role: "",
+    department: "",
+    avatar: "",
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: user } = useSession();
+    const { data: user } = useSession();
 
-  return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link href="/dashboard" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <BuildingIcon className="size-4" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {appIdentity.name}
-                </span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {appIdentity.organization}
-                </span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={mainNav} />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={user ?? PLACEHOLDER_USER} />
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
-  );
+    return (
+        <Sidebar collapsible="icon" {...props}>
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            size="lg"
+                            render={<Link href="/dashboard" />}
+                        >
+                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                <BuildingIcon className="size-4" />
+                            </div>
+                            <div className="grid flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">
+                                    {appIdentity.name}
+                                </span>
+                                <span className="truncate text-xs text-muted-foreground">
+                                    {appIdentity.organization}
+                                </span>
+                            </div>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarContent>
+                <NavMain items={mainNav} />
+            </SidebarContent>
+            <SidebarFooter>
+                <NavUser user={user ?? PLACEHOLDER_USER} />
+            </SidebarFooter>
+            <SidebarRail />
+        </Sidebar>
+    );
 }

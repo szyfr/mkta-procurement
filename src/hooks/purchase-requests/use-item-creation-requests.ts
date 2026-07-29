@@ -7,22 +7,22 @@ import { itemCreationRequestsApi } from "@/lib/api";
 import type { CreateItemCreationRequestInput } from "@/types";
 
 export function useItemCreationRequests() {
-  return useQuery({
-    queryKey: queryKeys.itemCreationRequests,
-    queryFn: ({ signal }) => itemCreationRequestsApi.list(signal),
-  });
+    return useQuery({
+        queryKey: queryKeys.itemCreationRequests,
+        queryFn: ({ signal }) => itemCreationRequestsApi.list(signal),
+    });
 }
 
 export function useCreateItemCreationRequest() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (input: CreateItemCreationRequestInput) =>
-      itemCreationRequestsApi.create(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.itemCreationRequests,
-      });
-    },
-  });
+    return useMutation({
+        mutationFn: (input: CreateItemCreationRequestInput) =>
+            itemCreationRequestsApi.create(input),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.itemCreationRequests,
+            });
+        },
+    });
 }

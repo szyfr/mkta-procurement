@@ -1,10 +1,10 @@
 import {
-  ClipboardCheckIcon,
-  GaugeIcon,
-  type LucideIcon,
-  StarIcon,
-  TimerIcon,
-  UserCheckIcon,
+    ClipboardCheckIcon,
+    GaugeIcon,
+    type LucideIcon,
+    StarIcon,
+    TimerIcon,
+    UserCheckIcon,
 } from "lucide-react";
 
 import type { ChartConfig } from "@/components/ui/chart";
@@ -19,50 +19,59 @@ import type { ChartConfig } from "@/components/ui/chart";
  */
 
 interface ReportPresentation {
-  icon: LucideIcon;
-  chartConfig: ChartConfig;
+    icon: LucideIcon;
+    chartConfig: ChartConfig;
 }
 
 const DEFAULT_CHART_CONFIG: ChartConfig = {
-  value: { label: "Value", color: "var(--chart-2)" },
+    value: { label: "Value", color: "var(--chart-2)" },
 };
 
 const PRESENTATION: Record<string, ReportPresentation> = {
-  "pr-cycle-time": {
-    icon: TimerIcon,
-    chartConfig: { value: { label: "Avg. days", color: "var(--chart-2)" } },
-  },
-  "spend-by-department": {
-    icon: GaugeIcon,
-    chartConfig: { value: { label: "Total spend", color: "var(--chart-2)" } },
-  },
-  "vendor-performance": {
-    icon: StarIcon,
-    chartConfig: { value: { label: "Avg. rating", color: "var(--chart-2)" } },
-  },
-  "purchaser-performance": {
-    icon: UserCheckIcon,
-    chartConfig: { value: { label: "PRs processed", color: "var(--chart-2)" } },
-  },
-  "canvassing-compliance": {
-    icon: ClipboardCheckIcon,
-    chartConfig: { value: { label: "PRs", color: "var(--chart-2)" } },
-  },
+    "pr-cycle-time": {
+        icon: TimerIcon,
+        chartConfig: { value: { label: "Avg. days", color: "var(--chart-2)" } },
+    },
+    "spend-by-department": {
+        icon: GaugeIcon,
+        chartConfig: {
+            value: { label: "Total spend", color: "var(--chart-2)" },
+        },
+    },
+    "vendor-performance": {
+        icon: StarIcon,
+        chartConfig: {
+            value: { label: "Avg. rating", color: "var(--chart-2)" },
+        },
+    },
+    "purchaser-performance": {
+        icon: UserCheckIcon,
+        chartConfig: {
+            value: { label: "PRs processed", color: "var(--chart-2)" },
+        },
+    },
+    "canvassing-compliance": {
+        icon: ClipboardCheckIcon,
+        chartConfig: { value: { label: "PRs", color: "var(--chart-2)" } },
+    },
 };
 
 /** Falls back gracefully so a report added server-side still renders. */
 export function reportPresentation(id: string): ReportPresentation {
-  return (
-    PRESENTATION[id] ?? { icon: GaugeIcon, chartConfig: DEFAULT_CHART_CONFIG }
-  );
+    return (
+        PRESENTATION[id] ?? {
+            icon: GaugeIcon,
+            chartConfig: DEFAULT_CHART_CONFIG,
+        }
+    );
 }
 
 /** The report shown as already generated when the page loads. */
 export const defaultReportId = "spend-by-department";
 
 export const dateRanges = [
-  "Last 7 days",
-  "Last 30 days",
-  "Last 90 days",
-  "Year to date",
+    "Last 7 days",
+    "Last 30 days",
+    "Last 90 days",
+    "Year to date",
 ];

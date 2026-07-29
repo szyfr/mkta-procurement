@@ -12,19 +12,19 @@ export type * from "./reports";
 
 /** The dashboard payload, assembled by a single endpoint. */
 export interface DashboardData {
-  kpis: { id: string; value: number; label: string }[];
-  actionableRequests: import("@/lib/types").ActionableRequest[];
-  recentActivity: import("@/lib/types").ActivityEntry[];
-  pendingQuotations: import("@/lib/types").PendingQuotation[];
-  upcomingDeadlines: import("@/lib/types").Deadline[];
+    kpis: { id: string; value: number; label: string }[];
+    actionableRequests: import("@/lib/types").ActionableRequest[];
+    recentActivity: import("@/lib/types").ActivityEntry[];
+    pendingQuotations: import("@/lib/types").PendingQuotation[];
+    upcomingDeadlines: import("@/lib/types").Deadline[];
 }
 
 /** The signed-in user as exposed to the client. Never includes a token. */
 export interface SessionUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  department: string;
-  avatar: string;
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    department: string;
+    avatar: string;
 }

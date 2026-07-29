@@ -11,31 +11,36 @@ import { sessionApi } from "@/lib/api";
  * once FastAPI issues the cookie.
  */
 export function useSession() {
-  return useQuery({
-    queryKey: queryKeys.session,
-    queryFn: ({ signal }) => sessionApi.get(signal),
-    staleTime: 5 * 60_000,
-  });
+    return useQuery({
+        queryKey: queryKeys.session,
+        queryFn: ({ signal }) => sessionApi.get(signal),
+        staleTime: 5 * 60_000,
+    });
 }
 
 export function useLogin() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      sessionApi.login(email, password),
-    onSuccess: (user) => {
-      queryClient.setQueryData(queryKeys.session, user);
-    },
-  });
+    return useMutation({
+        mutationFn: ({
+            email,
+            password,
+        }: {
+            email: string;
+            password: string;
+        }) => sessionApi.login(email, password),
+        onSuccess: (user) => {
+            queryClient.setQueryData(queryKeys.session, user);
+        },
+    });
 }
 
 export function useLogout() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: () => sessionApi.logout(),
-    // Everything cached belonged to the previous session.
-    onSuccess: () => queryClient.clear(),
-  });
+    return useMutation({
+        mutationFn: () => sessionApi.logout(),
+        // Everything cached belonged to the previous session.
+        onSuccess: () => queryClient.clear(),
+    });
 }

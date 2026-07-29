@@ -13,50 +13,50 @@ import type { ReportFilters } from "@/types";
  * the page as display-only selects that nothing read.
  */
 export function ReportsView() {
-  const { data: departments = [] } = useDepartments();
-  const { data: vendors = [] } = useVendors();
+    const { data: departments = [] } = useDepartments();
+    const { data: vendors = [] } = useVendors();
 
-  const [filters, setFilters] = React.useState<ReportFilters>({});
+    const [filters, setFilters] = React.useState<ReportFilters>({});
 
-  return (
-    <>
-      <div className="flex flex-wrap items-center gap-3">
-        <FilterSelect
-          label="Date Range: Last 90 days"
-          options={dateRanges}
-          value={filters.dateRange ?? null}
-          onValueChange={(dateRange) =>
-            setFilters((current) => ({
-              ...current,
-              dateRange: dateRange ?? undefined,
-            }))
-          }
-        />
-        <FilterSelect
-          label="Department"
-          options={departments}
-          value={filters.department ?? null}
-          onValueChange={(department) =>
-            setFilters((current) => ({
-              ...current,
-              department: department ?? undefined,
-            }))
-          }
-        />
-        <FilterSelect
-          label="Vendor"
-          options={vendors}
-          value={filters.vendor ?? null}
-          onValueChange={(vendor) =>
-            setFilters((current) => ({
-              ...current,
-              vendor: vendor ?? undefined,
-            }))
-          }
-        />
-      </div>
+    return (
+        <>
+            <div className="flex flex-wrap items-center gap-3">
+                <FilterSelect
+                    label="Date Range: Last 90 days"
+                    options={dateRanges}
+                    value={filters.dateRange ?? null}
+                    onValueChange={(dateRange) =>
+                        setFilters((current) => ({
+                            ...current,
+                            dateRange: dateRange ?? undefined,
+                        }))
+                    }
+                />
+                <FilterSelect
+                    label="Department"
+                    options={departments}
+                    value={filters.department ?? null}
+                    onValueChange={(department) =>
+                        setFilters((current) => ({
+                            ...current,
+                            department: department ?? undefined,
+                        }))
+                    }
+                />
+                <FilterSelect
+                    label="Vendor"
+                    options={vendors}
+                    value={filters.vendor ?? null}
+                    onValueChange={(vendor) =>
+                        setFilters((current) => ({
+                            ...current,
+                            vendor: vendor ?? undefined,
+                        }))
+                    }
+                />
+            </div>
 
-      <ReportWorkspace filters={filters} />
-    </>
-  );
+            <ReportWorkspace filters={filters} />
+        </>
+    );
 }

@@ -1,7 +1,2 @@
 export type * from "./interfaces";
-export {
-  activeBackend,
-  type BackendKind,
-  getRepositories,
-  requestContextFrom,
-} from "./repository-factory";
+export { getRepositories, requestContextFrom } from "./repository-factory";

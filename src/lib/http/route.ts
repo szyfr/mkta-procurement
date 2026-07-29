@@ -18,23 +18,23 @@ import { withRoute } from "./responses";
  */
 
 export interface RouteArgs<P> {
-  request: Request;
-  params: P;
-  repos: Repositories;
-  actor: Actor;
+    request: Request;
+    params: P;
+    repos: Repositories;
+    actor: Actor;
 }
 
 export function defineRoute<P = Record<string, never>>(
-  handler: (args: RouteArgs<P>) => Promise<Response>,
+    handler: (args: RouteArgs<P>) => Promise<Response>,
 ) {
-  return withRoute(
-    async (request: Request, context?: { params: Promise<P> }) => {
-      // Next.js 16 makes route params a promise.
-      const params = context ? await context.params : ({} as P);
-      const actor = await getCurrentUser();
-      const repos = getRepositories(requestContextFrom(request));
+    return withRoute(
+        async (request: Request, context?: { params: Promise<P> }) => {
+            // Next.js 16 makes route params a promise.
+            const params = context ? await context.params : ({} as P);
+            const actor = await getCurrentUser();
+            const repos = getRepositories(requestContextFrom(request));
 
-      return handler({ request, params, repos, actor });
-    },
-  );
+            return handler({ request, params, repos, actor });
+        },
+    );
 }

@@ -7,12 +7,12 @@ import { reportsApi } from "@/lib/api";
 import type { ReportFilters } from "@/types";
 
 export function useReports() {
-  return useQuery({
-    queryKey: queryKeys.reports.list,
-    queryFn: ({ signal }) => reportsApi.list(signal),
-    // The picker's titles and descriptions do not change during a session.
-    staleTime: Number.POSITIVE_INFINITY,
-  });
+    return useQuery({
+        queryKey: queryKeys.reports.list,
+        queryFn: ({ signal }) => reportsApi.list(signal),
+        // The picker's titles and descriptions do not change during a session.
+        staleTime: Number.POSITIVE_INFINITY,
+    });
 }
 
 /**
@@ -21,9 +21,9 @@ export function useReports() {
  * hand-rolled `setTimeout` the workspace used to fake loading with.
  */
 export function useReport(id: string | null, filters: ReportFilters = {}) {
-  return useQuery({
-    queryKey: queryKeys.reports.detail(id ?? "", filters),
-    queryFn: ({ signal }) => reportsApi.get(id as string, filters, signal),
-    enabled: Boolean(id),
-  });
+    return useQuery({
+        queryKey: queryKeys.reports.detail(id ?? "", filters),
+        queryFn: ({ signal }) => reportsApi.get(id as string, filters, signal),
+        enabled: Boolean(id),
+    });
 }

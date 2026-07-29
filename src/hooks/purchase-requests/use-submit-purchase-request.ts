@@ -10,20 +10,22 @@ import { purchaseRequestsApi } from "@/lib/api";
  * canvassing and dashboard caches are invalidated alongside the request itself.
  */
 export function useSubmitPurchaseRequest() {
-  const queryClient = useQueryClient();
+    const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (id: string) => purchaseRequestsApi.submit(id),
-    onSuccess: (submitted) => {
-      queryClient.setQueryData(
-        queryKeys.purchaseRequests.detail(submitted.id),
-        submitted,
-      );
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.purchaseRequests.all,
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.canvassing.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
-    },
-  });
+    return useMutation({
+        mutationFn: (id: string) => purchaseRequestsApi.submit(id),
+        onSuccess: (submitted) => {
+            queryClient.setQueryData(
+                queryKeys.purchaseRequests.detail(submitted.id),
+                submitted,
+            );
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.purchaseRequests.all,
+            });
+            queryClient.invalidateQueries({
+                queryKey: queryKeys.canvassing.all,
+            });
+            queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
+        },
+    });
 }

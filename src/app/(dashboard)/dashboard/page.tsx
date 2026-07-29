@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Dashboard",
+    title: "Dashboard",
 };
 
 /**
@@ -15,24 +15,24 @@ export const metadata: Metadata = {
  * data-bearing part below it is the client view that owns the queries.
  */
 export default function DashboardPage() {
-  return (
-    <>
-      <PageHeader
-        title="Dashboard"
-        description="Overview of your procurement workload"
-        actions={
-          <Button
-            variant="outline"
-            render={<Link href="/purchase-requests/new" />}
-            nativeButton={false}
-          >
-            <PlusIcon data-icon="inline-start" />
-            New Purchase Request
-          </Button>
-        }
-      />
+    return (
+        <>
+            <PageHeader
+                title="Dashboard"
+                description="Overview of your procurement workload"
+                actions={
+                    <Button
+                        variant="outline"
+                        render={<Link href="/purchase-requests/new" />}
+                        nativeButton={false}
+                    >
+                        <PlusIcon data-icon="inline-start" />
+                        New Purchase Request
+                    </Button>
+                }
+            />
 
-      <DashboardView />
-    </>
-  );
+            <DashboardView />
+        </>
+    );
 }

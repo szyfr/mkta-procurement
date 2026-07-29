@@ -2,27 +2,26 @@ import "server-only";
 
 import { createFastApiRepositories } from "./fastapi";
 import type { Repositories, RequestContext } from "./interfaces";
-import { createSqliteRepositories } from "./sqlite";
+import { createUnimplementedRepositories } from "./unimplemented";
 
 /**
- * The single point at which the application decides which backend it is
- * talking to. Nothing else in the codebase branches on this — route handlers
- * receive a `Repositories` bundle and cannot tell the difference.
+ * The single point at which the application decides where its data comes from.
+ * Nothing else in the codebase branches on it — route handlers receive a
+ * `Repositories` bundle and cannot tell one source from the other.
  *
- * Replacing SQLite with FastAPI is therefore a change to one environment
- * variable plus the method bodies in `./fastapi`.
+ * The split is a statement of what the backend currently implements: purchase
+ * requests and reference data are real. Everything else has no upstream
+ * endpoint, so its reads answer empty and the UI renders its own empty state
+ * rather than fake data or an error; the writes still throw `NOT_IMPLEMENTED`.
+ * As FastAPI grows endpoints, entries move from `./unimplemented` to
+ * `./fastapi` and nothing above this line changes.
  */
 
-export type BackendKind = "sqlite" | "fastapi";
-
-export function activeBackend(): BackendKind {
-  return process.env.PROCUREMENT_BACKEND === "fastapi" ? "fastapi" : "sqlite";
-}
-
 export function getRepositories(ctx: RequestContext): Repositories {
-  return activeBackend() === "fastapi"
-    ? createFastApiRepositories(ctx)
-    : createSqliteRepositories(ctx);
+    return {
+        ...createUnimplementedRepositories(),
+        ...createFastApiRepositories(ctx),
+    };
 }
 
 /**
@@ -31,11 +30,11 @@ export function getRepositories(ctx: RequestContext): Repositories {
  * or inspects the session token, it only carries it.
  */
 export function requestContextFrom(
-  request: Request,
-  relaySetCookie?: (value: string) => void,
+    request: Request,
+    relaySetCookie?: (value: string) => void,
 ): RequestContext {
-  return {
-    cookie: request.headers.get("cookie"),
-    relaySetCookie,
-  };
+    return {
+        cookie: request.headers.get("cookie"),
+        relaySetCookie,
+    };
 }

@@ -6,24 +6,24 @@ import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Reports",
+    title: "Reports",
 };
 
 export default function ReportsPage() {
-  return (
-    <>
-      <PageHeader
-        title="Reports"
-        description="Procurement performance across the selected period"
-        actions={
-          <Button variant="outline" size="sm">
-            <DownloadIcon data-icon="inline-start" />
-            Export
-          </Button>
-        }
-      />
+    return (
+        <>
+            <PageHeader
+                title="Reports"
+                description="Procurement performance across the selected period"
+                actions={
+                    <Button variant="outline" size="sm">
+                        <DownloadIcon data-icon="inline-start" />
+                        Export
+                    </Button>
+                }
+            />
 
-      <ReportsView />
-    </>
-  );
+            <ReportsView />
+        </>
+    );
 }

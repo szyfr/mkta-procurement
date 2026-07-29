@@ -5,44 +5,44 @@
  */
 
 export interface ReportChartDatum {
-  category: string;
-  value: number;
-  /** Per-bar colour. Omit for the default monochrome treatment. */
-  fill?: string;
+    category: string;
+    value: number;
+    /** Per-bar colour. Omit for the default monochrome treatment. */
+    fill?: string;
 }
 
 /** A table cell, optionally tinted (used for trend deltas). */
 export type ReportCell =
-  | string
-  | { value: string; tone: "success" | "danger" | "muted" };
+    | string
+    | { value: string; tone: "success" | "danger" | "muted" };
 
 /** Listed on the report picker — no chart or table payload. */
 export interface ReportSummary {
-  id: string;
-  title: string;
-  description: string;
+    id: string;
+    title: string;
+    description: string;
 }
 
 export interface ReportData extends ReportSummary {
-  /** Heading of the generated result panel. */
-  resultTitle: string;
-  /** Right-aligned summary beside the result heading. */
-  summary: string;
-  chart: {
-    data: ReportChartDatum[];
-    /** Suffix appended to tooltip values, e.g. " days". */
-    unit?: string;
-    /** Formats tooltip values as pesos. */
-    currency?: boolean;
-  };
-  table: {
-    columns: string[];
-    rows: ReportCell[][];
-  };
+    /** Heading of the generated result panel. */
+    resultTitle: string;
+    /** Right-aligned summary beside the result heading. */
+    summary: string;
+    chart: {
+        data: ReportChartDatum[];
+        /** Suffix appended to tooltip values, e.g. " days". */
+        unit?: string;
+        /** Formats tooltip values as pesos. */
+        currency?: boolean;
+    };
+    table: {
+        columns: string[];
+        rows: ReportCell[][];
+    };
 }
 
 export interface ReportFilters {
-  dateRange?: string;
-  department?: string;
-  vendor?: string;
+    dateRange?: string;
+    department?: string;
+    vendor?: string;
 }

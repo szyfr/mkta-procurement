@@ -1,18 +1,18 @@
 import type { CanvassingRepository } from "./canvassing-repository";
 import type { PurchaseRequestRepository } from "./purchase-request-repository";
 import type {
-  DashboardRepository,
-  ItemCreationRequestRepository,
-  NotificationRepository,
-  ReferenceRepository,
-  ReportRepository,
-  SearchRepository,
-  UserRepository,
+    DashboardRepository,
+    ItemCreationRequestRepository,
+    NotificationRepository,
+    ReferenceRepository,
+    ReportRepository,
+    SearchRepository,
+    UserRepository,
 } from "./support-repositories";
 
 export type {
-  CanvassingFilters,
-  CanvassingRepository,
+    CanvassingFilters,
+    CanvassingRepository,
 } from "./canvassing-repository";
 export type { PurchaseRequestRepository } from "./purchase-request-repository";
 export type * from "./support-repositories";
@@ -25,15 +25,15 @@ export type * from "./support-repositories";
  * remote service.
  */
 export interface Repositories {
-  purchaseRequests: PurchaseRequestRepository;
-  itemCreationRequests: ItemCreationRequestRepository;
-  canvassing: CanvassingRepository;
-  dashboard: DashboardRepository;
-  reports: ReportRepository;
-  notifications: NotificationRepository;
-  search: SearchRepository;
-  users: UserRepository;
-  reference: ReferenceRepository;
+    purchaseRequests: PurchaseRequestRepository;
+    itemCreationRequests: ItemCreationRequestRepository;
+    canvassing: CanvassingRepository;
+    dashboard: DashboardRepository;
+    reports: ReportRepository;
+    notifications: NotificationRepository;
+    search: SearchRepository;
+    users: UserRepository;
+    reference: ReferenceRepository;
 }
 
 /**
@@ -45,6 +45,6 @@ export interface Repositories {
  * React.
  */
 export interface RequestContext {
-  cookie: string | null;
-  relaySetCookie?: (value: string) => void;
+    cookie: string | null;
+    relaySetCookie?: (value: string) => void;
 }

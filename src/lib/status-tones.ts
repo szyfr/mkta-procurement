@@ -1,9 +1,9 @@
 import type {
-  CanvassingStatus,
-  ItemCreationRequestStatus,
-  PurchaseRequestStatus,
-  StatusTone,
-  UserStatus,
+    CanvassingStatus,
+    ItemCreationRequestStatus,
+    PurchaseRequestStatus,
+    StatusTone,
+    UserStatus,
 } from "@/lib/types";
 
 /**
@@ -16,42 +16,42 @@ import type {
  */
 
 export const purchaseRequestTone: Record<PurchaseRequestStatus, StatusTone> = {
-  draft: "neutral",
-  canvassing: "info",
-  "po-created": "ordered",
-  "partially-completed": "partial",
-  completed: "success",
-  rejected: "danger",
+    draft: "neutral",
+    canvassing: "info",
+    "po-created": "ordered",
+    "partially-completed": "partial",
+    completed: "success",
+    rejected: "danger",
 };
 
 export const canvassingTone: Record<CanvassingStatus, StatusTone> = {
-  "awaiting-quotes": "info",
-  "comparison-ready": "neutral",
-  "vendor-selected": "success",
-  "pending-exemption": "warning",
+    "awaiting-quotes": "info",
+    "comparison-ready": "neutral",
+    "vendor-selected": "success",
+    "pending-exemption": "warning",
 };
 
 export const itemCreationRequestTone: Record<
-  ItemCreationRequestStatus,
-  StatusTone
+    ItemCreationRequestStatus,
+    StatusTone
 > = {
-  pending: "warning",
-  approved: "success",
-  rejected: "danger",
+    pending: "warning",
+    approved: "success",
+    rejected: "danger",
 };
 
 export const userStatusTone: Record<UserStatus, StatusTone> = {
-  active: "success",
-  invited: "warning",
+    active: "success",
+    invited: "warning",
 };
 
 /** Legend shown above the purchase request list. */
 export const statusLegend: { label: string; status: PurchaseRequestStatus }[] =
-  [
-    { label: "Draft", status: "draft" },
-    { label: "Canvassing", status: "canvassing" },
-    { label: "PO Created", status: "po-created" },
-    { label: "Partially Completed", status: "partially-completed" },
-    { label: "Completed", status: "completed" },
-    { label: "Rejected", status: "rejected" },
-  ];
+    [
+        { label: "Draft", status: "draft" },
+        { label: "Canvassing", status: "canvassing" },
+        { label: "PO Created", status: "po-created" },
+        { label: "Partially Completed", status: "partially-completed" },
+        { label: "Completed", status: "completed" },
+        { label: "Rejected", status: "rejected" },
+    ];
