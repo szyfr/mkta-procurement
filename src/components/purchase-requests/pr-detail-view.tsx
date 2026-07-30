@@ -13,12 +13,15 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { purchaseRequestTone } from "@/data/purchase-requests";
 import { formatCurrency } from "@/lib/utils";
 import {
   fetchPurchaseRequest,
   type PurchaseRequest,
+  priorityToDto,
+  updatePurchaseRequest,
 } from "@/modules/purchase-requests";
 
 /**
@@ -70,6 +73,8 @@ function DetailSkeleton() {
 export function PurchaseRequestDetailView({ id }: { id: string }) {
   const [request, setRequest] = React.useState<PurchaseRequest | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const controller = new AbortController();
@@ -126,6 +131,49 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
     (item) => item.status === "canvassing",
   );
 
+  async function submitForApproval() {
+    if (!request) return;
+
+    setSubmitError(null);
+
+    if (!request.title?.trim()) {
+      setSubmitError("Add a title before submitting — use Continue Editing.");
+      return;
+    }
+    if (request.items.length === 0) {
+      setSubmitError(
+        "Add at least one item before submitting — use Continue Editing.",
+      );
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const updated = await updatePurchaseRequest(request.id, {
+        title: request.title.trim(),
+        departmentId: request.departmentId,
+        dateNeeded: request.dateNeededValue,
+        priority: priorityToDto[request.priority],
+        justification: request.justification,
+        items: request.items.map((item) => ({
+          materialId: item.materialId,
+          quantity: item.quantity,
+          vendorId: item.vendorId,
+        })),
+        status: "pending",
+      });
+
+      setRequest(updated);
+    } catch (cause) {
+      setSubmitError(
+        cause instanceof Error ? cause.message : "Something went wrong.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <>
       <PageHeader
@@ -157,10 +205,15 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
                 Cancel Request
               </Button>
               <Button
+                variant="outline"
                 render={<Link href={`/purchase-requests/${request.id}/edit`} />}
                 nativeButton={false}
               >
                 Continue Editing
+              </Button>
+              <Button onClick={submitForApproval} disabled={submitting}>
+                {submitting ? <Spinner data-icon="inline-start" /> : null}
+                Submit for Approval
               </Button>
             </>
           ) : isRejected ? (
@@ -184,6 +237,13 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
           )
         }
       />
+
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Couldn&apos;t submit this request</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
 
       {isDraft ? (
         <Card>
