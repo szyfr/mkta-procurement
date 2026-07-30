@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Body copy uses the Segoe UI system stack defined in globals.css, matching the
@@ -27,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistMono.variable} h-full antialiased`}>
       <body>
-        <TooltipProvider>{children}</TooltipProvider>
+        <Toaster>
+          <TooltipProvider>{children}</TooltipProvider>
+        </Toaster>
       </body>
     </html>
   );

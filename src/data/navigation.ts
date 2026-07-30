@@ -1,4 +1,5 @@
 import {
+  Building2Icon,
   ChartColumnIcon,
   ClipboardListIcon,
   LayoutDashboardIcon,
@@ -24,6 +25,10 @@ export const mainNav = [
       { title: "Reports", url: "/reports", icon: ChartColumnIcon },
     ],
   },
+  {
+    title: "Management",
+    items: [{ title: "Departments", url: "/departments", icon: Building2Icon }],
+  },
 ];
 
 export const settingsNav = [
@@ -43,6 +48,7 @@ export const breadcrumbLabels: Record<string, string> = {
   canvassing: "Canvassing",
   quotes: "Quotes",
   reports: "Reports",
+  departments: "Departments",
   settings: "Settings",
   account: "My Account",
   users: "Users & Roles",
