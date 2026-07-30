@@ -45,10 +45,7 @@ function nextAction(request: PurchaseRequest) {
 export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
   const tone = purchaseRequestTone[request.status];
   const action = nextAction(request);
-  const href =
-    request.status === "draft"
-      ? "/purchase-requests/new"
-      : `/purchase-requests/${request.id}`;
+  const href = `/purchase-requests/${request.id}`;
 
   return (
     <Card

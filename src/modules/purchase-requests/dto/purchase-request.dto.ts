@@ -6,9 +6,16 @@
 
 export type PriorityDto = "low" | "normal" | "high";
 
-/** `app/schemas/purchase_request_schema.py:Status` */
+/**
+ * `app/schemas/purchase_request_schema.py:Status`.
+ *
+ * `"pending"` (set when submitting a draft for approval) isn't in the
+ * backend's enum yet as of 2026-07-30 — the backend team is adding it.
+ * Included here so the frontend is ready ahead of that landing.
+ */
 export type PurchaseRequestStatusDto =
   | "draft"
+  | "pending"
   | "canvassing"
   | "po-created"
   | "partially-completed"

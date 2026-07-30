@@ -16,7 +16,10 @@ import type {
   LookupOption,
   PageInfo,
 } from "@/modules/purchase-requests/models/purchase-request";
-import { formatShortDate } from "@/modules/purchase-requests/utils";
+import {
+  formatShortDate,
+  toDateInputValue,
+} from "@/modules/purchase-requests/utils";
 
 /**
  * DTO → model. Every difference between the FastAPI contract and what the UI
@@ -65,6 +68,7 @@ export function toPurchaseRequestItem(
 
   return {
     id: dto._id,
+    materialId: dto.material_id,
     // Materials are joined by the detail and items pipelines, but not by the
     // create response — fall back to the raw id so a row still renders.
     name: material?.description ?? dto.material_id,
@@ -73,6 +77,7 @@ export function toPurchaseRequestItem(
     // `last_cost` is declared by the backend schema but absent from every
     // synced material, so this is null in practice.
     estimatedUnitCost: material?.last_cost ?? null,
+    vendorId: dto.vendor_id,
     vendor: dto.vendor_id
       ? (vendors.get(dto.vendor_id) ?? dto.vendor_id)
       : null,
@@ -100,6 +105,7 @@ export function toPurchaseRequest(
     title: dto.title || null,
     requester: dto.requester_id,
     department: context.departments.get(dto.department_id) ?? dto.department_id,
+    departmentId: dto.department_id,
     // No amount is stored and no item cost is available to derive one.
     amount: null,
     priority: priorityFromDto[dto.priority] ?? "Normal",
@@ -107,6 +113,7 @@ export function toPurchaseRequest(
     statusLabel: purchaseRequestStatusLabels[dto.status] ?? dto.status,
     justification: dto.justification ?? "",
     dateNeeded: formatShortDate(dto.date_needed),
+    dateNeededValue: toDateInputValue(dto.date_needed),
     createdAt: formatShortDate(dto.created_at),
     items: itemDtos.map((item) => toPurchaseRequestItem(item, vendors)),
   };

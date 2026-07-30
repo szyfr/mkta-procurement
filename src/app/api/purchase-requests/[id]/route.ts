@@ -1,13 +1,18 @@
 import type { NextRequest } from "next/server";
 
 import { toErrorResponse } from "@/lib/api/errors";
-import { priorityToDto } from "@/modules/purchase-requests/constants";
 import {
   deletePurchaseRequest,
   getPurchaseRequest,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests/dal/purchase-request.dal";
-import type { UpdatePurchaseRequestDto } from "@/modules/purchase-requests/dto";
+import type {
+  PriorityDto,
+  UpdatePurchaseRequestDto,
+} from "@/modules/purchase-requests/dto";
+
+/** The only status value the UI sends today — submitting a draft for approval. */
+type SubmittableStatus = "pending";
 
 /**
  * BFF for a single purchase request.
@@ -37,8 +42,9 @@ function toUpdateDto(body: unknown): UpdatePurchaseRequestDto {
     title?: string;
     departmentId?: string;
     dateNeeded?: string;
-    priority?: keyof typeof priorityToDto;
+    priority?: PriorityDto;
     justification?: string;
+    status?: SubmittableStatus;
     items?: {
       materialId: string;
       quantity: number;
@@ -54,12 +60,11 @@ function toUpdateDto(body: unknown): UpdatePurchaseRequestDto {
     ...(payload.dateNeeded === undefined
       ? {}
       : { date_needed: payload.dateNeeded }),
-    ...(payload.priority === undefined
-      ? {}
-      : { priority: priorityToDto[payload.priority] }),
+    ...(payload.priority === undefined ? {} : { priority: payload.priority }),
     ...(payload.justification === undefined
       ? {}
       : { justification: payload.justification }),
+    ...(payload.status === undefined ? {} : { status: payload.status }),
     ...(payload.items === undefined
       ? {}
       : {

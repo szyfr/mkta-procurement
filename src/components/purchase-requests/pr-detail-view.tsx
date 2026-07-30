@@ -152,12 +152,17 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
         }
         actions={
           isDraft ? (
-            <Button
-              render={<Link href="/purchase-requests/new" />}
-              nativeButton={false}
-            >
-              Continue Editing
-            </Button>
+            <>
+              <Button variant="outline" size="sm">
+                Cancel Request
+              </Button>
+              <Button
+                render={<Link href={`/purchase-requests/${request.id}/edit`} />}
+                nativeButton={false}
+              >
+                Continue Editing
+              </Button>
+            </>
           ) : isRejected ? (
             <Button
               render={<Link href="/purchase-requests/new" />}

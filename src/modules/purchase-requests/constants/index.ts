@@ -36,6 +36,7 @@ export const purchaseRequestStatusLabels: Record<
   string
 > = {
   draft: "Draft",
+  pending: "Pending Approval",
   canvassing: "Canvassing",
   "po-created": "PO Created",
   "partially-completed": "Partially Completed",

@@ -18,6 +18,8 @@ export {
   type ListPurchaseRequestsParams,
   type LookupParams,
   PurchaseRequestApiError,
+  type UpdatePurchaseRequestPayload,
+  updatePurchaseRequest,
 } from "@/modules/purchase-requests/api/client";
 export { purchaseRequestEndpoints } from "@/modules/purchase-requests/api/endpoints";
 export {

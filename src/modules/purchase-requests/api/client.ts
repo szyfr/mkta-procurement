@@ -113,6 +113,22 @@ export function createPurchaseRequest(payload: CreatePurchaseRequestPayload) {
   });
 }
 
+export interface UpdatePurchaseRequestPayload
+  extends CreatePurchaseRequestPayload {
+  /** Sent when submitting a draft for approval, rather than just saving edits. */
+  status?: "pending";
+}
+
+export function updatePurchaseRequest(
+  id: string,
+  payload: UpdatePurchaseRequestPayload,
+) {
+  return request<PurchaseRequest>(purchaseRequestEndpoints.detail(id), {
+    method: "PUT",
+    body: payload,
+  });
+}
+
 export function fetchDepartmentOptions(signal?: AbortSignal) {
   return request<LookupPage>(purchaseRequestEndpoints.departments, { signal });
 }

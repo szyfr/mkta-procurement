@@ -65,10 +65,7 @@ export function PurchaseRequestTable({
           </TableHeader>
           <TableBody>
             {requests.map((request) => {
-              const href =
-                request.status === "draft"
-                  ? "/purchase-requests/new"
-                  : `/purchase-requests/${request.id}`;
+              const href = `/purchase-requests/${request.id}`;
               const needsProof =
                 request.status === "po-created" ||
                 request.status === "partially-completed";

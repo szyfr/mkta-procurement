@@ -21,6 +21,7 @@ export type Priority = "High" | "Normal" | "Low";
 
 export type PurchaseRequestStatus =
   | "draft"
+  | "pending"
   | "canvassing"
   | "po-created"
   | "partially-completed"
@@ -49,11 +50,13 @@ export type SourcingMode = "direct" | "canvassing";
 
 export interface PurchaseRequestItem {
   id: string;
+  materialId: string;
   name: string;
   quantity: number;
   unit: string | null;
   /** Null whenever the material has no cost on file, which is currently always. */
   estimatedUnitCost: number | null;
+  vendorId: string | null;
   vendor: string | null;
   sourcing: SourcingMode;
   status: PurchaseRequestItemStatus;
@@ -86,6 +89,7 @@ export interface PurchaseRequest {
   autoTitle?: boolean;
   requester: string;
   department: string;
+  departmentId: string;
   /**
    * Null when the total can't be established — no amount is stored on the
    * request and materials currently sync without a cost.
@@ -99,6 +103,8 @@ export interface PurchaseRequest {
   justification: string;
   /** When the requester needs the items, e.g. "Aug 17". */
   dateNeeded: string | null;
+  /** `dateNeeded` reformatted for a date input's `value`, e.g. "2026-08-17". */
+  dateNeededValue: string;
   /** Date shown on list rows and cards. Null while still a draft. */
   createdAt: string | null;
   submittedOn?: string;

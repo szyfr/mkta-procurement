@@ -16,6 +16,7 @@ export interface UpdatePurchaseRequestDto {
   date_needed?: string;
   priority?: PriorityDto;
   justification?: string;
+  /** `"pending"` is sent when submitting a draft for approval. */
   status?: PurchaseRequestStatusDto;
   items?: CreatePurchaseRequestItemDto[];
 }
