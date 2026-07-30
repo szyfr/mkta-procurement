@@ -90,10 +90,19 @@ export function DepartmentForm({
       </FieldGroup>
 
       <DialogFooter>
-        <Button variant="outline" onClick={onCancel} disabled={submitting}>
+        <Button
+          variant="outline"
+          className="cursor-pointer"
+          onClick={onCancel}
+          disabled={submitting}
+        >
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={submitting}>
+        <Button
+          className="cursor-pointer"
+          onClick={handleSubmit}
+          disabled={submitting}
+        >
           {submitting ? <Spinner data-icon="inline-start" /> : null}
           {submitLabel}
         </Button>
