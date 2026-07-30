@@ -5,7 +5,12 @@ import * as React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,14 +55,12 @@ export function DepartmentForm({
     onSubmit({ title: title.trim(), description: description.trim() });
   }
 
-  const displayedError = error ?? validationError;
-
   return (
     <>
-      {displayedError ? (
+      {error ? (
         <Alert variant="destructive">
           <AlertTitle>Couldn&apos;t save this department</AlertTitle>
-          <AlertDescription>{displayedError}</AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
 
@@ -68,11 +71,15 @@ export function DepartmentForm({
             id="title"
             name="title"
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            onChange={(event) => {
+              setTitle(event.target.value);
+              if (validationError) setValidationError(null);
+            }}
             placeholder='e.g. "IT"'
             disabled={submitting}
             aria-invalid={validationError ? true : undefined}
           />
+          {validationError ? <FieldError>{validationError}</FieldError> : null}
         </Field>
 
         <Field>
