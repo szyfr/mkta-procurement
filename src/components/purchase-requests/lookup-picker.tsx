@@ -44,6 +44,7 @@ export interface LookupPickerProps {
   ariaLabel: string;
   disabled?: boolean;
   className?: string;
+  "aria-invalid"?: boolean;
 }
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -57,6 +58,7 @@ export function LookupPicker({
   ariaLabel,
   disabled,
   className,
+  "aria-invalid": ariaInvalid,
 }: LookupPickerProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -176,6 +178,7 @@ export function LookupPicker({
             role="combobox"
             aria-expanded={open}
             aria-label={ariaLabel}
+            aria-invalid={ariaInvalid}
             disabled={disabled}
             className={cn("w-full justify-between font-normal", className)}
           >

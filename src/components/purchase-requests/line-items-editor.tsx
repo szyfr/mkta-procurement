@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -65,9 +66,12 @@ function lineTotal(line: DraftLineItem) {
 export function LineItemsEditor({
   lines,
   onChange,
+  error,
 }: {
   lines: DraftLineItem[];
   onChange: (lines: DraftLineItem[]) => void;
+  /** Shown inline below the header, e.g. when no item has a catalog entry selected. */
+  error?: string | null;
 }) {
   const nextKey = React.useRef(lines.length + 1);
 
@@ -116,6 +120,12 @@ export function LineItemsEditor({
           {lines.length} {lines.length === 1 ? "item" : "items"}
         </span>
       </CardHeader>
+
+      {error ? (
+        <CardContent className="pb-0">
+          <FieldError>{error}</FieldError>
+        </CardContent>
+      ) : null}
 
       <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
@@ -319,8 +329,7 @@ export function LineItemsEditor({
       </CardContent>
 
       <CardFooter className="justify-between gap-4 bg-white">
-        <p className="text-xs text-muted-foreground">
-        </p>
+        <p className="text-xs text-muted-foreground"></p>
         <div className="shrink-0 text-right">
           <p className="text-xs text-muted-foreground">
             Total Estimated Amount

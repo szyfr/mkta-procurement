@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -61,6 +62,14 @@ const priorities = [
 
 type Priority = (typeof priorities)[number]["value"];
 
+interface FieldErrors {
+  title?: string;
+  department?: string;
+  dateNeeded?: string;
+  justification?: string;
+  items?: string;
+}
+
 function EditFormSkeleton() {
   return (
     <div className="flex flex-col gap-6">
@@ -95,6 +104,16 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
   const [submittingForApproval, setSubmittingForApproval] =
     React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
+
+  function clearFieldError(field: keyof FieldErrors) {
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
 
   React.useEffect(() => {
     const controller = new AbortController();
@@ -153,11 +172,6 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
   async function save(status?: "pending") {
     setError(null);
 
-    if (!department) {
-      setError("Pick a department before submitting.");
-      return;
-    }
-
     const items = lines
       .filter((line) => line.materialId !== null)
       .map((line) => ({
@@ -166,19 +180,28 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
         vendorId: line.vendorId,
       }));
 
-    if (items.length === 0) {
-      setError("Add at least one item with a catalog entry selected.");
-      return;
-    }
+    const nextFieldErrors: FieldErrors = {};
+    if (!title.trim()) nextFieldErrors.title = "Title is required.";
+    if (!department)
+      nextFieldErrors.department = "Pick a department before submitting.";
+    if (!dateNeeded) nextFieldErrors.dateNeeded = "Date needed is required.";
+    if (!justification.trim())
+      nextFieldErrors.justification = "Justification is required.";
+    if (items.length === 0)
+      nextFieldErrors.items =
+        "Add at least one item with a catalog entry selected.";
 
-    const setLoading =
+    setFieldErrors(nextFieldErrors);
+    if (Object.keys(nextFieldErrors).length > 0) return;
+
+    const setLoadingState =
       status === "pending" ? setSubmittingForApproval : setSavingChanges;
-    setLoading(true);
+    setLoadingState(true);
 
     try {
       const updated = await updatePurchaseRequest(id, {
         title: title.trim(),
-        departmentId: department.id,
+        departmentId: (department as LookupOption).id,
         dateNeeded,
         priority,
         justification: justification.trim(),
@@ -191,7 +214,7 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
       setError(
         cause instanceof Error ? cause.message : "Something went wrong.",
       );
-      setLoading(false);
+      setLoadingState(false);
     }
   }
 
@@ -269,21 +292,31 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
             </CardHeader>
             <CardContent>
               <FieldGroup className="sm:grid sm:grid-cols-2 sm:gap-4">
-                <Field className="sm:col-span-2">
+                <Field
+                  className="sm:col-span-2"
+                  data-invalid={fieldErrors.title ? true : undefined}
+                >
                   <FieldLabel htmlFor="title">Title</FieldLabel>
                   <Input
                     id="title"
                     name="title"
                     value={title}
-                    onChange={(event) => setTitle(event.target.value)}
+                    onChange={(event) => {
+                      setTitle(event.target.value);
+                      clearFieldError("title");
+                    }}
                     placeholder='e.g. "Q3 Production Line Lubricants"'
+                    aria-invalid={fieldErrors.title ? true : undefined}
                   />
                   <FieldDescription>
                     Required — the backend has no auto-titling yet.
                   </FieldDescription>
+                  {fieldErrors.title ? (
+                    <FieldError>{fieldErrors.title}</FieldError>
+                  ) : null}
                 </Field>
 
-                <Field>
+                <Field data-invalid={fieldErrors.department ? true : undefined}>
                   <FieldLabel>Department</FieldLabel>
                   <LookupPicker
                     value={department}
@@ -291,19 +324,33 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
                     placeholder="Select department"
                     searchPlaceholder="Search departments…"
                     ariaLabel="Department"
-                    onSelect={setDepartment}
+                    aria-invalid={fieldErrors.department ? true : undefined}
+                    onSelect={(option) => {
+                      setDepartment(option);
+                      clearFieldError("department");
+                    }}
                   />
+                  {fieldErrors.department ? (
+                    <FieldError>{fieldErrors.department}</FieldError>
+                  ) : null}
                 </Field>
 
-                <Field>
+                <Field data-invalid={fieldErrors.dateNeeded ? true : undefined}>
                   <FieldLabel htmlFor="date-needed">Date Needed</FieldLabel>
                   <Input
                     id="date-needed"
                     name="dateNeeded"
                     type="date"
                     value={dateNeeded}
-                    onChange={(event) => setDateNeeded(event.target.value)}
+                    onChange={(event) => {
+                      setDateNeeded(event.target.value);
+                      clearFieldError("dateNeeded");
+                    }}
+                    aria-invalid={fieldErrors.dateNeeded ? true : undefined}
                   />
+                  {fieldErrors.dateNeeded ? (
+                    <FieldError>{fieldErrors.dateNeeded}</FieldError>
+                  ) : null}
                 </Field>
 
                 <Field>
@@ -332,22 +379,39 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
                   </Select>
                 </Field>
 
-                <Field className="sm:col-span-2">
+                <Field
+                  className="sm:col-span-2"
+                  data-invalid={fieldErrors.justification ? true : undefined}
+                >
                   <FieldLabel htmlFor="justification">Justification</FieldLabel>
                   <Textarea
                     id="justification"
                     name="justification"
                     rows={4}
                     value={justification}
-                    onChange={(event) => setJustification(event.target.value)}
+                    onChange={(event) => {
+                      setJustification(event.target.value);
+                      clearFieldError("justification");
+                    }}
                     placeholder="Explain why this purchase is needed…"
+                    aria-invalid={fieldErrors.justification ? true : undefined}
                   />
+                  {fieldErrors.justification ? (
+                    <FieldError>{fieldErrors.justification}</FieldError>
+                  ) : null}
                 </Field>
               </FieldGroup>
             </CardContent>
           </Card>
 
-          <LineItemsEditor lines={lines} onChange={setLines} />
+          <LineItemsEditor
+            lines={lines}
+            onChange={(next) => {
+              setLines(next);
+              clearFieldError("items");
+            }}
+            error={fieldErrors.items}
+          />
 
           <Card>
             <CardHeader className="border-b">
