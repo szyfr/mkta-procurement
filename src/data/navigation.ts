@@ -11,14 +11,19 @@ export const appIdentity = {
 };
 
 export const mainNav = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
   {
-    title: "Purchase Requests",
-    url: "/purchase-requests",
-    icon: ClipboardListIcon,
+    title: "Procurement",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
+      {
+        title: "Purchase Requests",
+        url: "/purchase-requests",
+        icon: ClipboardListIcon,
+      },
+      { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
+      { title: "Reports", url: "/reports", icon: ChartColumnIcon },
+    ],
   },
-  { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
-  { title: "Reports", url: "/reports", icon: ChartColumnIcon },
 ];
 
 export const settingsNav = [
