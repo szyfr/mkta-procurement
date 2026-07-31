@@ -21,9 +21,15 @@ export const metadata: Metadata = {
 export default async function PurchaseRequestsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; page?: string }>;
+  searchParams: Promise<{
+    view?: string;
+    page?: string;
+    search?: string;
+    priority?: string;
+    departments?: string;
+  }>;
 }) {
-  const { view, page } = await searchParams;
+  const { view, page, search, priority, departments } = await searchParams;
   const activeView: ListView = view === "table" ? "table" : "cards";
   const activePage = Math.max(Number(page) || 1, 1);
 
@@ -55,7 +61,13 @@ export default async function PurchaseRequestsPage({
         }
       />
 
-      <PurchaseRequestListView view={activeView} page={activePage} />
+      <PurchaseRequestListView
+        view={activeView}
+        page={activePage}
+        search={search ?? ""}
+        priority={priority ?? ""}
+        departments={departments ?? ""}
+      />
     </>
   );
 }

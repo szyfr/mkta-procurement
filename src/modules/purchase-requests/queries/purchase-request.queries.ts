@@ -15,11 +15,18 @@ import {
  * calls themselves stay in the DAL, server-side.
  */
 
+export interface PurchaseRequestListFilters {
+  search?: string;
+  priority?: string;
+  departments?: string;
+}
+
 export const purchaseRequestKeys = {
   /** Prefix for everything below; invalidating it refetches the whole module. */
   all: ["purchase-requests"] as const,
   lists: () => [...purchaseRequestKeys.all, "list"] as const,
-  list: (page: number) => [...purchaseRequestKeys.all, "list", page] as const,
+  list: (page: number, filters: PurchaseRequestListFilters = {}) =>
+    [...purchaseRequestKeys.all, "list", page, filters] as const,
   detail: (id: string) => [...purchaseRequestKeys.all, "detail", id] as const,
   /**
    * Reference data. Kept under this module's prefix because it is served by
@@ -34,10 +41,16 @@ export const purchaseRequestKeys = {
     [...purchaseRequestKeys.all, "lookups", "vendors"] as const,
 };
 
-export function purchaseRequestListQuery(page: number) {
+export function purchaseRequestListQuery(
+  page: number,
+  filters: PurchaseRequestListFilters = {},
+) {
+  const { search, priority, departments } = filters;
+
   return queryOptions({
-    queryKey: purchaseRequestKeys.list(page),
-    queryFn: ({ signal }) => fetchPurchaseRequests({ page, signal }),
+    queryKey: purchaseRequestKeys.list(page, filters),
+    queryFn: ({ signal }) =>
+      fetchPurchaseRequests({ page, search, priority, departments, signal }),
   });
 }
 

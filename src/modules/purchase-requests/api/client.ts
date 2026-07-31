@@ -16,15 +16,23 @@ import type {
 
 export interface ListPurchaseRequestsParams {
   page?: number;
+  /** Matches against request title and justification. */
+  search?: string;
+  priority?: string;
+  /** A department id. */
+  departments?: string;
   signal?: AbortSignal;
 }
 
 export function fetchPurchaseRequests({
   page,
+  search,
+  priority,
+  departments,
   signal,
 }: ListPurchaseRequestsParams = {}) {
   return bffRequest<PurchaseRequestList>(purchaseRequestEndpoints.list, {
-    query: { page },
+    query: { page, search, priority, departments },
     signal,
   });
 }

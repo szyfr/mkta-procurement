@@ -35,6 +35,11 @@ const NOT_FOUND = "Purchase request not found";
 export interface ListPurchaseRequestsQuery {
   page?: number;
   pageSize?: number;
+  /** Matches against request title and justification. */
+  search?: string;
+  priority?: string;
+  /** A department id. */
+  departments?: string;
 }
 
 export async function listPurchaseRequests(
@@ -42,11 +47,14 @@ export async function listPurchaseRequests(
 ): Promise<PurchaseRequestList> {
   // The list endpoint returns neither items nor a department join, so names are
   // resolved from the memoized lookup alongside it.
-  const [response, departments] = await Promise.all([
+  const [response, departmentLookup] = await Promise.all([
     serverFetch<PaginatedDto<PurchaseRequestDto>>("/purchase-requests", {
       query: {
         page: query.page ?? 1,
         page_size: clampPageSize(query.pageSize, DEFAULT_PAGE_SIZE),
+        search: query.search,
+        priority: query.priority,
+        departments: query.departments,
       },
     }),
     getDepartmentLookup(),
@@ -54,7 +62,7 @@ export async function listPurchaseRequests(
 
   return {
     requests: response.data.map((dto) =>
-      toPurchaseRequest(dto, { departments }),
+      toPurchaseRequest(dto, { departments: departmentLookup }),
     ),
     page: toPageInfo(response.pagination),
   };

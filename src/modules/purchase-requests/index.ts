@@ -29,6 +29,7 @@ export type {
   PurchaseRequestStatus,
   UpdatePurchaseRequestPayload,
 } from "@/modules/purchase-requests/models/purchase-request";
+export type { PurchaseRequestListFilters } from "@/modules/purchase-requests/queries/purchase-request.queries";
 export {
   departmentOptionsQuery,
   purchaseRequestDetailQuery,

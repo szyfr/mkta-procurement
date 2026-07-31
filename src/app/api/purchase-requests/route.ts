@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
     const result = await listPurchaseRequests({
       page: readPageParam(searchParams.get("page"), 1),
       pageSize: readPageParam(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE),
+      search: searchParams.get("search") || undefined,
+      priority: searchParams.get("priority") || undefined,
+      departments: searchParams.get("departments") || undefined,
     });
 
     return Response.json({ data: result });
