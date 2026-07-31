@@ -179,7 +179,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
       <PageHeader
         title={
           <span className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-base">{request.id}</span>
+            <span className="font-mono text-base">{request.no}</span>
             <StatusBadge tone={purchaseRequestTone[request.status]}>
               {request.statusLabel}
             </StatusBadge>

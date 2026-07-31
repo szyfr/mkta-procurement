@@ -73,7 +73,7 @@ export function PurchaseRequestTable({
               return (
                 <TableRow key={request.id}>
                   <TableCell className="pl-4 font-medium">
-                    {request.id}
+                    {request.no}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {request.title ?? <span className="italic">Untitled</span>}

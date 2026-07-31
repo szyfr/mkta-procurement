@@ -99,9 +99,8 @@ export function toPurchaseRequest(
   const vendors = context.vendors ?? new Map<string, string>();
 
   return {
-    // No human-readable request number exists on the backend, so the ObjectId
-    // is both the route param and the displayed identifier.
     id: dto._id,
+    no: dto.no,
     title: dto.title || null,
     requester: dto.requester_id,
     department: context.departments.get(dto.department_id) ?? dto.department_id,

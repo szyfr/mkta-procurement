@@ -83,6 +83,8 @@ export interface Document {
 
 export interface PurchaseRequest {
   id: string;
+  /** Human-readable request number, e.g. "PR-0042". */
+  no: string;
   /** Null for drafts that have not been titled yet. */
   title: string | null;
   /** True when the title was derived from the items and department. */

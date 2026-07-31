@@ -40,7 +40,6 @@ export interface MaterialDto {
   uom: string;
   inv_post_grp: string;
   is_needs_canvass: boolean;
-  /** Declared by the backend schema but absent from synced documents. */
   last_cost?: number | null;
   created_at: string;
   updated_at: string;
@@ -62,6 +61,7 @@ export interface PurchaseRequestItemDto {
 
 export interface PurchaseRequestDto {
   _id: string;
+  no: string;
   title: string;
   date_needed: string;
   priority: PriorityDto;

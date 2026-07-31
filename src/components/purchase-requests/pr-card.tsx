@@ -57,7 +57,7 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <Link href={href} className="font-medium hover:underline">
-            {request.id}
+            {request.no}
           </Link>
           <PriorityBadge priority={request.priority} />
         </div>
