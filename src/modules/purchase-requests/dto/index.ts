@@ -8,8 +8,6 @@ export type {
 } from "@/modules/purchase-requests/dto/lookup.dto";
 export type {
   MaterialDto,
-  PaginatedDto,
-  PaginationDto,
   PriorityDto,
   PurchaseRequestDetailDto,
   PurchaseRequestDto,

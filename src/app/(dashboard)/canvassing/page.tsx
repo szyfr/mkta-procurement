@@ -29,7 +29,7 @@ import {
   canvassingListNote,
   canvassingTone,
 } from "@/data/canvassing";
-import { departments } from "@/data/purchase-requests";
+import { departments } from "@/data/reference";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {

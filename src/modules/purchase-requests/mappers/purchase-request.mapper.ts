@@ -1,3 +1,4 @@
+import { formatShortDate, toDateInputValue } from "@/lib/date";
 import type { PurchaseRequest, PurchaseRequestItem } from "@/lib/types";
 import {
   priorityFromDto,
@@ -6,29 +7,17 @@ import {
 import type {
   DepartmentDto,
   MaterialDto,
-  PaginationDto,
   PurchaseRequestDetailDto,
   PurchaseRequestDto,
   PurchaseRequestItemDto,
   VendorDto,
 } from "@/modules/purchase-requests/dto";
-import type {
-  LookupOption,
-  PageInfo,
-} from "@/modules/purchase-requests/models/purchase-request";
-import {
-  formatShortDate,
-  toDateInputValue,
-} from "@/modules/purchase-requests/utils";
+import type { LookupOption } from "@/modules/purchase-requests/models/purchase-request";
 
 /**
  * DTO → model. Every difference between the FastAPI contract and what the UI
  * renders is resolved here, so components and Route Handlers stay free of
  * transformation logic.
- *
- * Several UI fields have no backend source at all and are deliberately left
- * unset rather than invented: submitted/completed/rejected dates, rejection
- * reasons, documents, comments, activity, and the action panel note.
  */
 
 /** id → display name, so ids can be resolved without a lookup per row. */
@@ -47,17 +36,6 @@ export function toVendorLookup(vendors: VendorDto[]): NameLookup {
 /** Some synced vendors have a blank name; their number is the next best label. */
 function vendorName(vendor: VendorDto) {
   return vendor.name.trim() || vendor.no;
-}
-
-export function toPageInfo(pagination: PaginationDto): PageInfo {
-  return {
-    totalItems: pagination.total_items,
-    totalPages: pagination.total_pages,
-    currentPage: pagination.current_page,
-    pageSize: pagination.page_size,
-    nextPage: pagination.next_page,
-    prevPage: pagination.prev_page,
-  };
 }
 
 export function toPurchaseRequestItem(

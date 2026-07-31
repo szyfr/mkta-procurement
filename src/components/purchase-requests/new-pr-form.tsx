@@ -3,45 +3,14 @@
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import * as React from "react";
 
-import {
-  createDraftLine,
-  LineItemsEditor,
-} from "@/components/purchase-requests/line-items-editor";
-import {
-  LookupPicker,
-  singlePageLoader,
-} from "@/components/purchase-requests/lookup-picker";
+import { PurchaseRequestFormLayout } from "@/components/purchase-requests/pr-form-layout";
+import { usePurchaseRequestForm } from "@/components/purchase-requests/use-pr-form";
 import { PageHeader } from "@/components/shared/page-header";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ErrorAlert } from "@/components/shared/query-states";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  createPurchaseRequest,
-  type DraftLineItem,
-  fetchDepartmentOptions,
-  type LookupOption,
-  purchaseRequestKeys,
-} from "@/modules/purchase-requests";
+import { createPurchaseRequest } from "@/modules/purchase-requests";
 
 /**
  * Create form. Owns all state for the request and its line items, then posts
@@ -59,38 +28,12 @@ const submissionChecklist = [
   "Every request is created as a draft — the backend doesn't distinguish saving from submitting yet.",
 ];
 
-/** Departments are a short list, so they arrive in one page. */
-const loadDepartmentPage = singlePageLoader(fetchDepartmentOptions);
-
-const priorities = [
-  { label: "High", value: "high" },
-  { label: "Normal", value: "normal" },
-  { label: "Low", value: "low" },
-] as const;
-
-type Priority = (typeof priorities)[number]["value"];
-
-interface FieldErrors {
-  title?: string;
-  department?: string;
-  dateNeeded?: string;
-  justification?: string;
-  items?: string;
-}
+const routingNote =
+  "Approval routing isn't modelled on the backend yet. Requests are created as drafts and move on once their items are processed.";
 
 export function NewPurchaseRequestForm() {
   const router = useRouter();
-
-  const [title, setTitle] = React.useState("");
-  const [department, setDepartment] = React.useState<LookupOption | null>(null);
-  const [dateNeeded, setDateNeeded] = React.useState("");
-  const [priority, setPriority] = React.useState<Priority>("normal");
-  const [justification, setJustification] = React.useState("");
-  const [lines, setLines] = React.useState<DraftLineItem[]>([
-    createDraftLine("line-1"),
-  ]);
-
-  const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
+  const form = usePurchaseRequestForm();
 
   const {
     mutate: create,
@@ -101,46 +44,9 @@ export function NewPurchaseRequestForm() {
     onSuccess: (created) => router.push(`/purchase-requests/${created.id}`),
   });
 
-  function clearFieldError(field: keyof FieldErrors) {
-    setFieldErrors((current) => {
-      if (!current[field]) return current;
-      const next = { ...current };
-      delete next[field];
-      return next;
-    });
-  }
-
   function submit() {
-    const items = lines
-      .filter((line) => line.materialId !== null)
-      .map((line) => ({
-        materialId: line.materialId as string,
-        quantity: line.quantity,
-        vendorId: line.vendorId,
-      }));
-
-    const nextFieldErrors: FieldErrors = {};
-    if (!title.trim()) nextFieldErrors.title = "Title is required.";
-    if (!department)
-      nextFieldErrors.department = "Pick a department before submitting.";
-    if (!dateNeeded) nextFieldErrors.dateNeeded = "Date needed is required.";
-    if (!justification.trim())
-      nextFieldErrors.justification = "Justification is required.";
-    if (items.length === 0)
-      nextFieldErrors.items =
-        "Add at least one item with a catalog entry selected.";
-
-    setFieldErrors(nextFieldErrors);
-    if (Object.keys(nextFieldErrors).length > 0) return;
-
-    create({
-      title: title.trim(),
-      departmentId: (department as LookupOption).id,
-      dateNeeded,
-      priority,
-      justification: justification.trim(),
-      items,
-    });
+    const payload = form.validate();
+    if (payload) create(payload);
   }
 
   return (
@@ -173,198 +79,14 @@ export function NewPurchaseRequestForm() {
       />
 
       {error ? (
-        <Alert variant="destructive">
-          <AlertTitle>Couldn&apos;t save this request</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : "Something went wrong."}
-          </AlertDescription>
-        </Alert>
+        <ErrorAlert title="Couldn't save this request" error={error} />
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <Card>
-            <CardHeader className="border-b">
-              <CardTitle>Request Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup className="sm:grid sm:grid-cols-2 sm:gap-4">
-                <Field
-                  className="sm:col-span-2"
-                  data-invalid={fieldErrors.title ? true : undefined}
-                >
-                  <FieldLabel htmlFor="title">Title</FieldLabel>
-                  <Input
-                    id="title"
-                    name="title"
-                    value={title}
-                    onChange={(event) => {
-                      setTitle(event.target.value);
-                      clearFieldError("title");
-                    }}
-                    placeholder='e.g. "Q3 Production Line Lubricants"'
-                    aria-invalid={fieldErrors.title ? true : undefined}
-                  />
-                  <FieldDescription>
-                    Required — the backend has no auto-titling yet.
-                  </FieldDescription>
-                  {fieldErrors.title ? (
-                    <FieldError>{fieldErrors.title}</FieldError>
-                  ) : null}
-                </Field>
-
-                <Field data-invalid={fieldErrors.department ? true : undefined}>
-                  <FieldLabel>Department</FieldLabel>
-                  <LookupPicker
-                    value={department}
-                    queryKey={purchaseRequestKeys.departmentOptions()}
-                    loadPage={loadDepartmentPage}
-                    placeholder="Select department"
-                    searchPlaceholder="Search departments…"
-                    ariaLabel="Department"
-                    aria-invalid={fieldErrors.department ? true : undefined}
-                    onSelect={(option) => {
-                      setDepartment(option);
-                      clearFieldError("department");
-                    }}
-                  />
-                  {fieldErrors.department ? (
-                    <FieldError>{fieldErrors.department}</FieldError>
-                  ) : null}
-                </Field>
-
-                <Field data-invalid={fieldErrors.dateNeeded ? true : undefined}>
-                  <FieldLabel htmlFor="date-needed">Date Needed</FieldLabel>
-                  <Input
-                    id="date-needed"
-                    name="dateNeeded"
-                    type="date"
-                    value={dateNeeded}
-                    onChange={(event) => {
-                      setDateNeeded(event.target.value);
-                      clearFieldError("dateNeeded");
-                    }}
-                    aria-invalid={fieldErrors.dateNeeded ? true : undefined}
-                  />
-                  {fieldErrors.dateNeeded ? (
-                    <FieldError>{fieldErrors.dateNeeded}</FieldError>
-                  ) : null}
-                </Field>
-
-                <Field>
-                  <FieldLabel>Priority</FieldLabel>
-                  <Select
-                    items={priorities}
-                    value={priority}
-                    onValueChange={(value) => setPriority(value as Priority)}
-                  >
-                    <SelectTrigger
-                      size="sm"
-                      className="w-full"
-                      aria-label="Priority"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {priorities.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-
-                <Field
-                  className="sm:col-span-2"
-                  data-invalid={fieldErrors.justification ? true : undefined}
-                >
-                  <FieldLabel htmlFor="justification">Justification</FieldLabel>
-                  <Textarea
-                    id="justification"
-                    name="justification"
-                    rows={4}
-                    value={justification}
-                    onChange={(event) => {
-                      setJustification(event.target.value);
-                      clearFieldError("justification");
-                    }}
-                    placeholder="Explain why this purchase is needed…"
-                    aria-invalid={fieldErrors.justification ? true : undefined}
-                  />
-                  {fieldErrors.justification ? (
-                    <FieldError>{fieldErrors.justification}</FieldError>
-                  ) : null}
-                </Field>
-              </FieldGroup>
-            </CardContent>
-          </Card>
-
-          <LineItemsEditor
-            lines={lines}
-            onChange={(next) => {
-              setLines(next);
-              clearFieldError("items");
-            }}
-            error={fieldErrors.items}
-          />
-
-          <Card>
-            <CardHeader className="border-b">
-              <CardTitle>Attachments</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <label
-                htmlFor="attachments"
-                className="flex cursor-not-allowed flex-col items-center justify-center rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground"
-              >
-                Drop files here or click to upload
-                <input
-                  id="attachments"
-                  name="attachments"
-                  type="file"
-                  multiple
-                  disabled
-                  className="sr-only"
-                />
-              </label>
-              <p className="text-xs text-muted-foreground">
-                File uploads aren&apos;t supported by the backend yet.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex min-w-0 flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Before you submit</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="flex list-disc flex-col gap-1.5 pl-4 text-xs text-muted-foreground">
-                {submissionChecklist.map((entry) => (
-                  <li key={entry}>{entry}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Approval Routing</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Approval routing isn&apos;t modelled on the backend yet.
-                Requests are created as drafts and move on once their items are
-                processed.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <PurchaseRequestFormLayout
+        form={form}
+        checklist={submissionChecklist}
+        routingNote={routingNote}
+      />
     </>
   );
 }

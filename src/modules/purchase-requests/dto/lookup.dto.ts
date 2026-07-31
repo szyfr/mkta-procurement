@@ -1,8 +1,11 @@
 /**
  * Reference data the Purchase Requests screens need in order to resolve ids to
- * names and to populate the create form. Departments, materials and vendors do
- * not have modules of their own yet; these DTOs stay scoped to this module
- * until they do.
+ * names and to populate the create form.
+ *
+ * Departments and vendors have modules of their own, but a module never reads
+ * another module's DTOs: these screens are served by this module's own lookup
+ * routes, so the upstream contracts they depend on are restated here rather
+ * than imported across the boundary.
  */
 
 export interface DepartmentDto {

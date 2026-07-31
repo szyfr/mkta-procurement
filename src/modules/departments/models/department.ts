@@ -1,3 +1,5 @@
+import type { PageInfo } from "@/lib/api/pagination";
+
 /** Domain object used throughout the Departments UI. */
 export interface Department {
   id: string;
@@ -7,17 +9,17 @@ export interface Department {
   updatedAt: string | null;
 }
 
-/** Page metadata, mapped from the backend's pagination envelope. */
-export interface PageInfo {
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-  nextPage: number | null;
-  prevPage: number | null;
-}
-
 export interface DepartmentList {
   departments: Department[];
   page: PageInfo;
+}
+
+/**
+ * What the UI submits to create or update a department. The BFF validates this
+ * shape before it becomes a DTO, so it is shared by the API client and the
+ * Route Handlers rather than owned by either.
+ */
+export interface DepartmentPayload {
+  title: string;
+  description: string;
 }

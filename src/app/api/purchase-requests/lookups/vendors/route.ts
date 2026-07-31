@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { toErrorResponse } from "@/lib/api/errors";
+import { readPageParam } from "@/lib/api/pagination";
 import { LOOKUP_PAGE_SIZE } from "@/modules/purchase-requests/constants";
 import { listVendors } from "@/modules/purchase-requests/dal/lookup.dal";
 
@@ -11,15 +12,10 @@ import { listVendors } from "@/modules/purchase-requests/dal/lookup.dal";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
-    const page = Number(searchParams.get("page"));
-    const pageSize = Number(searchParams.get("pageSize"));
 
     const result = await listVendors({
-      page: Number.isFinite(page) && page > 0 ? Math.floor(page) : 1,
-      pageSize:
-        Number.isFinite(pageSize) && pageSize > 0
-          ? Math.floor(pageSize)
-          : LOOKUP_PAGE_SIZE,
+      page: readPageParam(searchParams.get("page"), 1),
+      pageSize: readPageParam(searchParams.get("pageSize"), LOOKUP_PAGE_SIZE),
       search: searchParams.get("search"),
     });
 

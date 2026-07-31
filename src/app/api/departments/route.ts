@@ -1,21 +1,18 @@
 import type { NextRequest } from "next/server";
 
-import { ApiError, toErrorResponse } from "@/lib/api/errors";
-import type { DepartmentPayload } from "@/modules/departments/api/client";
+import { toErrorResponse } from "@/lib/api/errors";
+import { readPageParam } from "@/lib/api/pagination";
+import { DEFAULT_PAGE_SIZE } from "@/modules/departments/constants";
 import {
   createDepartment,
   listDepartments,
 } from "@/modules/departments/dal/department.dal";
+import { parseDepartmentPayload } from "@/modules/departments/validation/department.validation";
 
 /**
  * BFF for the department collection. The browser reaches FastAPI only
  * through here, and never learns its address.
  */
-
-function readPageParam(value: string | null, fallback: number) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,29 +20,13 @@ export async function GET(request: NextRequest) {
 
     const result = await listDepartments({
       page: readPageParam(searchParams.get("page"), 1),
-      pageSize: readPageParam(searchParams.get("pageSize"), 10),
+      pageSize: readPageParam(searchParams.get("pageSize"), DEFAULT_PAGE_SIZE),
     });
 
     return Response.json({ data: result });
   } catch (error) {
     return toErrorResponse(error);
   }
-}
-
-/** Validates the payload before it reaches FastAPI, which is lenient about it. */
-function parseDepartmentPayload(body: unknown): DepartmentPayload {
-  const invalid = (message: string) =>
-    new ApiError(422, "validation_failed", message);
-
-  if (!body || typeof body !== "object")
-    throw invalid("Request body is missing.");
-
-  const payload = body as Partial<DepartmentPayload>;
-
-  const title = payload.title?.trim();
-  if (!title) throw invalid("Title is required.");
-
-  return { title, description: payload.description?.trim() ?? "" };
 }
 
 export async function POST(request: NextRequest) {

@@ -6,13 +6,7 @@ import {
   getPurchaseRequest,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests/dal/purchase-request.dal";
-import type {
-  PriorityDto,
-  UpdatePurchaseRequestDto,
-} from "@/modules/purchase-requests/dto";
-
-/** The only status value the UI sends today — submitting a draft for approval. */
-type SubmittableStatus = "pending";
+import { toUpdateDto } from "@/modules/purchase-requests/validation/purchase-request.validation";
 
 /**
  * BFF for a single purchase request.
@@ -32,49 +26,6 @@ export async function GET(
   } catch (error) {
     return toErrorResponse(error);
   }
-}
-
-/** Accepts the camelCase shape the UI works in and maps it to the FastAPI DTO. */
-function toUpdateDto(body: unknown): UpdatePurchaseRequestDto {
-  if (!body || typeof body !== "object") return {};
-
-  const payload = body as {
-    title?: string;
-    departmentId?: string;
-    dateNeeded?: string;
-    priority?: PriorityDto;
-    justification?: string;
-    status?: SubmittableStatus;
-    items?: {
-      materialId: string;
-      quantity: number;
-      vendorId?: string | null;
-    }[];
-  };
-
-  return {
-    ...(payload.title === undefined ? {} : { title: payload.title }),
-    ...(payload.departmentId === undefined
-      ? {}
-      : { department_id: payload.departmentId }),
-    ...(payload.dateNeeded === undefined
-      ? {}
-      : { date_needed: payload.dateNeeded }),
-    ...(payload.priority === undefined ? {} : { priority: payload.priority }),
-    ...(payload.justification === undefined
-      ? {}
-      : { justification: payload.justification }),
-    ...(payload.status === undefined ? {} : { status: payload.status }),
-    ...(payload.items === undefined
-      ? {}
-      : {
-          items: payload.items.map((item) => ({
-            material_id: item.materialId,
-            quantity: item.quantity,
-            vendor_id: item.vendorId ?? null,
-          })),
-        }),
-  };
 }
 
 export async function PUT(

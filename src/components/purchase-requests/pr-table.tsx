@@ -2,15 +2,8 @@ import Link from "next/link";
 
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { TablePagination } from "@/components/shared/table-pagination";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,18 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { purchaseRequestTone } from "@/data/purchase-requests";
-import type { PurchaseRequest } from "@/lib/types";
+import type { PageInfo } from "@/lib/api/pagination";
 import { formatCurrency } from "@/lib/utils";
-import type { PageInfo } from "@/modules/purchase-requests";
-
-/** Page numbers to render, windowed so long result sets stay readable. */
-function pageWindow(current: number, total: number) {
-  const start = Math.max(1, Math.min(current - 1, total - 2));
-  const end = Math.min(total, start + 2);
-
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-}
+import {
+  type PurchaseRequest,
+  purchaseRequestTone,
+} from "@/modules/purchase-requests";
 
 export function PurchaseRequestTable({
   requests,
@@ -110,7 +97,7 @@ export function PurchaseRequestTable({
                       </Link>
                       {needsProof ? (
                         <Link
-                          href={`/purchase-requests/${request.id}`}
+                          href={href}
                           className="text-status-ordered hover:underline"
                         >
                           + Add Proof of Order
@@ -124,51 +111,11 @@ export function PurchaseRequestTable({
           </TableBody>
         </Table>
       </CardContent>
-      <CardFooter className="justify-between gap-2 text-xs text-muted-foreground">
-        <span>
-          Showing {requests.length} of {page.totalItems}
-        </span>
-        {page.totalPages > 1 ? (
-          <Pagination className="mx-0 w-auto">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href={buildPageHref(page.prevPage ?? 1)}
-                  aria-disabled={page.prevPage === null}
-                  className={
-                    page.prevPage === null
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
-                />
-              </PaginationItem>
-              {pageWindow(page.currentPage, page.totalPages).map(
-                (pageNumber) => (
-                  <PaginationItem key={pageNumber}>
-                    <PaginationLink
-                      href={buildPageHref(pageNumber)}
-                      isActive={pageNumber === page.currentPage}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                ),
-              )}
-              <PaginationItem>
-                <PaginationNext
-                  href={buildPageHref(page.nextPage ?? page.totalPages)}
-                  aria-disabled={page.nextPage === null}
-                  className={
-                    page.nextPage === null
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        ) : null}
-      </CardFooter>
+      <TablePagination
+        shown={requests.length}
+        page={page}
+        buildPageHref={buildPageHref}
+      />
     </Card>
   );
 }

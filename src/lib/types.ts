@@ -68,27 +68,20 @@ export interface ActivityEntry {
   timestamp: string;
 }
 
-export interface Comment {
-  id: string;
-  author: string;
-  body: string;
-  timestamp: string;
-}
-
-export interface Document {
-  id: string;
-  name: string;
-  date: string;
-}
-
+/**
+ * A purchase request as the UI renders it.
+ *
+ * Several fields the wireframe imagined have no backend source and are
+ * deliberately absent rather than invented: submitted/completed/rejected
+ * dates, rejection reasons, documents, comments and activity history. The
+ * panels that would show them stay hidden until the endpoints exist.
+ */
 export interface PurchaseRequest {
   id: string;
   /** Human-readable request number, e.g. "PR-0042". */
   no: string;
   /** Null for drafts that have not been titled yet. */
   title: string | null;
-  /** True when the title was derived from the items and department. */
-  autoTitle?: boolean;
   requester: string;
   department: string;
   departmentId: string;
@@ -109,16 +102,7 @@ export interface PurchaseRequest {
   dateNeededValue: string;
   /** Date shown on list rows and cards. Null while still a draft. */
   createdAt: string | null;
-  submittedOn?: string;
-  completedOn?: string;
-  rejectedOn?: string;
-  rejectionReason?: string;
   items: PurchaseRequestItem[];
-  documents?: Document[];
-  comments?: Comment[];
-  activity?: ActivityEntry[];
-  /** Copy for the right-hand action panel on the detail page. */
-  actionPanelNote?: string;
 }
 
 /** A row on the dashboard's "Requests Requiring Action" table. */
@@ -143,19 +127,6 @@ export interface Deadline {
   label: string;
   due: string;
   overdue?: boolean;
-}
-
-export type ItemCreationRequestStatus = "pending" | "approved" | "rejected";
-
-export interface ItemCreationRequest {
-  id: string;
-  itemName: string;
-  /** PR this was requested for, or null for standalone master-data requests. */
-  requestedFor: string | null;
-  requestedBy: string;
-  status: ItemCreationRequestStatus;
-  statusLabel: string;
-  submittedOn: string;
 }
 
 export type CanvassingStatus =

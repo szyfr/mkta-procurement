@@ -9,6 +9,7 @@ import { PurchaseRequestStepper } from "@/components/purchase-requests/pr-steppe
 import { ProofOfOrderForm } from "@/components/purchase-requests/proof-of-order-form";
 import { PageHeader } from "@/components/shared/page-header";
 import { PriorityBadge } from "@/components/shared/priority-badge";
+import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -16,13 +17,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { purchaseRequestTone } from "@/data/purchase-requests";
 import { formatCurrency } from "@/lib/utils";
 import {
   type PurchaseRequest,
   priorityToDto,
   purchaseRequestDetailQuery,
   purchaseRequestKeys,
+  purchaseRequestTone,
   type UpdatePurchaseRequestPayload,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests";
@@ -131,12 +132,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
             </Button>
           }
         />
-        <Alert variant="destructive">
-          <AlertTitle>Couldn&apos;t load this purchase request</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : "Something went wrong."}
-          </AlertDescription>
-        </Alert>
+        <ErrorAlert title="Couldn't load this purchase request" error={error} />
       </>
     );
   }

@@ -7,19 +7,5 @@
  * through this barrel.
  */
 
-export {
-  fetchVendors,
-  type ListVendorsParams,
-  VendorApiError,
-} from "@/modules/vendors/api/client";
-export { vendorEndpoints } from "@/modules/vendors/api/endpoints";
-export { DEFAULT_PAGE_SIZE } from "@/modules/vendors/constants";
-export type {
-  PageInfo,
-  Vendor,
-  VendorList,
-} from "@/modules/vendors/models/vendor";
-export {
-  vendorKeys,
-  vendorListQuery,
-} from "@/modules/vendors/queries/vendor.queries";
+export type { Vendor } from "@/modules/vendors/models/vendor";
+export { vendorListQuery } from "@/modules/vendors/queries/vendor.queries";

@@ -10,9 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PurchaseRequest } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
+  type PurchaseRequest,
   purchaseRequestItemStatusLabels,
   purchaseRequestItemTone,
 } from "@/modules/purchase-requests";

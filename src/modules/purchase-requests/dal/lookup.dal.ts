@@ -1,12 +1,14 @@
 import { serverFetch } from "@/lib/api/fetcher";
 import {
-  LOOKUP_PAGE_SIZE,
+  clampPageSize,
   MAX_PAGE_SIZE,
-} from "@/modules/purchase-requests/constants";
+  type PaginatedDto,
+  toPageInfo,
+} from "@/lib/api/pagination";
+import { LOOKUP_PAGE_SIZE } from "@/modules/purchase-requests/constants";
 import type {
   DepartmentDto,
   MaterialDto,
-  PaginatedDto,
   VendorDto,
 } from "@/modules/purchase-requests/dto";
 import {
@@ -14,7 +16,6 @@ import {
   toDepartmentLookup,
   toDepartmentOption,
   toMaterialOption,
-  toPageInfo,
   toVendorLookup,
   toVendorOption,
 } from "@/modules/purchase-requests/mappers/purchase-request.mapper";
@@ -34,10 +35,6 @@ export interface LookupQuery {
   page?: number;
   pageSize?: number;
   search?: string | null;
-}
-
-function clampPageSize(pageSize: number | undefined) {
-  return Math.min(Math.max(pageSize ?? LOOKUP_PAGE_SIZE, 1), MAX_PAGE_SIZE);
 }
 
 /** Walks every page of a paginated endpoint. Only safe for small collections. */
@@ -119,7 +116,7 @@ export async function listMaterials(
   const response = await serverFetch<PaginatedDto<MaterialDto>>("/materials", {
     query: {
       page: query.page ?? 1,
-      page_size: clampPageSize(query.pageSize),
+      page_size: clampPageSize(query.pageSize, LOOKUP_PAGE_SIZE),
       search: query.search || undefined,
     },
   });
@@ -136,7 +133,7 @@ export async function listVendors(
   const response = await serverFetch<PaginatedDto<VendorDto>>("/vendors", {
     query: {
       page: query.page ?? 1,
-      page_size: clampPageSize(query.pageSize),
+      page_size: clampPageSize(query.pageSize, LOOKUP_PAGE_SIZE),
       search: query.search || undefined,
     },
   });

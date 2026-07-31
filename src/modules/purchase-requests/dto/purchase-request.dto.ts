@@ -1,7 +1,8 @@
 /**
  * Response contracts, mirroring FastAPI exactly — snake_case, `_id` keys, and
  * the backend's own enum values. These never reach React components; the
- * mapper converts them to models first.
+ * mapper converts them to models first. The pagination envelope they arrive in
+ * is shared — see `lib/api/pagination`.
  */
 
 export type PriorityDto = "low" | "normal" | "high";
@@ -76,20 +77,4 @@ export interface PurchaseRequestDto {
 /** `GET /purchase-requests/{id}` — the list endpoint returns no items. */
 export interface PurchaseRequestDetailDto extends PurchaseRequestDto {
   items: PurchaseRequestItemDto[];
-}
-
-export interface PaginationDto {
-  total_items: number;
-  total_pages: number;
-  current_page: number;
-  page_size: number;
-  next_page: number | null;
-  prev_page: number | null;
-  search_term: string | null;
-}
-
-/** `Helper.paginate` wraps every list endpoint in this shape. */
-export interface PaginatedDto<T> {
-  data: T[];
-  pagination: PaginationDto;
 }

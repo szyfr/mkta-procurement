@@ -9,20 +9,12 @@
 
 export {
   createDepartment,
-  DepartmentApiError,
-  type DepartmentPayload,
   deleteDepartment,
-  fetchDepartment,
-  fetchDepartments,
-  type ListDepartmentsParams,
   updateDepartment,
 } from "@/modules/departments/api/client";
-export { departmentEndpoints } from "@/modules/departments/api/endpoints";
-export { DEFAULT_PAGE_SIZE } from "@/modules/departments/constants";
 export type {
   Department,
-  DepartmentList,
-  PageInfo,
+  DepartmentPayload,
 } from "@/modules/departments/models/department";
 export {
   departmentKeys,

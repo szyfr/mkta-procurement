@@ -1,5 +1,1 @@
-export type {
-  PaginatedDto,
-  PaginationDto,
-  VendorDto,
-} from "@/modules/vendors/dto/vendor.dto";
+export type { VendorDto } from "@/modules/vendors/dto/vendor.dto";

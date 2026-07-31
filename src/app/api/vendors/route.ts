@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { toErrorResponse } from "@/lib/api/errors";
+import { readPageParam } from "@/lib/api/pagination";
 import { DEFAULT_PAGE_SIZE } from "@/modules/vendors/constants";
 import { listVendors } from "@/modules/vendors/dal/vendor.dal";
 
@@ -11,11 +12,6 @@ import { listVendors } from "@/modules/vendors/dal/vendor.dal";
  * Read-only for now — vendors are synced upstream and FastAPI exposes no
  * write endpoints for them yet.
  */
-
-function readPageParam(value: string | null, fallback: number) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
-}
 
 export async function GET(request: NextRequest) {
   try {

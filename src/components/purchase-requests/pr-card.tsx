@@ -4,9 +4,11 @@ import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { purchaseRequestTone } from "@/data/purchase-requests";
-import type { PurchaseRequest } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
+import {
+  type PurchaseRequest,
+  purchaseRequestTone,
+} from "@/modules/purchase-requests";
 
 /** Left accent stripe echoes the status colour, as in the wireframe. */
 const accentClasses: Record<string, string> = {
@@ -63,12 +65,7 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
         </div>
 
         {request.title ? (
-          <p className="text-xs text-muted-foreground">
-            {request.title}
-            {request.autoTitle ? (
-              <span className="italic"> (auto-generated title)</span>
-            ) : null}
-          </p>
+          <p className="text-xs text-muted-foreground">{request.title}</p>
         ) : (
           <p className="text-xs text-muted-foreground italic">
             Untitled — add a title while editing

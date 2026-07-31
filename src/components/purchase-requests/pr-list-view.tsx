@@ -5,20 +5,14 @@ import { InboxIcon } from "lucide-react";
 import * as React from "react";
 
 import { PurchaseRequestCard } from "@/components/purchase-requests/pr-card";
+import { StatusLegend } from "@/components/purchase-requests/pr-status-legend";
 import { PurchaseRequestTable } from "@/components/purchase-requests/pr-table";
 import type { ListView } from "@/components/purchase-requests/view-toggle";
 import { DataToolbar } from "@/components/shared/data-toolbar";
-import { StatusLegend } from "@/components/shared/status-legend";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { EmptyState, ErrorAlert } from "@/components/shared/query-states";
+import { TableSkeleton } from "@/components/shared/table-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { buildPageHref } from "@/lib/page-href";
 import {
   departmentOptionsQuery,
   purchaseRequestListQuery,
@@ -53,20 +47,7 @@ const dateFilter = {
   options: ["Last 7 days", "Last 30 days", "Last 90 days"],
 };
 
-function ListSkeleton({ view }: { view: ListView }) {
-  if (view === "table") {
-    return (
-      <Card>
-        <CardContent className="flex flex-col gap-3">
-          {Array.from({ length: 6 }, (_, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length placeholder rows
-            <Skeleton key={index} className="h-9 w-full" />
-          ))}
-        </CardContent>
-      </Card>
-    );
-  }
-
+function CardsSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }, (_, index) => (
@@ -74,6 +55,15 @@ function ListSkeleton({ view }: { view: ListView }) {
         <Skeleton key={index} className="h-44 w-full" />
       ))}
     </div>
+  );
+}
+
+/** The table only ever renders in table view, so its links keep that view. */
+function tablePageHref(page: number) {
+  return buildPageHref(
+    "/purchase-requests",
+    page,
+    new URLSearchParams({ view: "table" }),
   );
 }
 
@@ -93,28 +83,18 @@ export function PurchaseRequestListView({
   // it, and an empty option list is the same fallback as before.
   const departmentOptions = useQuery(departmentOptionsQuery());
 
-  const departments = React.useMemo(
-    () => departmentOptions.data?.options.map((it) => it.label) ?? [],
-    [departmentOptions.data],
-  );
-
   const filters = React.useMemo(
     () => [
       ...staticFilters,
-      { label: "Department", options: departments },
+      {
+        label: "Department",
+        options:
+          departmentOptions.data?.options.map((option) => option.label) ?? [],
+      },
       dateFilter,
     ],
-    [departments],
+    [departmentOptions.data],
   );
-
-  function buildPageHref(next: number) {
-    const params = new URLSearchParams();
-    if (view === "table") params.set("view", "table");
-    if (next > 1) params.set("page", String(next));
-
-    const query = params.toString();
-    return query ? `/purchase-requests?${query}` : "/purchase-requests";
-  }
 
   return (
     <>
@@ -123,36 +103,24 @@ export function PurchaseRequestListView({
       <StatusLegend />
 
       {isError ? (
-        <Alert variant="destructive">
-          <AlertTitle>Couldn&apos;t load purchase requests</AlertTitle>
-          <AlertDescription>
-            {error instanceof Error ? error.message : "Something went wrong."}
-          </AlertDescription>
-        </Alert>
+        <ErrorAlert title="Couldn't load purchase requests" error={error} />
       ) : isPending ? (
-        <ListSkeleton view={view} />
+        view === "table" ? (
+          <TableSkeleton />
+        ) : (
+          <CardsSkeleton />
+        )
       ) : data.requests.length === 0 ? (
-        <Card>
-          <CardContent>
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <InboxIcon />
-                </EmptyMedia>
-                <EmptyTitle>No purchase requests yet</EmptyTitle>
-                <EmptyDescription>
-                  Create one to start tracking a purchase from draft through
-                  delivery.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<InboxIcon />}
+          title="No purchase requests yet"
+          description="Create one to start tracking a purchase from draft through delivery."
+        />
       ) : view === "table" ? (
         <PurchaseRequestTable
           requests={data.requests}
           page={data.page}
-          buildPageHref={buildPageHref}
+          buildPageHref={tablePageHref}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

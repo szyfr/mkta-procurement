@@ -312,8 +312,7 @@ export function LineItemsEditor({
       </CardContent>
 
       <CardFooter className="justify-between gap-4 bg-white">
-        <p className="text-xs text-muted-foreground"></p>
-        <div className="shrink-0 text-right">
+        <div className="ml-auto shrink-0 text-right">
           <p className="text-xs text-muted-foreground">
             Total Estimated Amount
           </p>

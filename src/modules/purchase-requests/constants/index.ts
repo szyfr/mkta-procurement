@@ -12,9 +12,6 @@ export const DEFAULT_PAGE_SIZE = 10;
 /** Page size for the create form's material and vendor pickers. */
 export const LOOKUP_PAGE_SIZE = 50;
 
-/** FastAPI caps `page_size` at 100. */
-export const MAX_PAGE_SIZE = 100;
-
 export const priorityFromDto: Record<PriorityDto, Priority> = {
   low: "Low",
   normal: "Normal",
@@ -29,7 +26,8 @@ export const priorityToDto: Record<Priority, PriorityDto> = {
 
 /**
  * Status pill copy. The backend stores no richer label (no PO number, no item
- * counts), so these are the plain names.
+ * counts), so these are the plain names. Declaration order is the order the
+ * legend lists them in.
  */
 export const purchaseRequestStatusLabels: Record<
   PurchaseRequestStatus,
@@ -43,6 +41,22 @@ export const purchaseRequestStatusLabels: Record<
   completed: "Completed",
   rejected: "Rejected",
 };
+
+/** Status → pill tone. Single source of truth for how a request status looks. */
+export const purchaseRequestTone: Record<PurchaseRequestStatus, StatusTone> = {
+  draft: "neutral",
+  pending: "warning",
+  canvassing: "info",
+  "po-created": "ordered",
+  "partially-completed": "partial",
+  completed: "success",
+  rejected: "danger",
+};
+
+/** Legend shown above the request list, derived from the labels above. */
+export const purchaseRequestStatusLegend = (
+  Object.keys(purchaseRequestStatusLabels) as PurchaseRequestStatus[]
+).map((status) => ({ status, label: purchaseRequestStatusLabels[status] }));
 
 export const purchaseRequestItemStatusLabels: Record<
   PurchaseRequestItemStatus,

@@ -20,14 +20,12 @@ export const purchaseRequestKeys = {
   all: ["purchase-requests"] as const,
   lists: () => [...purchaseRequestKeys.all, "list"] as const,
   list: (page: number) => [...purchaseRequestKeys.all, "list", page] as const,
-  details: () => [...purchaseRequestKeys.all, "detail"] as const,
   detail: (id: string) => [...purchaseRequestKeys.all, "detail", id] as const,
   /**
    * Reference data. Kept under this module's prefix because it is served by
    * the purchase request lookup routes — the standalone Vendors module owns
    * `["vendors", ...]` separately.
    */
-  lookups: () => [...purchaseRequestKeys.all, "lookups"] as const,
   departmentOptions: () =>
     [...purchaseRequestKeys.all, "lookups", "departments"] as const,
   materialOptions: () =>

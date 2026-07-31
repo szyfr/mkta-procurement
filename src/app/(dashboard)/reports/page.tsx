@@ -5,7 +5,7 @@ import { ReportWorkspace } from "@/components/reports/report-workspace";
 import { FilterSelect } from "@/components/shared/filter-select";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
-import { departments, vendors } from "@/data/purchase-requests";
+import { departments, vendors } from "@/data/reference";
 import { dateRanges } from "@/data/reports";
 
 export const metadata: Metadata = {
