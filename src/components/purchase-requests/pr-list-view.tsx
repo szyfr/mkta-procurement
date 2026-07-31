@@ -5,13 +5,13 @@ import { InboxIcon } from "lucide-react";
 import * as React from "react";
 
 import { PurchaseRequestCard } from "@/components/purchase-requests/pr-card";
+import { PurchaseRequestCardsSkeleton } from "@/components/purchase-requests/pr-cards-skeleton";
 import { StatusLegend } from "@/components/purchase-requests/pr-status-legend";
 import { PurchaseRequestTable } from "@/components/purchase-requests/pr-table";
 import type { ListView } from "@/components/purchase-requests/view-toggle";
 import { DataToolbar } from "@/components/shared/data-toolbar";
 import { EmptyState, ErrorAlert } from "@/components/shared/query-states";
 import { TableSkeleton } from "@/components/shared/table-skeleton";
-import { Skeleton } from "@/components/ui/skeleton";
 import { buildPageHref } from "@/lib/page-href";
 import {
   departmentOptionsQuery,
@@ -46,17 +46,6 @@ const dateFilter = {
   label: "Date",
   options: ["Last 7 days", "Last 30 days", "Last 90 days"],
 };
-
-function CardsSkeleton() {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {Array.from({ length: 6 }, (_, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length placeholder cards
-        <Skeleton key={index} className="h-44 w-full" />
-      ))}
-    </div>
-  );
-}
 
 /** The table only ever renders in table view, so its links keep that view. */
 function tablePageHref(page: number) {
@@ -108,7 +97,7 @@ export function PurchaseRequestListView({
         view === "table" ? (
           <TableSkeleton columns={9} />
         ) : (
-          <CardsSkeleton />
+          <PurchaseRequestCardsSkeleton />
         )
       ) : data.requests.length === 0 ? (
         <EmptyState
