@@ -3,6 +3,7 @@ import {
   ChartColumnIcon,
   ClipboardListIcon,
   LayoutDashboardIcon,
+  TruckIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -27,7 +28,10 @@ export const mainNav = [
   },
   {
     title: "Management",
-    items: [{ title: "Departments", url: "/departments", icon: Building2Icon }],
+    items: [
+      { title: "Departments", url: "/departments", icon: Building2Icon },
+      { title: "Vendors", url: "/vendors", icon: TruckIcon },
+    ],
   },
 ];
 
@@ -49,6 +53,7 @@ export const breadcrumbLabels: Record<string, string> = {
   quotes: "Quotes",
   reports: "Reports",
   departments: "Departments",
+  vendors: "Vendors",
   settings: "Settings",
   account: "My Account",
   users: "Users & Roles",
