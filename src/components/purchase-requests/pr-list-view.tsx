@@ -106,7 +106,7 @@ export function PurchaseRequestListView({
         <ErrorAlert title="Couldn't load purchase requests" error={error} />
       ) : isPending ? (
         view === "table" ? (
-          <TableSkeleton />
+          <TableSkeleton columns={9} />
         ) : (
           <CardsSkeleton />
         )
