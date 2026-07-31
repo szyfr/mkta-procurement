@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { InboxIcon } from "lucide-react";
 import * as React from "react";
 
@@ -19,14 +20,13 @@ import {
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  fetchDepartmentOptions,
-  fetchPurchaseRequests,
-  type PageInfo,
-  type PurchaseRequest,
+  departmentOptionsQuery,
+  purchaseRequestListQuery,
 } from "@/modules/purchase-requests";
 
 /**
- * Purchase request list, fetched from the BFF in the browser.
+ * Purchase request list, fetched from the BFF in the browser via TanStack
+ * Query.
  *
  * The toolbar filters are presentational — filtering is not part of this
  * integration — but the Department options come from the real lookup endpoint
@@ -84,45 +84,19 @@ export function PurchaseRequestListView({
   view: ListView;
   page: number;
 }) {
-  const [requests, setRequests] = React.useState<PurchaseRequest[] | null>(
-    null,
+  const { data, isPending, isError, error } = useQuery(
+    purchaseRequestListQuery(page),
   );
-  const [pageInfo, setPageInfo] = React.useState<PageInfo | null>(null);
-  const [departments, setDepartments] = React.useState<string[]>([]);
-  const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    const controller = new AbortController();
+  // Department options only shape a presentational filter, so this query's
+  // failure is deliberately swallowed — it must not take the list down with
+  // it, and an empty option list is the same fallback as before.
+  const departmentOptions = useQuery(departmentOptionsQuery());
 
-    setRequests(null);
-    setError(null);
-
-    fetchPurchaseRequests({ page, signal: controller.signal })
-      .then((result) => {
-        setRequests(result.requests);
-        setPageInfo(result.page);
-      })
-      .catch((cause: unknown) => {
-        if (controller.signal.aborted) return;
-        setError(
-          cause instanceof Error ? cause.message : "Something went wrong.",
-        );
-      });
-
-    return () => controller.abort();
-  }, [page]);
-
-  React.useEffect(() => {
-    const controller = new AbortController();
-
-    fetchDepartmentOptions(controller.signal)
-      .then((result) => setDepartments(result.options.map((it) => it.label)))
-      // Department options only shape a presentational filter; a failure here
-      // must not take the list down with it.
-      .catch(() => setDepartments([]));
-
-    return () => controller.abort();
-  }, []);
+  const departments = React.useMemo(
+    () => departmentOptions.data?.options.map((it) => it.label) ?? [],
+    [departmentOptions.data],
+  );
 
   const filters = React.useMemo(
     () => [
@@ -148,14 +122,16 @@ export function PurchaseRequestListView({
 
       <StatusLegend />
 
-      {error ? (
+      {isError ? (
         <Alert variant="destructive">
           <AlertTitle>Couldn&apos;t load purchase requests</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error instanceof Error ? error.message : "Something went wrong."}
+          </AlertDescription>
         </Alert>
-      ) : requests === null ? (
+      ) : isPending ? (
         <ListSkeleton view={view} />
-      ) : requests.length === 0 ? (
+      ) : data.requests.length === 0 ? (
         <Card>
           <CardContent>
             <Empty>
@@ -172,15 +148,15 @@ export function PurchaseRequestListView({
             </Empty>
           </CardContent>
         </Card>
-      ) : view === "table" && pageInfo ? (
+      ) : view === "table" ? (
         <PurchaseRequestTable
-          requests={requests}
-          page={pageInfo}
+          requests={data.requests}
+          page={data.page}
           buildPageHref={buildPageHref}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {requests.map((request) => (
+          {data.requests.map((request) => (
             <PurchaseRequestCard key={request.id} request={request} />
           ))}
         </div>

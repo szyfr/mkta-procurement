@@ -29,6 +29,7 @@ import {
   type DraftLineItem,
   fetchMaterialOptions,
   fetchVendorOptions,
+  purchaseRequestKeys,
 } from "@/modules/purchase-requests";
 
 /**
@@ -76,26 +77,6 @@ export function LineItemsEditor({
   const nextKey = React.useRef(lines.length + 1);
 
   const total = lines.reduce((sum, line) => sum + (lineTotal(line) ?? 0), 0);
-
-  const loadMaterials = React.useCallback(
-    (params: {
-      page: number;
-      pageSize: number;
-      search: string;
-      signal: AbortSignal;
-    }) => fetchMaterialOptions(params),
-    [],
-  );
-
-  const loadVendors = React.useCallback(
-    (params: {
-      page: number;
-      pageSize: number;
-      search: string;
-      signal: AbortSignal;
-    }) => fetchVendorOptions(params),
-    [],
-  );
 
   function updateLine(key: string, patch: Partial<DraftLineItem>) {
     onChange(
@@ -176,7 +157,8 @@ export function LineItemsEditor({
                         ? { id: line.materialId, label: line.materialName }
                         : null
                     }
-                    loadPage={loadMaterials}
+                    queryKey={purchaseRequestKeys.materialOptions()}
+                    loadPage={fetchMaterialOptions}
                     placeholder="Select an item"
                     searchPlaceholder="Search the catalog…"
                     ariaLabel={`Item for line ${index + 1}`}
@@ -283,7 +265,8 @@ export function LineItemsEditor({
                           ? { id: line.vendorId, label: line.vendorName }
                           : null
                       }
-                      loadPage={loadVendors}
+                      queryKey={purchaseRequestKeys.vendorOptions()}
+                      loadPage={fetchVendorOptions}
                       placeholder="Select a vendor"
                       searchPlaceholder="Search vendors…"
                       ariaLabel={`Vendor for line ${index + 1}`}

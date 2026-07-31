@@ -1,7 +1,7 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { BuildingIcon } from "lucide-react";
-import * as React from "react";
 
 import { DepartmentTable } from "@/components/departments/department-table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -14,13 +14,9 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  type Department,
-  fetchDepartments,
-  type PageInfo,
-} from "@/modules/departments";
+import { type Department, departmentListQuery } from "@/modules/departments";
 
-/** Department list, fetched from the BFF in the browser. */
+/** Department list, fetched from the BFF in the browser via TanStack Query. */
 
 function ListSkeleton() {
   return (
@@ -37,43 +33,16 @@ function ListSkeleton() {
 
 export function DepartmentListView({
   page,
-  reloadToken,
   onEdit,
-  onReload,
 }: {
   page: number;
-  /** Bumped by the parent to retrigger this fetch after a create/edit/delete. */
-  reloadToken: number;
   onEdit: (department: Department) => void;
-  onReload: () => void;
 }) {
-  const [departments, setDepartments] = React.useState<Department[] | null>(
-    null,
+  // Create, edit and delete invalidate the department cache, so the list
+  // refetches itself — no reload token has to be threaded down from the page.
+  const { data, isPending, isError, error } = useQuery(
+    departmentListQuery(page),
   );
-  const [pageInfo, setPageInfo] = React.useState<PageInfo | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: reloadToken exists only to retrigger this fetch after a create/edit/delete
-  React.useEffect(() => {
-    const controller = new AbortController();
-
-    setDepartments(null);
-    setError(null);
-
-    fetchDepartments({ page, signal: controller.signal })
-      .then((result) => {
-        setDepartments(result.departments);
-        setPageInfo(result.page);
-      })
-      .catch((cause: unknown) => {
-        if (controller.signal.aborted) return;
-        setError(
-          cause instanceof Error ? cause.message : "Something went wrong.",
-        );
-      });
-
-    return () => controller.abort();
-  }, [page, reloadToken]);
 
   function buildPageHref(next: number) {
     const params = new URLSearchParams();
@@ -83,18 +52,22 @@ export function DepartmentListView({
     return query ? `/departments?${query}` : "/departments";
   }
 
-  if (error) {
+  if (isError) {
     return (
       <Alert variant="destructive">
         <AlertTitle>Couldn&apos;t load departments</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
+        <AlertDescription>
+          {error instanceof Error ? error.message : "Something went wrong."}
+        </AlertDescription>
       </Alert>
     );
   }
 
-  if (departments === null) {
+  if (isPending) {
     return <ListSkeleton />;
   }
+
+  const { departments, page: pageInfo } = data;
 
   if (departments.length === 0) {
     return (
@@ -119,10 +92,9 @@ export function DepartmentListView({
   return (
     <DepartmentTable
       departments={departments}
-      page={pageInfo as PageInfo}
+      page={pageInfo}
       buildPageHref={buildPageHref}
       onEdit={onEdit}
-      onDeleted={onReload}
     />
   );
 }

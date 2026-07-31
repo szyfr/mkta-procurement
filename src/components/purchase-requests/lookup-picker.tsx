@@ -1,5 +1,6 @@
 "use client";
 
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { CheckIcon, ChevronsUpDownIcon, SearchIcon } from "lucide-react";
 import * as React from "react";
 
@@ -26,12 +27,18 @@ import {
  * the material catalog runs to roughly 1,900 rows and vendors to nearly 300.
  *
  * Results are pulled a page at a time from the BFF and appended as the list is
- * scrolled, with a debounced search box to narrow them.
+ * scrolled, with a debounced search box to narrow them. Paging, caching and
+ * request cancellation are TanStack Query's `useInfiniteQuery`.
  */
 
 export interface LookupPickerProps {
   value: { id: string; label: string } | null;
   onSelect: (option: LookupOption) => void;
+  /**
+   * Cache key for this picker's collection, e.g. the materials lookup. The
+   * search term is appended to it, so each term caches separately.
+   */
+  queryKey: readonly unknown[];
   /** Fetches one page of results. Provided by the caller so the picker stays generic. */
   loadPage: (params: {
     page: number;
@@ -49,9 +56,23 @@ export interface LookupPickerProps {
 
 const SEARCH_DEBOUNCE_MS = 300;
 
+/**
+ * Adapts a lookup that returns its whole collection at once — departments, for
+ * instance — to the paged shape the picker expects.
+ */
+export function singlePageLoader(
+  load: (signal: AbortSignal) => Promise<{ options: LookupOption[] }>,
+) {
+  return async ({ signal }: { signal: AbortSignal }) => ({
+    options: (await load(signal)).options,
+    page: { totalPages: 1 },
+  });
+}
+
 export function LookupPicker({
   value,
   onSelect,
+  queryKey,
   loadPage,
   placeholder,
   searchPlaceholder,
@@ -63,108 +84,60 @@ export function LookupPicker({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
-  const [options, setOptions] = React.useState<LookupOption[]>([]);
-  const [page, setPage] = React.useState(1);
-  const [totalPages, setTotalPages] = React.useState(1);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
-  // Settling on a new search term also restarts paging from the top.
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-      setOptions([]);
-    }, SEARCH_DEBOUNCE_MS);
+    const timer = setTimeout(
+      () => setDebouncedSearch(search),
+      SEARCH_DEBOUNCE_MS,
+    );
 
     return () => clearTimeout(timer);
   }, [search]);
 
   /**
-   * Guards against refetching the same page twice — under StrictMode, and
-   * whenever a caller passes an unmemoized `loadPage`.
+   * Settling on a new search term puts it in the key, so paging restarts from
+   * the top on its own — no list to clear by hand, and no guard against
+   * double-fetching a page, since the cache is keyed per term and page.
    */
-  const requestedPageRef = React.useRef<string | null>(null);
+  const { data, isFetching, hasNextPage, fetchNextPage, isError, error } =
+    useInfiniteQuery({
+      queryKey: [...queryKey, debouncedSearch],
+      // Nothing is loaded until the popover is opened.
+      enabled: open,
+      // Catalogs change rarely, and refetching an infinite query re-runs every
+      // page it holds — so keep reopening the picker on the cache rather than
+      // replaying five requests to rebuild a list the user just scrolled.
+      staleTime: 5 * 60 * 1000,
+      initialPageParam: 1,
+      queryFn: ({ pageParam, signal }) =>
+        loadPage({
+          page: pageParam,
+          pageSize: LOOKUP_PAGE_SIZE,
+          search: debouncedSearch,
+          signal,
+        }),
+      getNextPageParam: (lastPage, allPages) =>
+        allPages.length < lastPage.page.totalPages
+          ? allPages.length + 1
+          : undefined,
+    });
 
-  /**
-   * Mirrors `loading` for the scroll handler, which needs the answer before
-   * React has committed it. See `handleScroll`.
-   */
-  const pendingRef = React.useRef(false);
-
-  React.useEffect(() => {
-    if (!open) {
-      // A reopened picker starts paging over, so drop the results it collected
-      // last time — otherwise the refetched page is appended to rows already
-      // holding it. Clearing the guard also lets a failed load retry.
-      requestedPageRef.current = null;
-      pendingRef.current = false;
-      setPage(1);
-      setOptions((current) => (current.length === 0 ? current : []));
-      return;
-    }
-
-    const key = `${debouncedSearch}::${page}`;
-    if (requestedPageRef.current === key) {
-      pendingRef.current = false;
-      return;
-    }
-    requestedPageRef.current = key;
-    pendingRef.current = true;
-
-    const controller = new AbortController();
-
-    setLoading(true);
-    setError(null);
-
-    loadPage({
-      page,
-      pageSize: LOOKUP_PAGE_SIZE,
-      search: debouncedSearch,
-      signal: controller.signal,
-    })
-      .then((result) => {
-        setTotalPages(result.page.totalPages);
-        setOptions((current) =>
-          page === 1 ? result.options : [...current, ...result.options],
-        );
-      })
-      .catch((cause: unknown) => {
-        if (controller.signal.aborted) return;
-        setError(
-          cause instanceof Error ? cause.message : "Couldn't load options.",
-        );
-      })
-      .finally(() => {
-        // An aborted run has been superseded — the run that replaced it owns
-        // `pendingRef` now, so leave both flags to it.
-        if (controller.signal.aborted) return;
-        pendingRef.current = false;
-        setLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [open, page, debouncedSearch, loadPage]);
+  const options = React.useMemo(
+    () => data?.pages.flatMap((page) => page.options) ?? [],
+    [data],
+  );
 
   function handleScroll(event: React.UIEvent<HTMLDivElement>) {
-    // `loading` only turns true once the fetch effect has run, a commit after
-    // the bump below. Scroll events fire faster than that, and until the new
-    // rows land the list is still scrolled to the bottom — so a second event
-    // would clear a `loading` guard and bump the page again. That aborts the
-    // request in flight and its rows never arrive. This ref closes the gap.
-    if (pendingRef.current || page >= totalPages) return;
+    if (isFetching || !hasNextPage) return;
 
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
 
-    // Clearing the list for a new search term collapses this container, and the
-    // browser clamps `scrollTop` — which fires a scroll event before the effect
-    // has started fetching page 1. An empty list sits at the bottom by
-    // definition, so the check below would pass and bump straight to page 2.
+    // An empty or short list sits at the bottom by definition, which would
+    // otherwise read as "scrolled to the end" and pull a page too early.
     if (scrollHeight <= clientHeight) return;
 
     if (scrollHeight - scrollTop - clientHeight < 48) {
-      pendingRef.current = true;
-      setPage((current) => current + 1);
+      fetchNextPage();
     }
   }
 
@@ -211,11 +184,13 @@ export function LookupPicker({
           className="max-h-64 overflow-y-auto p-1"
           onScroll={handleScroll}
         >
-          {error ? (
+          {isError ? (
             <p className="px-2 py-6 text-center text-xs text-destructive">
-              {error}
+              {error instanceof Error
+                ? error.message
+                : "Couldn't load options."}
             </p>
-          ) : options.length === 0 && !loading ? (
+          ) : options.length === 0 && !isFetching ? (
             <p className="px-2 py-6 text-center text-xs text-muted-foreground">
               No matches.
             </p>
@@ -254,7 +229,7 @@ export function LookupPicker({
             })
           )}
 
-          {loading ? (
+          {isFetching ? (
             <p className="flex items-center justify-center gap-2 px-2 py-3 text-xs text-muted-foreground">
               <Spinner className="size-3.5" />
               Loading…

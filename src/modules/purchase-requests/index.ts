@@ -38,6 +38,12 @@ export type {
   PurchaseRequestItem,
   PurchaseRequestList,
 } from "@/modules/purchase-requests/models/purchase-request";
+export {
+  departmentOptionsQuery,
+  purchaseRequestDetailQuery,
+  purchaseRequestKeys,
+  purchaseRequestListQuery,
+} from "@/modules/purchase-requests/queries/purchase-request.queries";
 export type { DraftLineItem } from "@/modules/purchase-requests/types";
 export {
   formatShortDate,

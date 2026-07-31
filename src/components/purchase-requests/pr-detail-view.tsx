@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import * as React from "react";
 
@@ -18,14 +19,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { purchaseRequestTone } from "@/data/purchase-requests";
 import { formatCurrency } from "@/lib/utils";
 import {
-  fetchPurchaseRequest,
   type PurchaseRequest,
   priorityToDto,
+  purchaseRequestDetailQuery,
+  purchaseRequestKeys,
+  type UpdatePurchaseRequestPayload,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests";
 
 /**
- * Purchase request detail, fetched from the BFF in the browser.
+ * Purchase request detail, fetched from the BFF in the browser via TanStack
+ * Query.
  *
  * Several panels the wireframe shows have no backend behind them yet —
  * documents, comments, activity history and the action panel. They already
@@ -71,30 +75,48 @@ function DetailSkeleton() {
 }
 
 export function PurchaseRequestDetailView({ id }: { id: string }) {
-  const [request, setRequest] = React.useState<PurchaseRequest | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [submitting, setSubmitting] = React.useState(false);
-  const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const {
+    data: request,
+    isPending,
+    isError,
+    error,
+  } = useQuery(purchaseRequestDetailQuery(id));
 
-  React.useEffect(() => {
-    const controller = new AbortController();
+  /**
+   * Submitting fails two ways: the request can be incomplete, which is caught
+   * here before anything is sent, or the PUT itself can fail. The banner shows
+   * whichever happened, so the local check is kept alongside the mutation's
+   * own error.
+   */
+  const [validationError, setValidationError] = React.useState<string | null>(
+    null,
+  );
 
-    setRequest(null);
-    setError(null);
+  const {
+    mutate: submit,
+    isPending: submitting,
+    error: submitFailure,
+    reset: resetSubmit,
+  } = useMutation({
+    mutationFn: (payload: UpdatePurchaseRequestPayload) =>
+      updatePurchaseRequest(id, payload),
+    onSuccess: (updated) => {
+      // Show the new status straight away, and let the list pick it up too.
+      queryClient.setQueryData(purchaseRequestKeys.detail(id), updated);
+      queryClient.invalidateQueries({ queryKey: purchaseRequestKeys.lists() });
+    },
+  });
 
-    fetchPurchaseRequest(id, controller.signal)
-      .then(setRequest)
-      .catch((cause: unknown) => {
-        if (controller.signal.aborted) return;
-        setError(
-          cause instanceof Error ? cause.message : "Something went wrong.",
-        );
-      });
+  const submitError =
+    validationError ??
+    (submitFailure
+      ? submitFailure instanceof Error
+        ? submitFailure.message
+        : "Something went wrong."
+      : null);
 
-    return () => controller.abort();
-  }, [id]);
-
-  if (error) {
+  if (isError) {
     return (
       <>
         <PageHeader
@@ -111,13 +133,15 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
         />
         <Alert variant="destructive">
           <AlertTitle>Couldn&apos;t load this purchase request</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error instanceof Error ? error.message : "Something went wrong."}
+          </AlertDescription>
         </Alert>
       </>
     );
   }
 
-  if (!request) return <DetailSkeleton />;
+  if (isPending) return <DetailSkeleton />;
 
   const isDraft = request.status === "draft";
   const isRejected = request.status === "rejected";
@@ -131,47 +155,38 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
     (item) => item.status === "canvassing",
   );
 
-  async function submitForApproval() {
+  function submitForApproval() {
     if (!request) return;
 
-    setSubmitError(null);
+    setValidationError(null);
+    resetSubmit();
 
     if (!request.title?.trim()) {
-      setSubmitError("Add a title before submitting — use Continue Editing.");
+      setValidationError(
+        "Add a title before submitting — use Continue Editing.",
+      );
       return;
     }
     if (request.items.length === 0) {
-      setSubmitError(
+      setValidationError(
         "Add at least one item before submitting — use Continue Editing.",
       );
       return;
     }
 
-    setSubmitting(true);
-
-    try {
-      const updated = await updatePurchaseRequest(request.id, {
-        title: request.title.trim(),
-        departmentId: request.departmentId,
-        dateNeeded: request.dateNeededValue,
-        priority: priorityToDto[request.priority],
-        justification: request.justification,
-        items: request.items.map((item) => ({
-          materialId: item.materialId,
-          quantity: item.quantity,
-          vendorId: item.vendorId,
-        })),
-        status: "pending",
-      });
-
-      setRequest(updated);
-    } catch (cause) {
-      setSubmitError(
-        cause instanceof Error ? cause.message : "Something went wrong.",
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    submit({
+      title: request.title.trim(),
+      departmentId: request.departmentId,
+      dateNeeded: request.dateNeededValue,
+      priority: priorityToDto[request.priority],
+      justification: request.justification,
+      items: request.items.map((item) => ({
+        materialId: item.materialId,
+        quantity: item.quantity,
+        vendorId: item.vendorId,
+      })),
+      status: "pending",
+    });
   }
 
   return (

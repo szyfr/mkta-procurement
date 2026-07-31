@@ -10,19 +10,14 @@ import { Button } from "@/components/ui/button";
 import type { Department } from "@/modules/departments";
 
 /**
- * Owns everything that needs to coordinate between the list and the
- * create/edit dialog: which dialog (if any) is open, and the token that
- * tells the list to refetch after a save.
+ * Owns the one thing the list and the create/edit dialog have to agree on:
+ * which dialog, if any, is open. Refetching after a save is handled by the
+ * mutations invalidating the department cache.
  */
 export function DepartmentsPageContent({ page }: { page: number }) {
   const [dialogState, setDialogState] = React.useState<
     { mode: "create" } | { mode: "edit"; department: Department } | null
   >(null);
-  const [reloadToken, setReloadToken] = React.useState(0);
-
-  function handleReload() {
-    setReloadToken((token) => token + 1);
-  }
 
   return (
     <>
@@ -42,9 +37,7 @@ export function DepartmentsPageContent({ page }: { page: number }) {
 
       <DepartmentListView
         page={page}
-        reloadToken={reloadToken}
         onEdit={(department) => setDialogState({ mode: "edit", department })}
-        onReload={handleReload}
       />
 
       <DepartmentFormDialog
@@ -55,7 +48,6 @@ export function DepartmentsPageContent({ page }: { page: number }) {
         department={
           dialogState?.mode === "edit" ? dialogState.department : null
         }
-        onSaved={handleReload}
       />
     </>
   );

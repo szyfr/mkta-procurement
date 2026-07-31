@@ -34,13 +34,11 @@ export function DepartmentTable({
   page,
   buildPageHref,
   onEdit,
-  onDeleted,
 }: {
   departments: Department[];
   page: PageInfo;
   buildPageHref: (page: number) => string;
   onEdit: (department: Department) => void;
-  onDeleted: (id: string) => void;
 }) {
   return (
     <Card>
@@ -86,10 +84,7 @@ export function DepartmentTable({
                     >
                       <PencilIcon />
                     </Button>
-                    <DeleteDepartmentDialog
-                      department={department}
-                      onDeleted={onDeleted}
-                    />
+                    <DeleteDepartmentDialog department={department} />
                   </div>
                 </TableCell>
               </TableRow>

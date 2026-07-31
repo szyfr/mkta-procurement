@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -8,7 +9,10 @@ import {
   createDraftLine,
   LineItemsEditor,
 } from "@/components/purchase-requests/line-items-editor";
-import { LookupPicker } from "@/components/purchase-requests/lookup-picker";
+import {
+  LookupPicker,
+  singlePageLoader,
+} from "@/components/purchase-requests/lookup-picker";
 import { PageHeader } from "@/components/shared/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -36,6 +40,7 @@ import {
   type DraftLineItem,
   fetchDepartmentOptions,
   type LookupOption,
+  purchaseRequestKeys,
 } from "@/modules/purchase-requests";
 
 /**
@@ -53,6 +58,9 @@ const submissionChecklist = [
   "Attachments aren't wired up yet and won't be saved with the request.",
   "Every request is created as a draft — the backend doesn't distinguish saving from submitting yet.",
 ];
+
+/** Departments are a short list, so they arrive in one page. */
+const loadDepartmentPage = singlePageLoader(fetchDepartmentOptions);
 
 const priorities = [
   { label: "High", value: "high" },
@@ -82,9 +90,16 @@ export function NewPurchaseRequestForm() {
     createDraftLine("line-1"),
   ]);
 
-  const [submitting, setSubmitting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
+
+  const {
+    mutate: create,
+    isPending: submitting,
+    error,
+  } = useMutation({
+    mutationFn: createPurchaseRequest,
+    onSuccess: (created) => router.push(`/purchase-requests/${created.id}`),
+  });
 
   function clearFieldError(field: keyof FieldErrors) {
     setFieldErrors((current) => {
@@ -95,18 +110,7 @@ export function NewPurchaseRequestForm() {
     });
   }
 
-  const loadDepartments = React.useCallback(
-    async ({ signal }: { signal: AbortSignal }) => {
-      const result = await fetchDepartmentOptions(signal);
-      // Departments are a short list, so they arrive in one page.
-      return { options: result.options, page: { totalPages: 1 } };
-    },
-    [],
-  );
-
-  async function submit() {
-    setError(null);
-
+  function submit() {
     const items = lines
       .filter((line) => line.materialId !== null)
       .map((line) => ({
@@ -129,25 +133,14 @@ export function NewPurchaseRequestForm() {
     setFieldErrors(nextFieldErrors);
     if (Object.keys(nextFieldErrors).length > 0) return;
 
-    setSubmitting(true);
-
-    try {
-      const created = await createPurchaseRequest({
-        title: title.trim(),
-        departmentId: (department as LookupOption).id,
-        dateNeeded,
-        priority,
-        justification: justification.trim(),
-        items,
-      });
-
-      router.push(`/purchase-requests/${created.id}`);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Something went wrong.",
-      );
-      setSubmitting(false);
-    }
+    create({
+      title: title.trim(),
+      departmentId: (department as LookupOption).id,
+      dateNeeded,
+      priority,
+      justification: justification.trim(),
+      items,
+    });
   }
 
   return (
@@ -182,7 +175,9 @@ export function NewPurchaseRequestForm() {
       {error ? (
         <Alert variant="destructive">
           <AlertTitle>Couldn&apos;t save this request</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error instanceof Error ? error.message : "Something went wrong."}
+          </AlertDescription>
         </Alert>
       ) : null}
 
@@ -222,7 +217,8 @@ export function NewPurchaseRequestForm() {
                   <FieldLabel>Department</FieldLabel>
                   <LookupPicker
                     value={department}
-                    loadPage={loadDepartments}
+                    queryKey={purchaseRequestKeys.departmentOptions()}
+                    loadPage={loadDepartmentPage}
                     placeholder="Select department"
                     searchPlaceholder="Search departments…"
                     ariaLabel="Department"

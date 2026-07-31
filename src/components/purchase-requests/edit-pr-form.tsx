@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -8,7 +9,10 @@ import {
   createDraftLine,
   LineItemsEditor,
 } from "@/components/purchase-requests/line-items-editor";
-import { LookupPicker } from "@/components/purchase-requests/lookup-picker";
+import {
+  LookupPicker,
+  singlePageLoader,
+} from "@/components/purchase-requests/lookup-picker";
 import { PageHeader } from "@/components/shared/page-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -35,9 +39,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   type DraftLineItem,
   fetchDepartmentOptions,
-  fetchPurchaseRequest,
   type LookupOption,
   priorityToDto,
+  purchaseRequestDetailQuery,
+  purchaseRequestKeys,
+  type UpdatePurchaseRequestPayload,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests";
 
@@ -53,6 +59,9 @@ const submissionChecklist = [
   "Estimated costs are for approval routing only and aren't saved — the backend has no field for them yet.",
   "Attachments aren't wired up yet and won't be saved with the request.",
 ];
+
+/** Departments are a short list, so they arrive in one page. */
+const loadDepartmentPage = singlePageLoader(fetchDepartmentOptions);
 
 const priorities = [
   { label: "High", value: "high" },
@@ -88,8 +97,12 @@ function EditFormSkeleton() {
 export function EditPurchaseRequestForm({ id }: { id: string }) {
   const router = useRouter();
 
-  const [loading, setLoading] = React.useState(true);
-  const [loadError, setLoadError] = React.useState<string | null>(null);
+  const {
+    data: request,
+    isPending: loading,
+    isError,
+    error: loadError,
+  } = useQuery(purchaseRequestDetailQuery(id));
 
   const [title, setTitle] = React.useState("");
   const [department, setDepartment] = React.useState<LookupOption | null>(null);
@@ -100,11 +113,29 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
     createDraftLine("line-1"),
   ]);
 
-  const [savingChanges, setSavingChanges] = React.useState(false);
-  const [submittingForApproval, setSubmittingForApproval] =
-    React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
+
+  const queryClient = useQueryClient();
+
+  const {
+    mutate: save,
+    isPending: saving,
+    error,
+    variables,
+  } = useMutation({
+    mutationFn: (payload: UpdatePurchaseRequestPayload) =>
+      updatePurchaseRequest(id, payload),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(purchaseRequestKeys.detail(id), updated);
+      queryClient.invalidateQueries({ queryKey: purchaseRequestKeys.lists() });
+      router.push(`/purchase-requests/${updated.id}`);
+    },
+  });
+
+  // One mutation drives both buttons; which is busy comes from the payload it
+  // was called with, keeping the two spinners independent as before.
+  const savingChanges = saving && variables?.status === undefined;
+  const submittingForApproval = saving && variables?.status === "pending";
 
   function clearFieldError(field: keyof FieldErrors) {
     setFieldErrors((current) => {
@@ -115,63 +146,43 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
     });
   }
 
+  /**
+   * Seeds the form from the fetched request, once per request. The ref matters:
+   * these fields are editable from here on, so a later background refetch
+   * handing back a new object must not overwrite what the user has typed.
+   */
+  const seededRef = React.useRef<string | null>(null);
+
   React.useEffect(() => {
-    const controller = new AbortController();
+    if (!request || seededRef.current === request.id) return;
+    seededRef.current = request.id;
 
-    setLoading(true);
-    setLoadError(null);
+    setTitle(request.title ?? "");
+    setDepartment({
+      id: request.departmentId,
+      label: request.department,
+    });
+    setDateNeeded(request.dateNeededValue);
+    setPriority(priorityToDto[request.priority]);
+    setJustification(request.justification);
+    setLines(
+      request.items.length > 0
+        ? request.items.map((item) => ({
+            key: item.id,
+            materialId: item.materialId,
+            materialName: item.name,
+            unit: item.unit,
+            quantity: item.quantity,
+            unitCost: item.estimatedUnitCost,
+            sourcing: item.sourcing,
+            vendorId: item.vendorId,
+            vendorName: item.vendor,
+          }))
+        : [createDraftLine("line-1")],
+    );
+  }, [request]);
 
-    fetchPurchaseRequest(id, controller.signal)
-      .then((request) => {
-        setTitle(request.title ?? "");
-        setDepartment({
-          id: request.departmentId,
-          label: request.department,
-        });
-        setDateNeeded(request.dateNeededValue);
-        setPriority(priorityToDto[request.priority]);
-        setJustification(request.justification);
-        setLines(
-          request.items.length > 0
-            ? request.items.map((item) => ({
-                key: item.id,
-                materialId: item.materialId,
-                materialName: item.name,
-                unit: item.unit,
-                quantity: item.quantity,
-                unitCost: item.estimatedUnitCost,
-                sourcing: item.sourcing,
-                vendorId: item.vendorId,
-                vendorName: item.vendor,
-              }))
-            : [createDraftLine("line-1")],
-        );
-      })
-      .catch((cause: unknown) => {
-        if (controller.signal.aborted) return;
-        setLoadError(
-          cause instanceof Error ? cause.message : "Something went wrong.",
-        );
-      })
-      .finally(() => {
-        if (controller.signal.aborted) return;
-        setLoading(false);
-      });
-
-    return () => controller.abort();
-  }, [id]);
-
-  const loadDepartments = React.useCallback(
-    async ({ signal }: { signal: AbortSignal }) => {
-      const result = await fetchDepartmentOptions(signal);
-      return { options: result.options, page: { totalPages: 1 } };
-    },
-    [],
-  );
-
-  async function save(status?: "pending") {
-    setError(null);
-
+  function submitForm(status?: "pending") {
     const items = lines
       .filter((line) => line.materialId !== null)
       .map((line) => ({
@@ -194,31 +205,18 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
     setFieldErrors(nextFieldErrors);
     if (Object.keys(nextFieldErrors).length > 0) return;
 
-    const setLoadingState =
-      status === "pending" ? setSubmittingForApproval : setSavingChanges;
-    setLoadingState(true);
-
-    try {
-      const updated = await updatePurchaseRequest(id, {
-        title: title.trim(),
-        departmentId: (department as LookupOption).id,
-        dateNeeded,
-        priority,
-        justification: justification.trim(),
-        items,
-        ...(status === undefined ? {} : { status }),
-      });
-
-      router.push(`/purchase-requests/${updated.id}`);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Something went wrong.",
-      );
-      setLoadingState(false);
-    }
+    save({
+      title: title.trim(),
+      departmentId: (department as LookupOption).id,
+      dateNeeded,
+      priority,
+      justification: justification.trim(),
+      items,
+      ...(status === undefined ? {} : { status }),
+    });
   }
 
-  if (loadError) {
+  if (isError) {
     return (
       <>
         <PageHeader
@@ -235,7 +233,11 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
         />
         <Alert variant="destructive">
           <AlertTitle>Couldn&apos;t load this purchase request</AlertTitle>
-          <AlertDescription>{loadError}</AlertDescription>
+          <AlertDescription>
+            {loadError instanceof Error
+              ? loadError.message
+              : "Something went wrong."}
+          </AlertDescription>
         </Alert>
       </>
     );
@@ -258,14 +260,14 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => save()}
+              onClick={() => submitForm()}
               disabled={savingChanges || submittingForApproval}
             >
               {savingChanges ? <Spinner data-icon="inline-start" /> : null}
               Save Changes
             </Button>
             <Button
-              onClick={() => save("pending")}
+              onClick={() => submitForm("pending")}
               disabled={savingChanges || submittingForApproval}
             >
               {submittingForApproval ? (
@@ -280,7 +282,9 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
       {error ? (
         <Alert variant="destructive">
           <AlertTitle>Couldn&apos;t save this request</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error instanceof Error ? error.message : "Something went wrong."}
+          </AlertDescription>
         </Alert>
       ) : null}
 
@@ -320,7 +324,8 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
                   <FieldLabel>Department</FieldLabel>
                   <LookupPicker
                     value={department}
-                    loadPage={loadDepartments}
+                    queryKey={purchaseRequestKeys.departmentOptions()}
+                    loadPage={loadDepartmentPage}
                     placeholder="Select department"
                     searchPlaceholder="Search departments…"
                     ariaLabel="Department"

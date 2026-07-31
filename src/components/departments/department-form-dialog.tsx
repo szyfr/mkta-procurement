@@ -1,5 +1,6 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
 import { DepartmentForm } from "@/components/departments/department-form";
@@ -15,6 +16,7 @@ import {
   createDepartment,
   type Department,
   type DepartmentPayload,
+  departmentKeys,
   updateDepartment,
 } from "@/modules/departments";
 
@@ -27,35 +29,25 @@ export function DepartmentFormDialog({
   open,
   onOpenChange,
   department,
-  onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   department?: Department | null;
-  onSaved: (department: Department) => void;
 }) {
-  const [submitting, setSubmitting] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const isEdit = Boolean(department);
+  const queryClient = useQueryClient();
 
-  // Clear stale request state each time the dialog is opened.
-  React.useEffect(() => {
-    if (open) {
-      setSubmitting(false);
-      setError(null);
-    }
-  }, [open]);
-
-  async function handleSubmit(values: DepartmentPayload) {
-    setError(null);
-    setSubmitting(true);
-
-    try {
-      const saved =
-        isEdit && department
-          ? await updateDepartment(department.id, values)
-          : await createDepartment(values);
-
+  const {
+    mutate: save,
+    isPending: submitting,
+    error,
+    reset,
+  } = useMutation({
+    mutationFn: (values: DepartmentPayload) =>
+      isEdit && department
+        ? updateDepartment(department.id, values)
+        : createDepartment(values),
+    onSuccess: (_saved, values) => {
       toast.add({
         title: isEdit ? "Department updated" : "Department created",
         description: isEdit
@@ -65,15 +57,15 @@ export function DepartmentFormDialog({
       });
 
       onOpenChange(false);
-      onSaved(saved);
-      setSubmitting(false);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Something went wrong.",
-      );
-      setSubmitting(false);
-    }
-  }
+      // The list refetches off this rather than a reload token from the page.
+      queryClient.invalidateQueries({ queryKey: departmentKeys.all });
+    },
+  });
+
+  // Clear stale request state each time the dialog is opened.
+  React.useEffect(() => {
+    if (open) reset();
+  }, [open, reset]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -98,8 +90,14 @@ export function DepartmentFormDialog({
           }
           submitLabel={isEdit ? "Save Changes" : "Create Department"}
           submitting={submitting}
-          error={error}
-          onSubmit={handleSubmit}
+          error={
+            error
+              ? error instanceof Error
+                ? error.message
+                : "Something went wrong."
+              : null
+          }
+          onSubmit={save}
           onCancel={() => onOpenChange(false)}
         />
       </DialogContent>

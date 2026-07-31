@@ -24,3 +24,7 @@ export type {
   DepartmentList,
   PageInfo,
 } from "@/modules/departments/models/department";
+export {
+  departmentKeys,
+  departmentListQuery,
+} from "@/modules/departments/queries/department.queries";
