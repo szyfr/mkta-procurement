@@ -38,10 +38,10 @@ import {
  * Sourcing is derived from the material's `is_needs_canvass` flag rather than
  * chosen here, matching the wireframe's "determined automatically" note.
  *
- * Cost estimates are entered by the requester and drive the on-screen totals
- * only. FastAPI's item payload carries `material_id`, `quantity` and
- * `vendor_id` and nothing else, so they are not persisted — the card footer
- * says so plainly.
+ * Unit costs come from the catalog and are read-only here; they drive the
+ * on-screen totals only. FastAPI's item payload carries `material_id`,
+ * `quantity` and `vendor_id` and nothing else, so cost estimates are not
+ * persisted — the card footer says so plainly.
  */
 
 export function createDraftLine(key: string): DraftLineItem {
@@ -167,8 +167,6 @@ export function LineItemsEditor({
                         materialId: option.id,
                         materialName: option.label,
                         unit: option.unit ?? null,
-                        // Prefilled where the catalog has a cost; otherwise the
-                        // requester types their own estimate.
                         unitCost: option.unitCost ?? null,
                         // Canvassed items get their vendor during canvassing,
                         // so any previously chosen vendor is dropped.
@@ -199,24 +197,10 @@ export function LineItemsEditor({
                   {line.unit ?? "—"}
                 </TableCell>
 
-                <TableCell>
-                  <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={line.unitCost ?? ""}
-                    placeholder="—"
-                    aria-label={`Estimated unit cost for line ${index + 1}`}
-                    className="h-7 w-24"
-                    onChange={(event) =>
-                      updateLine(line.key, {
-                        unitCost:
-                          event.target.value === ""
-                            ? null
-                            : Number(event.target.value),
-                      })
-                    }
-                  />
+                <TableCell className="text-muted-foreground">
+                  {line.unitCost === null
+                    ? "—"
+                    : formatCurrency(line.unitCost, true)}
                 </TableCell>
 
                 <TableCell
