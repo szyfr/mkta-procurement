@@ -28,3 +28,36 @@ export interface CanvassingList {
   entries: CanvassingEntry[];
   page: PageInfo;
 }
+
+/** One vendor's quote against a single canvassing item. */
+export interface CanvassingQuotation {
+  id: string;
+  vendorId: string;
+  /** Resolved via the module's own vendor lookup; falls back to the raw id. */
+  vendor: string;
+  referenceNo: string;
+  date: string | null;
+  deliveryDate: string | null;
+  /** This item's price on the quotation — one quotation can price several items. */
+  unitPrice: number;
+  /** `unitPrice * quantity`, since the backend has no line total of its own. */
+  total: number;
+}
+
+/** A PR item that needs canvassing, with whatever quotations exist for it. */
+export interface PurchaseRequestCanvassingItem {
+  id: string;
+  materialId: string;
+  item: string;
+  unit: string | null;
+  quantity: number;
+  /** The item's own persisted status, e.g. "canvassing" — not a derived label. */
+  status: string;
+  vendorId: string | null;
+  quotations: CanvassingQuotation[];
+}
+
+export interface PurchaseRequestCanvassing {
+  purchaseRequestId: string;
+  items: PurchaseRequestCanvassingItem[];
+}

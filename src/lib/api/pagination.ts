@@ -4,6 +4,8 @@
  * the query-param parsing live here rather than being restated per module.
  */
 
+import { serverFetch } from "@/lib/api/fetcher";
+
 export interface PaginationDto {
   total_items: number;
   total_pages: number;
@@ -56,4 +58,27 @@ export function clampPageSize(pageSize: number | undefined, fallback: number) {
 export function readPageParam(value: string | null, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
+}
+
+/**
+ * Walks every page of a paginated endpoint. Only safe for small collections —
+ * used by lookup DALs that need the whole set to build an id → name map.
+ */
+export async function fetchAll<T>(path: string): Promise<T[]> {
+  const first = await serverFetch<PaginatedDto<T>>(path, {
+    query: { page: 1, page_size: MAX_PAGE_SIZE },
+  });
+
+  const { total_pages: totalPages } = first.pagination;
+  if (totalPages <= 1) return first.data;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      serverFetch<PaginatedDto<T>>(path, {
+        query: { page: index + 2, page_size: MAX_PAGE_SIZE },
+      }),
+    ),
+  );
+
+  return [first.data, ...rest.map((page) => page.data)].flat();
 }

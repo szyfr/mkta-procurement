@@ -1,6 +1,7 @@
 import { serverFetch } from "@/lib/api/fetcher";
 import {
   clampPageSize,
+  fetchAll,
   MAX_PAGE_SIZE,
   type PaginatedDto,
   toPageInfo,
@@ -35,26 +36,6 @@ export interface LookupQuery {
   page?: number;
   pageSize?: number;
   search?: string | null;
-}
-
-/** Walks every page of a paginated endpoint. Only safe for small collections. */
-async function fetchAll<T>(path: string): Promise<T[]> {
-  const first = await serverFetch<PaginatedDto<T>>(path, {
-    query: { page: 1, page_size: MAX_PAGE_SIZE },
-  });
-
-  const { total_pages: totalPages } = first.pagination;
-  if (totalPages <= 1) return first.data;
-
-  const rest = await Promise.all(
-    Array.from({ length: totalPages - 1 }, (_, index) =>
-      serverFetch<PaginatedDto<T>>(path, {
-        query: { page: index + 2, page_size: MAX_PAGE_SIZE },
-      }),
-    ),
-  );
-
-  return [first.data, ...rest.map((page) => page.data)].flat();
 }
 
 /**

@@ -11,8 +11,12 @@ export { canvassingStatusOptions } from "@/modules/canvassing/constants";
 export type {
   CanvassingEntry,
   CanvassingList,
+  CanvassingQuotation,
+  PurchaseRequestCanvassing,
+  PurchaseRequestCanvassingItem,
 } from "@/modules/canvassing/models/canvassing";
 export {
   canvassingKeys,
   canvassingListQuery,
+  purchaseRequestCanvassingQuery,
 } from "@/modules/canvassing/queries/canvassing.queries";

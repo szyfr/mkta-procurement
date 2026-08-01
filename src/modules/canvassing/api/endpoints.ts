@@ -7,4 +7,10 @@ const BASE = "/api/canvassing";
 
 export const canvassingEndpoints = {
   list: BASE,
+  /**
+   * Nested under `/api/purchase-requests` rather than `BASE` — mirrors
+   * FastAPI's own nesting of `GET /purchase-requests/{id}/canvassing`.
+   */
+  forPurchaseRequest: (purchaseRequestId: string) =>
+    `/api/purchase-requests/${encodeURIComponent(purchaseRequestId)}/canvassing`,
 } as const;

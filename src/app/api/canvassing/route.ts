@@ -9,8 +9,10 @@ import { listCanvassing } from "@/modules/canvassing/dal/canvassing.dal";
  * BFF for the canvassing collection. The browser reaches FastAPI only through
  * here, and never learns its address.
  *
- * Read-only for now — quotations, vendor selection and the canvassing detail
- * are not wired up yet.
+ * Read-only for now — this flat list still has no source for quote counts,
+ * batch number or department. The canvassing detail (with quotations) is
+ * wired separately, at `/api/purchase-requests/[id]/canvassing`; vendor
+ * selection (award) and quote creation still aren't wired anywhere.
  */
 
 export async function GET(request: NextRequest) {

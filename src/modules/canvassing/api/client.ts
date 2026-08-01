@@ -1,6 +1,9 @@
 import { bffRequest } from "@/lib/api/bff-client";
 import { canvassingEndpoints } from "@/modules/canvassing/api/endpoints";
-import type { CanvassingList } from "@/modules/canvassing/models/canvassing";
+import type {
+  CanvassingList,
+  PurchaseRequestCanvassing,
+} from "@/modules/canvassing/models/canvassing";
 
 /**
  * Canvassing calls against the BFF. Runs in the browser and knows nothing about
@@ -18,4 +21,14 @@ export function fetchCanvassing({ page, signal }: ListCanvassingParams = {}) {
     query: { page },
     signal,
   });
+}
+
+export function fetchPurchaseRequestCanvassing(
+  purchaseRequestId: string,
+  signal?: AbortSignal,
+) {
+  return bffRequest<PurchaseRequestCanvassing>(
+    canvassingEndpoints.forPurchaseRequest(purchaseRequestId),
+    { signal },
+  );
 }

@@ -85,7 +85,7 @@ Query definitions live in the module's `queries/`, not the component, so keys an
 
 ## Mock data still in play
 
-`src/data/*` is static mock data. Purchase Requests, Departments and Vendors are wired to the real backend; **Dashboard, Canvassing, Reports, Settings/Users, notifications and global search are still mock-driven**. When a backend endpoint doesn't exist yet, keep the page functional with its existing empty state — do not invent data, and document the gap. Several fields on `PurchaseRequest` (`amount`, `estimatedUnitCost`) are permanently `null` because no backend source exists; the comments in `lib/types.ts` record which.
+`src/data/*` is static mock data. Purchase Requests, Departments, Vendors and Canvassing (list and detail) are wired to the real backend; **Dashboard, Reports, Settings/Users, notifications and global search are still mock-driven**. When a backend endpoint doesn't exist yet, keep the page functional with its existing empty state — do not invent data, and document the gap. Several fields on `PurchaseRequest` (`amount`, `estimatedUnitCost`) are permanently `null` because no backend source exists; the comments in `lib/types.ts` record which. Canvassing has no "award vendor" or "submit quote" mutation wired either — the backend has both endpoints, but the detail page is read-only for now.
 
 ## UI conventions
 

@@ -1,6 +1,9 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import { fetchCanvassing } from "@/modules/canvassing/api/client";
+import {
+  fetchCanvassing,
+  fetchPurchaseRequestCanvassing,
+} from "@/modules/canvassing/api/client";
 
 /**
  * Query definitions for the Canvassing UI.
@@ -14,6 +17,8 @@ import { fetchCanvassing } from "@/modules/canvassing/api/client";
 export const canvassingKeys = {
   all: ["canvassing"] as const,
   list: (page: number) => ["canvassing", page] as const,
+  forPurchaseRequest: (purchaseRequestId: string) =>
+    ["canvassing", "purchase-request", purchaseRequestId] as const,
 };
 
 export function canvassingListQuery(page: number) {
@@ -22,5 +27,13 @@ export function canvassingListQuery(page: number) {
     // TanStack supplies an AbortSignal it aborts when the query is cancelled,
     // which covers unmount and page changes.
     queryFn: ({ signal }) => fetchCanvassing({ page, signal }),
+  });
+}
+
+export function purchaseRequestCanvassingQuery(purchaseRequestId: string) {
+  return queryOptions({
+    queryKey: canvassingKeys.forPurchaseRequest(purchaseRequestId),
+    queryFn: ({ signal }) =>
+      fetchPurchaseRequestCanvassing(purchaseRequestId, signal),
   });
 }
