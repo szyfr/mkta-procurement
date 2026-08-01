@@ -33,7 +33,7 @@ function withQuery(path: string, query?: Record<string, QueryValue>) {
 }
 
 export interface BffRequestOptions {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   query?: Record<string, QueryValue>;
   signal?: AbortSignal;
@@ -52,6 +52,11 @@ export async function bffRequest<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
     signal,
   });
+
+  // Routes that only perform an action answer 204 with no body; there is no
+  // `{ data }` envelope to unwrap. Failures always carry one, so this is safe
+  // to check before the status.
+  if (response.status === 204) return undefined as T;
 
   const payload = await response.json().catch(() => null);
 

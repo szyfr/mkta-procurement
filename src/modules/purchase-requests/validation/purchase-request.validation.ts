@@ -3,7 +3,10 @@ import type {
   PriorityDto,
   UpdatePurchaseRequestDto,
 } from "@/modules/purchase-requests/dto";
-import type { CreatePurchaseRequestPayload } from "@/modules/purchase-requests/models/purchase-request";
+import type {
+  CreatePurchaseRequestPayload,
+  SettablePurchaseRequestStatus,
+} from "@/modules/purchase-requests/models/purchase-request";
 
 /**
  * Request-body handling for the purchase request BFF routes: validating what
@@ -12,8 +15,31 @@ import type { CreatePurchaseRequestPayload } from "@/modules/purchase-requests/m
  * failure can be reported as a proper 422.
  */
 
-/** The only status value the UI sends today — submitting a draft for approval. */
-type SubmittableStatus = "pending";
+const SETTABLE_STATUSES: SettablePurchaseRequestStatus[] = [
+  "pending",
+  "canceled",
+];
+
+/**
+ * Guards the status path segment. The backend's enum is much wider, but every
+ * other transition is owned by canvassing and PO processing, so anything else
+ * arriving here is a bug or a hand-crafted request rather than a user error.
+ */
+export function parseSettableStatus(
+  value: string,
+): SettablePurchaseRequestStatus {
+  const status = SETTABLE_STATUSES.find((allowed) => allowed === value);
+
+  if (!status) {
+    throw new ApiError(
+      422,
+      "validation_failed",
+      `Status must be one of: ${SETTABLE_STATUSES.join(", ")}.`,
+    );
+  }
+
+  return status;
+}
 
 export function parseCreatePayload(
   body: unknown,
@@ -66,7 +92,13 @@ export function parseCreatePayload(
   };
 }
 
-/** Every field on an update is optional; only what was sent is forwarded. */
+/**
+ * Every field on an update is optional; only what was sent is forwarded.
+ *
+ * `status` is not among them. FastAPI would accept it here, but only the
+ * dedicated status endpoint cascades the change onto the request's items, so
+ * that transition has one path and this one carries edits alone.
+ */
 export function toUpdateDto(body: unknown): UpdatePurchaseRequestDto {
   if (!body || typeof body !== "object") return {};
 
@@ -76,7 +108,6 @@ export function toUpdateDto(body: unknown): UpdatePurchaseRequestDto {
     dateNeeded?: string;
     priority?: PriorityDto;
     justification?: string;
-    status?: SubmittableStatus;
     items?: {
       materialId: string;
       quantity: number;
@@ -96,7 +127,6 @@ export function toUpdateDto(body: unknown): UpdatePurchaseRequestDto {
     ...(payload.justification === undefined
       ? {}
       : { justification: payload.justification }),
-    ...(payload.status === undefined ? {} : { status: payload.status }),
     ...(payload.items === undefined
       ? {}
       : {

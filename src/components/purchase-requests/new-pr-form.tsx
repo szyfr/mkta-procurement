@@ -25,7 +25,7 @@ const submissionChecklist = [
   "Every item needs a quantity before submitting.",
   "Estimated costs are for approval routing only and aren't saved — the backend has no field for them yet.",
   "Attachments aren't wired up yet and won't be saved with the request.",
-  "Every request is created as a draft — the backend doesn't distinguish saving from submitting yet.",
+  "Every request is created as a draft; submit it for approval from the request itself once it's saved.",
 ];
 
 const routingNote =
@@ -63,9 +63,12 @@ export function NewPurchaseRequestForm() {
               Cancel
             </Button>
             {/*
-              Both buttons perform the same POST: the backend accepts a status
-              on create but never applies it, so every request lands as a draft.
-              Called out in the checklist rather than hidden behind the labels.
+              Both buttons perform the same POST, with no status on the payload:
+              the create endpoint would honour one, but a request has nothing to
+              approve until it exists, so it lands on the backend's `draft`
+              default either way. Submitting is a separate transition from the
+              draft's detail or edit screen. Called out in the checklist rather
+              than hidden behind the labels.
             */}
             <Button variant="outline" onClick={submit} disabled={submitting}>
               Save as Draft

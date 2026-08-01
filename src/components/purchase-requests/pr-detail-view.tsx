@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import * as React from "react";
 
+import { CancelPurchaseRequestDialog } from "@/components/purchase-requests/cancel-pr-dialog";
 import { PurchaseRequestItemsTable } from "@/components/purchase-requests/pr-items-table";
 import { PurchaseRequestStepper } from "@/components/purchase-requests/pr-stepper";
 import { ProofOfOrderForm } from "@/components/purchase-requests/proof-of-order-form";
@@ -20,12 +21,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/utils";
 import {
   type PurchaseRequest,
-  priorityToDto,
   purchaseRequestDetailQuery,
   purchaseRequestKeys,
   purchaseRequestTone,
-  type UpdatePurchaseRequestPayload,
-  updatePurchaseRequest,
+  setPurchaseRequestStatus,
 } from "@/modules/purchase-requests";
 
 /**
@@ -86,9 +85,9 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
 
   /**
    * Submitting fails two ways: the request can be incomplete, which is caught
-   * here before anything is sent, or the PUT itself can fail. The banner shows
-   * whichever happened, so the local check is kept alongside the mutation's
-   * own error.
+   * here before anything is sent, or the transition itself can fail. The banner
+   * shows whichever happened, so the local check is kept alongside the
+   * mutation's own error.
    */
   const [validationError, setValidationError] = React.useState<string | null>(
     null,
@@ -100,11 +99,13 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
     error: submitFailure,
     reset: resetSubmit,
   } = useMutation({
-    mutationFn: (payload: UpdatePurchaseRequestPayload) =>
-      updatePurchaseRequest(id, payload),
-    onSuccess: (updated) => {
-      // Show the new status straight away, and let the list pick it up too.
-      queryClient.setQueryData(purchaseRequestKeys.detail(id), updated);
+    mutationFn: () => setPurchaseRequestStatus(id, "pending"),
+    onSuccess: () => {
+      // The transition returns nothing, so the new status comes from a refetch.
+      // The list picks it up too.
+      queryClient.invalidateQueries({
+        queryKey: purchaseRequestKeys.detail(id),
+      });
       queryClient.invalidateQueries({ queryKey: purchaseRequestKeys.lists() });
     },
   });
@@ -141,6 +142,9 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
 
   const isDraft = request.status === "draft";
   const isRejected = request.status === "rejected";
+  const isCanceled = request.status === "canceled";
+  // Cancelling is only meaningful while there is still work to stop.
+  const isClosed = isRejected || isCanceled || request.status === "completed";
   const deliveredCount = request.items.filter(
     (item) => item.status === "completed",
   ).length;
@@ -170,19 +174,9 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
       return;
     }
 
-    submit({
-      title: request.title.trim(),
-      departmentId: request.departmentId,
-      dateNeeded: request.dateNeededValue,
-      priority: priorityToDto[request.priority],
-      justification: request.justification,
-      items: request.items.map((item) => ({
-        materialId: item.materialId,
-        quantity: item.quantity,
-        vendorId: item.vendorId,
-      })),
-      status: "pending",
-    });
+    // Nothing is edited here, so this is the transition alone — the request is
+    // submitted exactly as stored.
+    submit();
   }
 
   return (
@@ -212,9 +206,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
         actions={
           isDraft ? (
             <>
-              <Button variant="outline" size="sm">
-                Cancel Request
-              </Button>
+              <CancelPurchaseRequestDialog id={request.id} no={request.no} />
               <Button
                 variant="outline"
                 render={<Link href={`/purchase-requests/${request.id}/edit`} />}
@@ -239,11 +231,9 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
               <Button variant="outline" size="sm">
                 Download PDF
               </Button>
-              {request.status !== "completed" ? (
-                <Button variant="outline" size="sm">
-                  Cancel Request
-                </Button>
-              ) : null}
+              {isClosed ? null : (
+                <CancelPurchaseRequestDialog id={request.id} no={request.no} />
+              )}
             </>
           )
         }
@@ -261,6 +251,14 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
           <CardContent className="text-xs text-muted-foreground">
             No approval workflow has started — nothing to show here until you
             submit.
+          </CardContent>
+        </Card>
+      ) : isCanceled ? (
+        // The stepper has no rung for a request that stopped, so it would read
+        // as still sitting at "Submitted".
+        <Card>
+          <CardContent className="text-xs text-muted-foreground">
+            This request was canceled and is no longer being processed.
           </CardContent>
         </Card>
       ) : (

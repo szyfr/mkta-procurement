@@ -2,9 +2,10 @@
  * Domain types for the procurement module.
  *
  * Mirrors the entities in the wireframes: purchase requests move Draft →
- * Canvassing / PO Created → Partially Completed → Completed, with Rejected as
- * an off-ramp. Items within a single request can be sourced independently, so
- * status lives on both the request and its individual items.
+ * Pending → Canvassing / PO Created → Partially Completed → Completed, with
+ * Rejected and Canceled as off-ramps. Items within a single request can be
+ * sourced independently, so status lives on both the request and its
+ * individual items.
  */
 
 /** Visual tone shared by every status pill in the app. */
@@ -26,7 +27,8 @@ export type PurchaseRequestStatus =
   | "po-created"
   | "partially-completed"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "canceled";
 
 /**
  * Items carry a wider set of states than their parent request, because a
@@ -40,7 +42,8 @@ export type PurchaseRequestItemStatus =
   | "po-created"
   | "partially-completed"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "canceled";
 
 /**
  * How an item is sourced. Derived from the material's `is_needs_canvass` flag,

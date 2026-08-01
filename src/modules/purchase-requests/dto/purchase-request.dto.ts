@@ -7,13 +7,7 @@
 
 export type PriorityDto = "low" | "normal" | "high";
 
-/**
- * `app/schemas/purchase_request_schema.py:Status`.
- *
- * `"pending"` (set when submitting a draft for approval) isn't in the
- * backend's enum yet as of 2026-07-30 — the backend team is adding it.
- * Included here so the frontend is ready ahead of that landing.
- */
+/** `app/schemas/purchase_request_schema.py:Status`. */
 export type PurchaseRequestStatusDto =
   | "draft"
   | "pending"
@@ -21,7 +15,8 @@ export type PurchaseRequestStatusDto =
   | "po-created"
   | "partially-completed"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "canceled";
 
 /** `app/schemas/purchase_request_item_schema.py:Status` — a wider set than the PR's. */
 export type PurchaseRequestItemStatusDto =
@@ -31,7 +26,8 @@ export type PurchaseRequestItemStatusDto =
   | "po-created"
   | "partially-completed"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "canceled";
 
 export interface MaterialDto {
   _id: string;

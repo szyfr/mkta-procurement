@@ -40,9 +40,15 @@ export const purchaseRequestStatusLabels: Record<
   "partially-completed": "Partially Completed",
   completed: "Completed",
   rejected: "Rejected",
+  canceled: "Canceled",
 };
 
-/** Status → pill tone. Single source of truth for how a request status looks. */
+/**
+ * Status → pill tone. Single source of truth for how a request status looks.
+ *
+ * Canceled shares `neutral` with draft rather than taking `danger`: it's a
+ * request withdrawn by its own requester, not a decision made against it.
+ */
 export const purchaseRequestTone: Record<PurchaseRequestStatus, StatusTone> = {
   draft: "neutral",
   pending: "warning",
@@ -51,6 +57,7 @@ export const purchaseRequestTone: Record<PurchaseRequestStatus, StatusTone> = {
   "partially-completed": "partial",
   completed: "success",
   rejected: "danger",
+  canceled: "neutral",
 };
 
 /** Legend shown above the request list, derived from the labels above. */
@@ -69,6 +76,7 @@ export const purchaseRequestItemStatusLabels: Record<
   "partially-completed": "Partially Completed",
   completed: "Completed",
   rejected: "Rejected",
+  canceled: "Canceled",
 };
 
 export const purchaseRequestItemTone: Record<
@@ -82,4 +90,5 @@ export const purchaseRequestItemTone: Record<
   "partially-completed": "partial",
   completed: "success",
   rejected: "danger",
+  canceled: "neutral",
 };

@@ -16,7 +16,11 @@ export interface UpdatePurchaseRequestDto {
   date_needed?: string;
   priority?: PriorityDto;
   justification?: string;
-  /** `"pending"` is sent when submitting a draft for approval. */
+  /**
+   * Part of the backend contract, but never sent from here: it changes the
+   * request's own status without touching its items, so transitions go through
+   * `PATCH /purchase-requests/{id}/status/{status}` instead.
+   */
   status?: PurchaseRequestStatusDto;
   items?: CreatePurchaseRequestItemDto[];
 }

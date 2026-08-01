@@ -5,6 +5,7 @@ import type {
   LookupPage,
   PurchaseRequest,
   PurchaseRequestList,
+  SettablePurchaseRequestStatus,
   UpdatePurchaseRequestPayload,
 } from "@/modules/purchase-requests/models/purchase-request";
 
@@ -57,6 +58,21 @@ export function updatePurchaseRequest(
   return bffRequest<PurchaseRequest>(purchaseRequestEndpoints.detail(id), {
     method: "PUT",
     body: payload,
+  });
+}
+
+/**
+ * Submitting for approval (`pending`) and cancelling (`canceled`) are the same
+ * transition endpoint with a different segment. Deliberately not folded into
+ * `updatePurchaseRequest`: this also cascades the new status onto the request's
+ * items, which a plain PUT does not do. Returns nothing — callers refetch.
+ */
+export function setPurchaseRequestStatus(
+  id: string,
+  status: SettablePurchaseRequestStatus,
+) {
+  return bffRequest<void>(purchaseRequestEndpoints.status(id, status), {
+    method: "PATCH",
   });
 }
 

@@ -12,6 +12,7 @@ export {
   fetchDepartmentOptions,
   fetchMaterialOptions,
   fetchVendorOptions,
+  setPurchaseRequestStatus,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests/api/client";
 export {
@@ -27,6 +28,7 @@ export type {
   LookupOption,
   PurchaseRequest,
   PurchaseRequestStatus,
+  SettablePurchaseRequestStatus,
   UpdatePurchaseRequestPayload,
 } from "@/modules/purchase-requests/models/purchase-request";
 export type { PurchaseRequestListFilters } from "@/modules/purchase-requests/queries/purchase-request.queries";

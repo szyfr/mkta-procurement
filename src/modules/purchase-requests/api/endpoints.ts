@@ -9,6 +9,9 @@ export const purchaseRequestEndpoints = {
   list: BASE,
   create: BASE,
   detail: (id: string) => `${BASE}/${encodeURIComponent(id)}`,
+  /** Status transitions are their own endpoint — see the client for why. */
+  status: (id: string, status: string) =>
+    `${BASE}/${encodeURIComponent(id)}/status/${encodeURIComponent(status)}`,
   itemRequests: `${BASE}/item-requests`,
   departments: `${BASE}/lookups/departments`,
   materials: `${BASE}/lookups/materials`,

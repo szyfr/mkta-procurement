@@ -15,6 +15,7 @@ import { Spinner } from "@/components/ui/spinner";
 import {
   purchaseRequestDetailQuery,
   purchaseRequestKeys,
+  setPurchaseRequestStatus,
   type UpdatePurchaseRequestPayload,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests";
@@ -34,6 +35,12 @@ const submissionChecklist = [
 
 const routingNote =
   "Approval routing isn't modelled on the backend yet. Requests move on once their items are processed.";
+
+/** `submit` distinguishes "Save Changes" from "Submit for Approval". */
+interface SaveInput {
+  payload: UpdatePurchaseRequestPayload;
+  submit: boolean;
+}
 
 function EditFormSkeleton() {
   return (
@@ -68,10 +75,29 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
     error,
     variables,
   } = useMutation({
-    mutationFn: (payload: UpdatePurchaseRequestPayload) =>
-      updatePurchaseRequest(id, payload),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(purchaseRequestKeys.detail(id), updated);
+    /**
+     * Submitting is always save-then-transition: the PUT carries the edits the
+     * user just made, and the status endpoint moves the request — and its items
+     * — to `pending`. A draft with unsaved edits would otherwise be submitted
+     * as whatever was last stored.
+     */
+    mutationFn: async ({ payload, submit }: SaveInput) => {
+      const updated = await updatePurchaseRequest(id, payload);
+      if (submit) await setPurchaseRequestStatus(id, "pending");
+
+      return updated;
+    },
+    onSuccess: (updated, { submit }) => {
+      // The PUT response predates the transition, so a submit refetches rather
+      // than seeding the cache with a stale `draft`.
+      if (submit) {
+        queryClient.invalidateQueries({
+          queryKey: purchaseRequestKeys.detail(id),
+        });
+      } else {
+        queryClient.setQueryData(purchaseRequestKeys.detail(id), updated);
+      }
+
       queryClient.invalidateQueries({ queryKey: purchaseRequestKeys.lists() });
       router.push(`/purchase-requests/${updated.id}`);
     },
@@ -79,8 +105,8 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
 
   // One mutation drives both buttons; which is busy comes from the payload it
   // was called with, keeping the two spinners independent as before.
-  const savingChanges = saving && variables?.status === undefined;
-  const submittingForApproval = saving && variables?.status === "pending";
+  const savingChanges = saving && variables?.submit === false;
+  const submittingForApproval = saving && variables?.submit === true;
 
   /**
    * Seeds the form from the fetched request, once per request. The ref matters:
@@ -97,11 +123,11 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
     seedFrom(request);
   }, [request, seedFrom]);
 
-  function submitForm(status?: "pending") {
+  function submitForm(submit: boolean) {
     const payload = form.validate();
     if (!payload) return;
 
-    save({ ...payload, ...(status === undefined ? {} : { status }) });
+    save({ payload, submit });
   }
 
   if (isError) {
@@ -144,14 +170,14 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => submitForm()}
+              onClick={() => submitForm(false)}
               disabled={savingChanges || submittingForApproval}
             >
               {savingChanges ? <Spinner data-icon="inline-start" /> : null}
               Save Changes
             </Button>
             <Button
-              onClick={() => submitForm("pending")}
+              onClick={() => submitForm(true)}
               disabled={savingChanges || submittingForApproval}
             >
               {submittingForApproval ? (
