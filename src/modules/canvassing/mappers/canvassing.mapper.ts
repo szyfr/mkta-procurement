@@ -11,6 +11,9 @@ export function toCanvassingEntry(dto: CanvassingEntryDto): CanvassingEntry {
   return {
     id: dto._id,
     purchaseRequestId: dto.purchase_request_id,
+    // Same tolerance as the material join — a row without its request still
+    // renders, identified by the id it always carries.
+    purchaseRequestNo: dto.purchase_request?.no?.trim() || null,
     // The pipeline preserves rows whose material lookup found nothing — fall
     // back to the raw id so such a row still identifies itself.
     item: material?.description?.trim() || dto.material_id,

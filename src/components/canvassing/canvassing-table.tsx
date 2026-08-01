@@ -76,13 +76,13 @@ export function CanvassingTable({
                 className={cn(tinted[index] && "bg-muted/40")}
               >
                 <TableCell className="pl-4">
-                  {/* The request detail page takes the Mongo id, so this
-                      navigates correctly even though the id is what shows. */}
+                  {/* The reference is display only — the detail route takes the
+                      Mongo id, which is what the href carries. */}
                   <Link
                     href={`/purchase-requests/${entry.purchaseRequestId}`}
                     className="font-mono text-xs hover:underline"
                   >
-                    {entry.purchaseRequestId}
+                    {entry.purchaseRequestNo ?? entry.purchaseRequestId}
                   </Link>
                 </TableCell>
                 <TableCell>{entry.item}</TableCell>
@@ -107,8 +107,11 @@ export function CanvassingTable({
                   {entry.initiatedOn ?? NO_BACKEND_SOURCE}
                 </TableCell>
                 <TableCell className="pr-4">
+                  {/* Canvassing for a request is worked from the request's own
+                      canvassing tab — the standalone /canvassing/[id] detail
+                      is still mock-driven. */}
                   <Link
-                    href={`/canvassing/${entry.purchaseRequestId}`}
+                    href={`/purchase-requests/${entry.purchaseRequestId}/canvassing`}
                     className="text-xs text-muted-foreground hover:underline"
                   >
                     Open →

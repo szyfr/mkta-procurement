@@ -38,19 +38,37 @@ export interface CanvassingMaterialDto {
 }
 
 /**
+ * The parent request joined onto each row. Restated here for the same reason
+ * as the material above — the Purchase Requests module owns its own DTO, and
+ * modules don't read each other's contracts.
+ *
+ * Only the fields the list actually reads are declared; the join carries the
+ * whole request document.
+ */
+export interface CanvassingPurchaseRequestDto {
+  _id: string;
+  /** Human-readable reference, e.g. "PR-2026-0801152847". */
+  no: string;
+  title: string | null;
+  status: string;
+  department_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * One canvassing row: a purchase request item out for quotation, with its
- * material joined in.
+ * material and parent request joined in.
  *
  * The pipeline looks up the item's awards and quotations only to derive
- * `status`, then projects both away — so a row carries no quote counts, no
- * batch number and no department, and the list cannot show them yet.
+ * `status`, then projects both away — so a row carries no quote counts and no
+ * batch number, and the list cannot show them yet.
  */
 export interface CanvassingEntryDto {
   _id: string;
   quantity: number;
   status: CanvassingStatusDto;
   is_needs_canvass: boolean | null;
-  /** Mongo id of the parent request; the backend exposes no `no` for it here. */
   purchase_request_id: string;
   material_id: string;
   vendor_id: string | null;
@@ -58,4 +76,6 @@ export interface CanvassingEntryDto {
   updated_at: string;
   /** Joined by the list pipeline, preserving rows whose material is missing. */
   material?: CanvassingMaterialDto | null;
+  /** Joined the same way, so a row can arrive without its request. */
+  purchase_request?: CanvassingPurchaseRequestDto | null;
 }

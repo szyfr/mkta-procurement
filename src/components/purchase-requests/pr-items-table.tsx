@@ -71,7 +71,7 @@ export function PurchaseRequestItemsTable({
                 </span>
               ) : item.status === "canvassing" ? (
                 <Link
-                  href={`/canvassing/${request.id}`}
+                  href={`/purchase-requests/${request.id}/canvassing`}
                   className="text-xs text-muted-foreground hover:underline"
                 >
                   View Canvassing →
