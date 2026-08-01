@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { PackageXIcon } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
@@ -17,6 +18,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -111,9 +120,27 @@ export function PurchaseRequestCanvassingView({ id }: { id: string }) {
 
         <CardContent className="px-0">
           {request.items.length === 0 ? (
-            <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-              No items on this request.
-            </p>
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <PackageXIcon />
+                </EmptyMedia>
+                <EmptyTitle>No items to canvass</EmptyTitle>
+                <EmptyDescription>
+                  This purchase request has no items available for quotation.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  nativeButton={false}
+                  render={<Link href={`/purchase-requests/${id}/edit`} />}
+                >
+                  Add Items
+                </Button>
+              </EmptyContent>
+            </Empty>
           ) : (
             <Table>
               <TableHeader>
@@ -163,20 +190,24 @@ export function PurchaseRequestCanvassingView({ id }: { id: string }) {
           )}
         </CardContent>
 
-        <CardFooter className="justify-between gap-2">
-          <span className="text-xs text-muted-foreground">
-            {selected.length} {selected.length === 1 ? "item" : "items"}{" "}
-            selected
-          </span>
-          <Button
-            size="sm"
-            disabled={selected.length === 0}
-            render={<Link href={`/canvassing/${id}/quotes/new`} />}
-            nativeButton={false}
-          >
-            Create Quotation for Selected Items →
-          </Button>
-        </CardFooter>
+        {/* The empty state carries its own action, so the selection footer
+            would only add a dead count and a permanently disabled button. */}
+        {request.items.length === 0 ? null : (
+          <CardFooter className="justify-between gap-2">
+            <span className="text-xs text-muted-foreground">
+              {selected.length} {selected.length === 1 ? "item" : "items"}{" "}
+              selected
+            </span>
+            <Button
+              size="sm"
+              disabled={selected.length === 0}
+              render={<Link href={`/canvassing/${id}/quotes/new`} />}
+              nativeButton={false}
+            >
+              Create Quotation for Selected Items →
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </>
   );
