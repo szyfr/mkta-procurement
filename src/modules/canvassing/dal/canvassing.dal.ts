@@ -13,10 +13,12 @@ import type { CanvassingList } from "@/modules/canvassing/models/canvassing";
  * Canvassing reads against FastAPI. Server-side only, called from Route
  * Handlers — never from a component.
  *
- * Only the list is wired up. FastAPI also has `GET /canvassing/quotations` and
- * `PATCH /canvassing/award/{quotation_id}`, but quotations and vendor selection
- * are out of scope for this iteration, and there is no by-id read for a
- * canvassing case at all.
+ * The list lives here; the quote comparison is in `quotation.dal.ts`. There is
+ * no by-id read for a canvassing case at all.
+ *
+ * `PATCH /canvassing/award/{quotation_id}` stays unwired on purpose: it records
+ * the winning vendor from the purchase request item rather than the awarded
+ * quotation, and never moves the item out of `canvassing`.
  */
 
 export interface ListCanvassingQuery {

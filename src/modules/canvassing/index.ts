@@ -12,7 +12,12 @@ export type {
   CanvassingEntry,
   CanvassingList,
 } from "@/modules/canvassing/models/canvassing";
+export type {
+  ItemQuotations,
+  Quotation,
+} from "@/modules/canvassing/models/quotation";
 export {
   canvassingKeys,
   canvassingListQuery,
+  canvassingQuotationsQuery,
 } from "@/modules/canvassing/queries/canvassing.queries";
