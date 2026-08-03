@@ -43,8 +43,7 @@ import {
 /**
  * The live part of the canvassing screen: the request's own header and the
  * items available for quotation, read from the purchase request detail the BFF
- * already serves. The batch comparison below it stays static — no canvassing
- * endpoint exists yet.
+ * already serves.
  *
  * There is no Batch column: no batch or grouping field exists on the item
  * model, its DTO, or the backend, so there is nothing to render. It returns
@@ -59,8 +58,8 @@ export function CanvassingItemsView({ id }: { id: string }) {
   } = useQuery(purchaseRequestDetailQuery(id));
 
   /**
-   * Selection is local and inert. Nothing accepts a batch yet, so checking a
-   * row only drives the footer count and unlocks the link to the quote form.
+   * Selection is local: it only decides which items the quote form opens with,
+   * which it reads back off the URL. Nothing about it is persisted.
    */
   const [selected, setSelected] = React.useState<string[]>([]);
 
@@ -95,6 +94,18 @@ export function CanvassingItemsView({ id }: { id: string }) {
 
   const itemCount = request.items.length;
 
+  /**
+   * Only items routed to canvassing can be quoted. A quote saved against a
+   * directly-sourced item would store fine and then never appear anywhere —
+   * the comparison below reads the same `sourcing` filter.
+   */
+  const quotableCount = request.items.filter(
+    (item) => item.sourcing === "canvassing",
+  ).length;
+
+  const quoteParams = new URLSearchParams();
+  for (const itemId of selected) quoteParams.append("items", itemId);
+
   return (
     <>
       <PageHeader
@@ -113,7 +124,9 @@ export function CanvassingItemsView({ id }: { id: string }) {
         <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
           <CardTitle>Items in this Purchase Request</CardTitle>
           <span className="text-xs text-muted-foreground">
-            Select items to send out for quotation together
+            {quotableCount === itemCount
+              ? "Select items to quote together"
+              : `${quotableCount} of ${itemCount} routed to canvassing — only those can be quoted`}
           </span>
         </CardHeader>
 
@@ -150,6 +163,7 @@ export function CanvassingItemsView({ id }: { id: string }) {
                 <TableBody>
                   {request.items.map((item) => {
                     const isSelected = selected.includes(item.id);
+                    const quotable = item.sourcing === "canvassing";
 
                     return (
                       <TableRow
@@ -159,13 +173,23 @@ export function CanvassingItemsView({ id }: { id: string }) {
                         <TableCell className="pl-4">
                           <Checkbox
                             checked={isSelected}
-                            aria-label={`Select ${item.name}`}
+                            disabled={!quotable}
+                            aria-label={
+                              quotable
+                                ? `Select ${item.name}`
+                                : `${item.name} is sourced directly and can't be quoted`
+                            }
                             onCheckedChange={(checked) =>
                               toggle(item.id, checked === true)
                             }
                           />
                         </TableCell>
-                        <TableCell className="font-medium">
+                        <TableCell
+                          className={cn(
+                            "font-medium",
+                            !quotable && "text-muted-foreground",
+                          )}
+                        >
                           {item.name}
                         </TableCell>
                         <TableCell>{item.quantity}</TableCell>
@@ -188,13 +212,17 @@ export function CanvassingItemsView({ id }: { id: string }) {
                 {selected.length} {selected.length === 1 ? "item" : "items"}{" "}
                 selected
                 {selected.length > 0
-                  ? " — not yet grouped into an active batch"
+                  ? " — one quote will cover all of them"
                   : ""}
               </span>
               <Button
                 size="sm"
                 disabled={selected.length === 0}
-                render={<Link href={`/canvassing/${request.id}/quotes/new`} />}
+                render={
+                  <Link
+                    href={`/purchase-requests/${request.id}/canvassing/quotes/new?${quoteParams}`}
+                  />
+                }
                 nativeButton={false}
               >
                 Create Quotation for Selected Items →

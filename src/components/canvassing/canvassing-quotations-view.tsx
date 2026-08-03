@@ -145,7 +145,9 @@ function QuoteComparison({
             size="sm"
             nativeButton={false}
             render={
-              <Link href={`/canvassing/${purchaseRequestId}/quotes/new`} />
+              <Link
+                href={`/purchase-requests/${purchaseRequestId}/canvassing/quotes/new?items=${item.id}`}
+              />
             }
           >
             + Add Vendor Quote
@@ -168,7 +170,9 @@ function QuoteComparison({
               className="mt-2"
               nativeButton={false}
               render={
-                <Link href={`/canvassing/${purchaseRequestId}/quotes/new`} />
+                <Link
+                  href={`/purchase-requests/${purchaseRequestId}/canvassing/quotes/new?items=${item.id}`}
+                />
               }
             >
               + Add Vendor Quote

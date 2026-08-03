@@ -162,8 +162,14 @@ export default function DashboardPage() {
                       key={quotation.id}
                       className="flex flex-col gap-0.5 px-4 py-3"
                     >
+                      {/*
+                        This card is still mock-driven, so the id here is a
+                        display string like "PR-2026-0108" and resolves to no
+                        real request. It points at the canvassing list until
+                        the dashboard reads the backend.
+                      */}
                       <Link
-                        href={`/canvassing/${quotation.id}`}
+                        href="/canvassing"
                         className="text-sm hover:underline"
                       >
                         {quotation.summary}

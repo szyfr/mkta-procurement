@@ -340,7 +340,11 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
                   variant="outline"
                   size="sm"
                   className="w-full"
-                  render={<Link href={`/canvassing/${request.id}`} />}
+                  render={
+                    <Link
+                      href={`/purchase-requests/${request.id}/canvassing`}
+                    />
+                  }
                   nativeButton={false}
                 >
                   View Canvassing
