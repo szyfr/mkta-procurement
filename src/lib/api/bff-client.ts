@@ -41,6 +41,7 @@ function withQuery(path: string, query?: Record<string, QueryValue>) {
 
 export interface BffRequestOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** Serialized as JSON, unless it is `FormData` — see below. */
   body?: unknown;
   query?: Record<string, QueryValue>;
   signal?: AbortSignal;
@@ -52,11 +53,19 @@ export async function bffRequest<T>(
 ): Promise<T> {
   const { method = "GET", body, query, signal } = options;
 
+  // A quotation carries attachments, so it goes up as `multipart/form-data`.
+  // The browser has to set `Content-Type` itself there — writing the header by
+  // hand would omit the part boundary.
+  const multipart = body instanceof FormData;
+
   const response = await fetch(withQuery(path, query), {
     method,
     headers:
-      body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body),
+      body === undefined || multipart
+        ? undefined
+        : { "Content-Type": "application/json" },
+    body:
+      body === undefined ? undefined : multipart ? body : JSON.stringify(body),
     signal,
   });
 

@@ -8,7 +8,11 @@ import { ApiError, normalizeBackendError } from "@/lib/api/errors";
 
 export interface ServerFetchOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  /** Serialized as JSON. */
+  /**
+   * Serialized as JSON, unless it is `FormData` — the quotation endpoints take
+   * `multipart/form-data`, which has to go out untouched so the runtime can
+   * generate the part boundary.
+   */
   body?: unknown;
   /**
    * Appended as a query string; `undefined` and `null` entries are dropped. An
@@ -55,6 +59,10 @@ export async function serverFetch<T>(
 ): Promise<T> {
   const { method = "GET", body, query, signal } = options;
 
+  // Setting `Content-Type` by hand on a multipart body would drop the boundary
+  // and FastAPI would read no parts at all, so leave both to `fetch`.
+  const multipart = body instanceof FormData;
+
   let response: Response;
 
   try {
@@ -62,9 +70,16 @@ export async function serverFetch<T>(
       method,
       headers: {
         Accept: "application/json",
-        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+        ...(body === undefined || multipart
+          ? {}
+          : { "Content-Type": "application/json" }),
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined
+          ? undefined
+          : multipart
+            ? body
+            : JSON.stringify(body),
       // Purchasing data is operational and changes constantly; never serve a
       // stale copy from the Next.js data cache.
       cache: "no-store",
