@@ -58,16 +58,39 @@ export async function bffRequest<T>(
   // hand would omit the part boundary.
   const multipart = body instanceof FormData;
 
-  const response = await fetch(withQuery(path, query), {
-    method,
-    headers:
-      body === undefined || multipart
-        ? undefined
-        : { "Content-Type": "application/json" },
-    body:
-      body === undefined ? undefined : multipart ? body : JSON.stringify(body),
-    signal,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(withQuery(path, query), {
+      method,
+      headers:
+        body === undefined || multipart
+          ? undefined
+          : { "Content-Type": "application/json" },
+      body:
+        body === undefined
+          ? undefined
+          : multipart
+            ? body
+            : JSON.stringify(body),
+      // The session cookie is HttpOnly and scoped to this origin, so the
+      // browser attaches it on its own — this only spells out that we rely on
+      // it. `include` would be wrong: every path here is same-origin, and the
+      // BFF is what talks to FastAPI cross-origin.
+      credentials: "same-origin",
+      signal,
+    });
+  } catch (cause) {
+    // An aborted request is the caller's own doing (a superseded query, an
+    // unmounted component) and must stay an `AbortError` for TanStack Query.
+    if (cause instanceof DOMException && cause.name === "AbortError")
+      throw cause;
+
+    throw new BffError(
+      0,
+      "Can't reach the server. Check your connection and try again.",
+    );
+  }
 
   // Routes that only perform an action answer 204 with no body; there is no
   // `{ data }` envelope to unwrap. Failures always carry one, so this is safe

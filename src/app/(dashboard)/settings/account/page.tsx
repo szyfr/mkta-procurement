@@ -19,13 +19,18 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { currentUser } from "@/data/users";
+import { initials } from "@/lib/utils";
+import { getCurrentUser } from "@/modules/auth/dal/auth.dal";
 
 export const metadata: Metadata = {
   title: "My Account",
 };
 
-export default function AccountSettingsPage() {
+export default async function AccountSettingsPage() {
+  // The dashboard layout has already turned away anyone unauthenticated, so
+  // this can read the session outright.
+  const user = await getCurrentUser();
+
   return (
     <Card>
       <CardHeader className="border-b">
@@ -38,7 +43,7 @@ export default function AccountSettingsPage() {
 
       <CardContent className="flex items-center gap-4">
         <Avatar className="size-14">
-          <AvatarFallback>JS</AvatarFallback>
+          <AvatarFallback>{initials(user.name)}</AvatarFallback>
         </Avatar>
         <Button variant="outline" size="sm">
           Change Photo
@@ -51,21 +56,15 @@ export default function AccountSettingsPage() {
         <FieldGroup className="sm:grid sm:grid-cols-2 sm:gap-4">
           <Field>
             <FieldLabel htmlFor="full-name">Full Name</FieldLabel>
-            <Input
-              id="full-name"
-              name="fullName"
-              defaultValue={currentUser.name}
-            />
+            <Input id="full-name" name="fullName" defaultValue={user.name} />
           </Field>
 
+          {/* Role and department have no source on `/auth/me` — it carries a
+              permission list and no organizational placement — so both stay
+              blank rather than showing a value the backend never sent. */}
           <Field>
             <FieldLabel htmlFor="role">Role</FieldLabel>
-            <Input
-              id="role"
-              name="role"
-              defaultValue={currentUser.role}
-              readOnly
-            />
+            <Input id="role" name="role" placeholder="—" readOnly />
           </Field>
 
           <Field>
@@ -74,18 +73,13 @@ export default function AccountSettingsPage() {
               id="company-email"
               name="email"
               type="email"
-              defaultValue={currentUser.email}
+              defaultValue={user.email}
             />
           </Field>
 
           <Field>
             <FieldLabel htmlFor="department">Department</FieldLabel>
-            <Input
-              id="department"
-              name="department"
-              defaultValue={currentUser.department}
-              readOnly
-            />
+            <Input id="department" name="department" placeholder="—" readOnly />
           </Field>
         </FieldGroup>
       </CardContent>

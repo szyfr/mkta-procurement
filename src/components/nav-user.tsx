@@ -7,7 +7,7 @@ import {
   UserIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,29 +23,12 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { initials } from "@/lib/utils";
+import { type AuthenticatedUser, useLogout } from "@/modules/auth";
 
-/** Builds initials from a name like "S. Galvis" → "SG". */
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .map((part) => part.replace(/\W/g, "").charAt(0))
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string;
-    email: string;
-    role: string;
-    avatar: string;
-  };
-}) {
+export function NavUser({ user }: { user: AuthenticatedUser }) {
   const { isMobile } = useSidebar();
+  const logout = useLogout();
 
   return (
     <SidebarMenu>
@@ -56,14 +39,17 @@ export function NavUser({
               <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
             }
           >
+            {/* No avatar source: `/auth/me` carries no image, so initials are
+                the whole identity mark. */}
             <Avatar>
-              <AvatarImage src={user.avatar} alt="" />
               <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{user.name}</span>
+              {/* The backend has no role on the user record yet, only a
+                  permission list — the email identifies the account instead. */}
               <span className="truncate text-xs text-muted-foreground">
-                {user.role}
+                {user.email}
               </span>
             </div>
             <ChevronsUpDownIcon className="ml-auto size-4" />
@@ -78,7 +64,6 @@ export function NavUser({
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar>
-                    <AvatarImage src={user.avatar} alt="" />
                     <AvatarFallback>{initials(user.name)}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
@@ -102,12 +87,15 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            {/* A real request, not a link: the session cookie is HttpOnly, so
+                only the BFF can clear it. */}
             <DropdownMenuItem
               variant="destructive"
-              render={<Link href="/login" />}
+              disabled={logout.isPending}
+              onClick={() => logout.mutate()}
             >
               <LogOutIcon />
-              Log Out
+              {logout.isPending ? "Logging out…" : "Log Out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

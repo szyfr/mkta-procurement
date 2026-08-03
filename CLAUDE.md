@@ -15,7 +15,7 @@ npm run format   # biome format --write
 
 There is no test runner in this project. `npm run lint && npm run build` is the definition of done for a change — both must be clean (TypeScript errors, Biome issues, hydration errors, build errors).
 
-Env vars live in `.env.local`: `FASTAPI_BASE_URL` (where the BFF reaches FastAPI) and `PURCHASE_REQUEST_REQUESTER_ID` (auth stand-in). Both are server-only and must never be read from a Client Component.
+Env vars live in `.env.local`: `FASTAPI_BASE_URL` (where the BFF reaches FastAPI) and `PURCHASE_REQUEST_REQUESTER_ID` (a stand-in requester for purchase request writes — still a fixed id, not the signed-in user). Both are server-only and must never be read from a Client Component.
 
 ## What this is
 
@@ -26,7 +26,7 @@ Standing constraints, carried over from the Purchase Requests integration brief:
 - The browser never calls FastAPI directly — everything goes through the BFF (below).
 - Integrate only endpoints that exist on the backend today. If the UI needs something that isn't implemented yet, don't fake it: keep the page functional with its existing empty state and document the gap.
 - Reuse existing structure, utilities and shared types rather than duplicating them.
-- Auth, authorization, sorting and file uploads are out of scope.
+- Authorization, sorting and file uploads are out of scope. Authentication is not — see below.
 
 ## Architecture: the BFF boundary
 
@@ -67,9 +67,21 @@ constants/           status labels, tones, page sizes, enum maps
 index.ts             public surface (no DAL)
 ```
 
-`purchase-requests`, `departments` and `vendors` exist. New modules should mirror this.
+`purchase-requests`, `departments`, `vendors`, `payment-terms`, `canvassing` and `auth` exist. New modules should mirror this. `auth` adds `hooks/` (the sign-in and sign-out mutations) and keeps its cookie writer beside the DAL, so both stay out of the barrel.
 
 Transformation logic belongs in `mappers/`. Route Handlers stay thin: parse params → call DAL → wrap in `Response.json({ data })` → `catch` → `toErrorResponse(error)`.
+
+## Authentication
+
+Cookie-based, and the BFF boundary is what makes it work: FastAPI's cookies are scoped to FastAPI and never reach the browser, so the `auth` module re-issues its own on this origin.
+
+- `lib/api/fetcher.ts` forwards the caller's cookies upstream on **every** DAL call — that is how FastAPI sees the session.
+- Route Handlers under `/api/auth/*` are the only place `Set-Cookie` is written, via `modules/auth/dal/auth-cookies.ts`. Both cookies are `HttpOnly`, `SameSite=Lax`, `Secure` in production.
+- The JWT reaches the browser as a cookie and nothing else. Nothing is kept in `localStorage`, `sessionStorage` or any store, and no client code reads or parses a cookie.
+- CSRF is a double submit completed **server-side**: the BFF holds the token in an HttpOnly cookie and echoes it in `X-XSRF-TOKEN`. `SameSite=Lax` is the actual cross-site defense at our own boundary.
+- Route protection is two layers, per the Next.js auth guide. `src/proxy.ts` (Next 16's renamed middleware) does the cheap check — no session cookie, no protected page. The `(dashboard)` layout and the login page do the authoritative one via `getOptionalUser()`, because only FastAPI can say whether a token is still valid. Never bounce off cookie presence in both directions or the two layers will loop.
+- "Am I signed in?" is always a question for the backend (`GET /api/auth/session` → `/auth/me`), never a decoded token.
+- `/auth/me` returns the stored user document, hashed password included. `mappers/auth.mapper.ts` is what keeps it server-side; do not widen `CurrentUserDto`.
 
 ## Errors
 
@@ -85,7 +97,7 @@ Query definitions live in the module's `queries/`, not the component, so keys an
 
 ## Mock data still in play
 
-`src/data/*` is static mock data. Purchase Requests, Departments and Vendors are wired to the real backend; **Dashboard, Canvassing, Reports, Settings/Users, notifications and global search are still mock-driven**. When a backend endpoint doesn't exist yet, keep the page functional with its existing empty state — do not invent data, and document the gap. Several fields on `PurchaseRequest` (`amount`, `estimatedUnitCost`) are permanently `null` because no backend source exists; the comments in `lib/types.ts` record which.
+`src/data/*` is static mock data. Purchase Requests, Departments, Vendors, Payment Terms and the signed-in user are wired to the real backend; **Dashboard, Reports, Settings/Users, notifications and global search are still mock-driven**. The user's role and department have no backend source — `/auth/me` carries a permission list and no organizational placement — so the My Account panel leaves both blank. When a backend endpoint doesn't exist yet, keep the page functional with its existing empty state — do not invent data, and document the gap. Several fields on `PurchaseRequest` (`amount`, `estimatedUnitCost`) are permanently `null` because no backend source exists; the comments in `lib/types.ts` record which.
 
 ## UI conventions
 

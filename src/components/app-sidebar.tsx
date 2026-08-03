@@ -17,9 +17,12 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { appIdentity, mainNav } from "@/data/navigation";
-import { currentUser } from "@/data/users";
+import type { AuthenticatedUser } from "@/modules/auth";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  user,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { user: AuthenticatedUser }) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -45,7 +48,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain groups={mainNav} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={currentUser} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

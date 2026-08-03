@@ -9,6 +9,8 @@
 
 export type ApiErrorCode =
   | "bad_request"
+  | "unauthorized"
+  | "forbidden"
   | "not_found"
   | "validation_failed"
   | "upstream_unavailable"
@@ -28,6 +30,8 @@ export class ApiError extends Error {
 }
 
 function codeForStatus(status: number): ApiErrorCode {
+  if (status === 401) return "unauthorized";
+  if (status === 403) return "forbidden";
   if (status === 404) return "not_found";
   if (status === 422) return "validation_failed";
   if (status === 501) return "not_implemented";
@@ -39,6 +43,10 @@ function codeForStatus(status: number): ApiErrorCode {
 const publicMessages: Record<ApiErrorCode, string> = {
   bad_request:
     "That request couldn't be processed. Check the details and try again.",
+  unauthorized: "Your session has expired. Sign in again to continue.",
+  // Today the only 403 FastAPI raises is a failed CSRF check, which a reload
+  // fixes; revisit this copy when real permission checks land upstream.
+  forbidden: "That request was blocked. Refresh the page and try again.",
   not_found: "We couldn't find what you were looking for.",
   validation_failed:
     "Some details are missing or invalid. Review the form and try again.",
