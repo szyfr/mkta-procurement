@@ -30,3 +30,37 @@ export interface CanvassingList {
   entries: CanvassingEntry[];
   page: PageInfo;
 }
+
+/**
+ * One vendor quotation against a single item, as the comparison table renders
+ * it.
+ *
+ * Two ids stay unresolved because the endpoint joins neither: the vendor —
+ * pending a backend join, which is why there is no `vendor` name here — and the
+ * payment term. Nothing says whether this quote won either: `canvass_awards`
+ * has no read endpoint, so the UI can only highlight the cheapest quote, not
+ * the chosen one.
+ */
+export interface Quote {
+  id: string;
+  referenceNo: string | null;
+  vendorId: string | null;
+  /**
+   * Null when the quotation carries no pricing entry for this item — better an
+   * explicit gap than a wrong ₱0.00.
+   */
+  unitPrice: number | null;
+  /** `unitPrice × quantity`, so null whenever the unit price is. */
+  lineTotal: number | null;
+  quoteDate: string | null;
+  deliveryDate: string | null;
+}
+
+/** One purchase request item with every quotation received against it. */
+export interface ItemQuotations {
+  itemId: string;
+  item: string;
+  quantity: number;
+  unit: string | null;
+  quotes: Quote[];
+}

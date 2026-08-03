@@ -79,3 +79,53 @@ export interface CanvassingEntryDto {
   /** Joined the same way, so a row can arrive without its request. */
   purchase_request?: CanvassingPurchaseRequestDto | null;
 }
+
+/**
+ * A quotation prices several items at once, so the unit price for one item is
+ * found by matching this entry's `item_id` — not by position.
+ */
+export interface QuotationItemPricingDto {
+  item_id: string;
+  unit_price: number;
+}
+
+/**
+ * One vendor quotation. The pipeline joins nothing onto it: `vendor_id` and
+ * `payment_term_id` arrive as bare ids, and there is no award flag saying
+ * whether this quotation won.
+ */
+export interface QuotationDto {
+  _id: string;
+  reference_no: string | null;
+  /** When the vendor quoted. */
+  date: string | null;
+  delivery_date: string | null;
+  item_pricing: QuotationItemPricingDto[];
+  vendor_id: string | null;
+  payment_term_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * One entry of `GET /canvassing/quotations` — a purchase request item with its
+ * quotations and material joined.
+ *
+ * Unlike every other list endpoint this one answers with a bare array, not the
+ * `{ data, pagination }` envelope, so there is no `PaginatedDto` here.
+ */
+export interface ItemQuotationsDto {
+  _id: string;
+  quantity: number;
+  /** The item's stored status, not the derived canvassing label. */
+  status: string;
+  is_needs_canvass: boolean | null;
+  purchase_request_id: string;
+  material_id: string;
+  vendor_id: string | null;
+  created_at: string;
+  updated_at: string;
+  /** Empty for an item nobody has quoted yet. */
+  quotations: QuotationDto[];
+  material?: CanvassingMaterialDto | null;
+}

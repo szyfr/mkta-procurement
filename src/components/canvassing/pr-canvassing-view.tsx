@@ -5,6 +5,7 @@ import { PackageXIcon } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { ItemQuotationsSection } from "@/components/canvassing/item-quotations";
 import { PageHeader } from "@/components/shared/page-header";
 import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -36,6 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { itemQuotationsQuery } from "@/modules/canvassing";
 import {
   purchaseRequestDetailQuery,
   purchaseRequestItemStatusLabels,
@@ -43,13 +45,14 @@ import {
 } from "@/modules/purchase-requests";
 
 /**
- * Items of one purchase request, as the starting point for canvassing.
+ * Canvassing for one purchase request: its items, and the vendor quotes
+ * received against each.
  *
- * There is no canvassing endpoint for a single request yet, so the items come
- * from the request itself (`GET /api/purchase-requests/{id}`). Batches, vendor
- * quotes and comparison have no backend source at all and are left off this
- * page rather than mocked — selection here is local state that nothing is
- * submitted from yet.
+ * There is no canvassing endpoint keyed by request, so this is two dependent
+ * reads — the request supplies the item ids, which
+ * `GET /api/canvassing/quotations` then takes. Batches have no backend source
+ * at all and are left off the page rather than mocked; selection is local
+ * state that nothing is submitted from yet.
  */
 export function PurchaseRequestCanvassingView({ id }: { id: string }) {
   const {
@@ -58,6 +61,17 @@ export function PurchaseRequestCanvassingView({ id }: { id: string }) {
     isError,
     error,
   } = useQuery(purchaseRequestDetailQuery(id));
+
+  // Every item, matching what the endpoint expects — a directly sourced item
+  // simply comes back with no quotes rather than vanishing from the page.
+  const itemIds = request?.items.map((item) => item.id) ?? [];
+
+  const {
+    data: quotations,
+    isPending: quotationsPending,
+    isError: quotationsFailed,
+    error: quotationsError,
+  } = useQuery(itemQuotationsQuery(itemIds));
 
   const [selected, setSelected] = React.useState<string[]>([]);
 
@@ -209,6 +223,21 @@ export function PurchaseRequestCanvassingView({ id }: { id: string }) {
           </CardFooter>
         )}
       </Card>
+
+      {/* Nothing to quote against when the request has no items, and the query
+          is disabled in that case — so it would otherwise sit pending. */}
+      {request.items.length === 0 ? null : quotationsFailed ? (
+        <ErrorAlert
+          title="Couldn't load quotations for this request"
+          error={quotationsError}
+        />
+      ) : quotationsPending ? (
+        <TableSkeleton rows={3} columns={6} />
+      ) : (
+        quotations.map((group) => (
+          <ItemQuotationsSection key={group.itemId} group={group} />
+        ))
+      )}
     </>
   );
 }

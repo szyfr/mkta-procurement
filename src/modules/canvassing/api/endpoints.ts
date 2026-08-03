@@ -7,4 +7,5 @@ const BASE = "/api/canvassing";
 
 export const canvassingEndpoints = {
   list: BASE,
+  quotations: `${BASE}/quotations`,
 } as const;
