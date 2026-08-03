@@ -132,59 +132,11 @@ export interface Deadline {
   overdue?: boolean;
 }
 
-export type CanvassingStatus =
-  | "awaiting-quotes"
-  | "comparison-ready"
-  | "vendor-selected"
-  | "pending-exemption";
-
-export interface CanvassingCase {
-  id: string;
-  purchaseRequestId: string;
-  item: string;
-  batch: number;
-  department: string;
-  quotesReceived: number;
-  quotesRequired: number;
-  /** True when the 3-quote minimum was waived, e.g. sole-source OEM parts. */
-  exempted?: boolean;
-  status: CanvassingStatus;
-  statusLabel: string;
-  initiatedOn: string;
-}
-
-export interface VendorQuote {
-  id: string;
-  vendor: string;
-  total: number;
-  deliveryEstimate: string;
-  quoteDate: string;
-}
-
-export interface CanvassingBatch {
-  batch: number;
-  items: { id: string; name: string; quantity: number }[];
-  quotes: VendorQuote[];
-  quotesRequired: number;
-  /** Set once a winner is confirmed. */
-  selectedVendorId?: string;
-  selectedOn?: string;
-}
-
-export interface CanvassingDetail {
-  purchaseRequestId: string;
-  department: string;
-  /** Every item on the PR, including ones not yet assigned to a batch. */
-  items: {
-    id: string;
-    name: string;
-    quantity: number;
-    batch: number | null;
-    status: string;
-    statusTone: StatusTone;
-  }[];
-  batches: CanvassingBatch[];
-}
+/**
+ * Canvassing's wireframe types are gone: batches, quote minimums and exemption
+ * flags described a model the backend never grew, and the screens that used
+ * them now read `modules/canvassing` instead.
+ */
 
 export type NotificationGroup = "today" | "earlier";
 
