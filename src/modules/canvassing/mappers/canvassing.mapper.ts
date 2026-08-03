@@ -11,6 +11,10 @@ export function toCanvassingEntry(dto: CanvassingEntryDto): CanvassingEntry {
   return {
     id: dto._id,
     purchaseRequestId: dto.purchase_request_id,
+    // The pipeline preserves rows whose request lookup found nothing — fall
+    // back to the raw id so such a row still identifies itself.
+    purchaseRequestNo:
+      dto.purchase_request?.no?.trim() || dto.purchase_request_id,
     // The pipeline preserves rows whose material lookup found nothing — fall
     // back to the raw id so such a row still identifies itself.
     item: material?.description?.trim() || dto.material_id,

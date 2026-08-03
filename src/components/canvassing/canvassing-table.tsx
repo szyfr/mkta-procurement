@@ -59,7 +59,6 @@ export function CanvassingTable({
                 PR Reference
               </TableHead>
               <TableHead scope="col">Item</TableHead>
-              <TableHead scope="col">Batch</TableHead>
               <TableHead scope="col">Department</TableHead>
               <TableHead scope="col">Quotes Received</TableHead>
               <TableHead scope="col">Status</TableHead>
@@ -76,22 +75,17 @@ export function CanvassingTable({
                 className={cn(tinted[index] && "bg-muted/40")}
               >
                 <TableCell className="pl-4">
-                  {/* The request detail page takes the Mongo id, so this
-                      navigates correctly even though the id is what shows. */}
                   <Link
                     href={`/purchase-requests/${entry.purchaseRequestId}`}
                     className="font-mono text-xs hover:underline"
                   >
-                    {entry.purchaseRequestId}
+                    {entry.purchaseRequestNo}
                   </Link>
                 </TableCell>
                 <TableCell>{entry.item}</TableCell>
-                {/* Batch, department and quote counts: the list pipeline
-                    projects awards and quotations away and joins neither the
-                    request nor its department, so there is nothing to show. */}
-                <TableCell className="text-muted-foreground">
-                  {NO_BACKEND_SOURCE}
-                </TableCell>
+                {/* Department and quote counts: the list pipeline projects
+                    awards and quotations away and joins neither the request
+                    nor its department, so there is nothing to show. */}
                 <TableCell className="text-muted-foreground">
                   {NO_BACKEND_SOURCE}
                 </TableCell>

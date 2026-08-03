@@ -38,6 +38,17 @@ export interface CanvassingMaterialDto {
 }
 
 /**
+ * The parent request joined onto each row, restated rather than imported —
+ * see `CanvassingMaterialDto` above for why. Only the fields the list needs
+ * are declared; the full request contract lives in the `purchase-requests`
+ * module.
+ */
+export interface CanvassingPurchaseRequestDto {
+  _id: string;
+  no: string;
+}
+
+/**
  * One canvassing row: a purchase request item out for quotation, with its
  * material joined in.
  *
@@ -50,7 +61,6 @@ export interface CanvassingEntryDto {
   quantity: number;
   status: CanvassingStatusDto;
   is_needs_canvass: boolean | null;
-  /** Mongo id of the parent request; the backend exposes no `no` for it here. */
   purchase_request_id: string;
   material_id: string;
   vendor_id: string | null;
@@ -58,4 +68,6 @@ export interface CanvassingEntryDto {
   updated_at: string;
   /** Joined by the list pipeline, preserving rows whose material is missing. */
   material?: CanvassingMaterialDto | null;
+  /** Joined by the list pipeline, preserving rows whose request is missing. */
+  purchase_request?: CanvassingPurchaseRequestDto | null;
 }

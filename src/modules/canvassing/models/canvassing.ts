@@ -10,11 +10,12 @@ import type { StatusTone } from "@/lib/types";
  */
 export interface CanvassingEntry {
   id: string;
-  /**
-   * Mongo id of the parent request. The list endpoint doesn't join the request,
-   * so there is no human-readable reference (`PR-2026-0115`) to show yet.
-   */
   purchaseRequestId: string;
+  /**
+   * The human-readable reference, e.g. `PR-2026-0803133440`. Falls back to
+   * the Mongo id for rows whose request lookup found nothing.
+   */
+  purchaseRequestNo: string;
   item: string;
   quantity: number;
   unit: string | null;
