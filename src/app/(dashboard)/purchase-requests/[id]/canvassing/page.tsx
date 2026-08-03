@@ -2,18 +2,10 @@ import { InboxIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { PageHeader } from "@/components/shared/page-header";
+import { CanvassingItemsView } from "@/components/canvassing/canvassing-items-view";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Table,
@@ -25,139 +17,25 @@ import {
 } from "@/components/ui/table";
 
 export const metadata: Metadata = {
-  title: "Canvassing — PR-2026-0113",
+  title: "Canvassing",
 };
 
 /**
- * Static layout only. Every value on this page is hard-coded placeholder copy —
- * the route ignores its `id` param and reads no data source. Swap the markup
- * for real components once the canvassing endpoints exist.
+ * The header and the item list are live — they come from the purchase request
+ * detail the BFF already serves. Everything below them is hard-coded
+ * placeholder copy: quotes, batches and vendor selection have no backend, so
+ * the sections stay static rather than being filled with invented data.
  */
-export default function CanvassingDetailPage() {
+export default async function CanvassingDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
   return (
     <>
-      <PageHeader
-        title="Canvassing — PR-2026-0113"
-        description="Warehouse · 4 items · not all items need to go to the same vendor"
-      />
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
-          <CardTitle>Items in this Purchase Request</CardTitle>
-          <span className="text-xs text-muted-foreground">
-            Select items to send out for quotation together
-          </span>
-        </CardHeader>
-
-        <CardContent className="px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col" className="w-8 pl-4">
-                  <span className="sr-only">Select</span>
-                </TableHead>
-                <TableHead scope="col">Item</TableHead>
-                <TableHead scope="col">Qty</TableHead>
-                <TableHead scope="col">Batch</TableHead>
-                <TableHead scope="col" className="pr-4">
-                  Status
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow className="bg-status-info/5">
-                <TableCell className="pl-4">
-                  <Checkbox
-                    defaultChecked
-                    aria-label="Select Steel drum pallets (48in)"
-                  />
-                </TableCell>
-                <TableCell className="font-medium">
-                  Steel drum pallets (48in)
-                </TableCell>
-                <TableCell>6</TableCell>
-                <TableCell>
-                  <Badge variant="outline">Batch 1</Badge>
-                </TableCell>
-                <TableCell className="pr-4">
-                  <StatusBadge tone="neutral">Comparison Ready</StatusBadge>
-                </TableCell>
-              </TableRow>
-
-              <TableRow className="bg-status-info/5">
-                <TableCell className="pl-4">
-                  <Checkbox
-                    defaultChecked
-                    aria-label="Select Stretch wrap film"
-                  />
-                </TableCell>
-                <TableCell className="font-medium">Stretch wrap film</TableCell>
-                <TableCell>40</TableCell>
-                <TableCell>
-                  <Badge variant="outline">Batch 1</Badge>
-                </TableCell>
-                <TableCell className="pr-4">
-                  <StatusBadge tone="neutral">Comparison Ready</StatusBadge>
-                </TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell className="pl-4">
-                  <Checkbox aria-label="Select Corner edge protectors" />
-                </TableCell>
-                <TableCell className="font-medium">
-                  Corner edge protectors
-                </TableCell>
-                <TableCell>200</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className="border-status-ordered/30 bg-status-ordered/10 text-status-ordered"
-                  >
-                    Batch 2
-                  </Badge>
-                </TableCell>
-                <TableCell className="pr-4">
-                  <StatusBadge tone="success">Vendor Selected</StatusBadge>
-                </TableCell>
-              </TableRow>
-
-              <TableRow>
-                <TableCell className="pl-4">
-                  <Checkbox aria-label="Select Pallet wrap dispenser (handheld)" />
-                </TableCell>
-                <TableCell className="font-medium">
-                  Pallet wrap dispenser (handheld)
-                </TableCell>
-                <TableCell>3</TableCell>
-                <TableCell>
-                  <span className="text-xs text-muted-foreground">
-                    Not assigned
-                  </span>
-                </TableCell>
-                <TableCell className="pr-4">
-                  <StatusBadge tone="neutral">
-                    Awaiting Batch Assignment
-                  </StatusBadge>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-
-        <CardFooter className="justify-between gap-2">
-          <span className="text-xs text-muted-foreground">
-            2 items selected — not yet grouped into an active batch
-          </span>
-          <Button
-            size="sm"
-            render={<Link href="/canvassing/PR-2026-0113/quotes/new" />}
-            nativeButton={false}
-          >
-            Create Quotation for Selected Items →
-          </Button>
-        </CardFooter>
-      </Card>
+      <CanvassingItemsView id={id} />
 
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
