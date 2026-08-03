@@ -1,9 +1,9 @@
 "use client";
 
 import { PlusIcon, XIcon } from "lucide-react";
-import Link from "next/link";
 import * as React from "react";
 
+import { LookupPicker } from "@/components/purchase-requests/lookup-picker";
 import { StatusDot } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,15 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -31,112 +24,73 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { catalogItems, vendors } from "@/data/purchase-requests";
 import { cn, formatCurrency } from "@/lib/utils";
+import {
+  type DraftLineItem,
+  fetchMaterialOptions,
+  fetchVendorOptions,
+  purchaseRequestKeys,
+} from "@/modules/purchase-requests";
 
-interface DraftLine {
-  key: string;
-  /** Null while the row is a blank "not in catalog" placeholder. */
-  itemName: string | null;
-  quantity: number;
-  unitCost: number | null;
-  unit: string | null;
-  /** Direct lines pick a vendor now; canvassing lines get one later. */
-  sourcing: "direct" | "canvassing" | "pending-item-creation";
-  vendor: string | null;
+/**
+ * Editable line items backed by the live material catalog.
+ *
+ * Sourcing is derived from the material's `is_needs_canvass` flag rather than
+ * chosen here, matching the wireframe's "determined automatically" note.
+ *
+ * Unit costs come from the catalog and are read-only here; they drive the
+ * on-screen totals only. FastAPI's item payload carries `material_id`,
+ * `quantity` and `vendor_id` and nothing else, so cost estimates are not
+ * persisted — the card footer says so plainly.
+ */
+
+export function createDraftLine(key: string): DraftLineItem {
+  return {
+    key,
+    materialId: null,
+    materialName: null,
+    unit: null,
+    quantity: 1,
+    unitCost: null,
+    sourcing: "canvassing",
+    vendorId: null,
+    vendorName: null,
+  };
 }
 
-const initialLines: DraftLine[] = [
-  {
-    key: "line-1",
-    itemName: "Hex bolt M8x40 (galvanized)",
-    quantity: 200,
-    unitCost: 4.5,
-    unit: "pcs",
-    sourcing: "direct",
-    vendor: "Pacific Fasteners Inc.",
-  },
-  {
-    key: "line-2",
-    itemName: "Industrial gear oil 20L",
-    quantity: 10,
-    unitCost: 3200,
-    unit: "drum",
-    sourcing: "canvassing",
-    vendor: null,
-  },
-  {
-    key: "line-3",
-    itemName: null,
-    quantity: 5,
-    unitCost: null,
-    unit: null,
-    sourcing: "pending-item-creation",
-    vendor: null,
-  },
-];
-
-const catalogOptions = [
-  { label: "Select an item", value: null },
-  ...catalogItems.map((item) => ({ label: item.name, value: item.name })),
-];
-
-const vendorOptions = [
-  { label: "Select a vendor", value: null },
-  ...vendors.map((vendor) => ({ label: vendor, value: vendor })),
-];
-
-function lineTotal(line: DraftLine) {
+/** Null until a cost estimate is entered, so "Pending" can be shown instead of ₱0. */
+function lineTotal(line: DraftLineItem) {
   if (line.unitCost === null) return null;
   return line.quantity * line.unitCost;
 }
 
-/**
- * Editable line items with live totals. Sourcing is derived from the catalog
- * entry, not chosen here — matching the wireframe's "determined automatically"
- * note.
- */
-export function LineItemsEditor() {
-  const [lines, setLines] = React.useState(initialLines);
-  const nextKey = React.useRef(initialLines.length + 1);
+export function LineItemsEditor({
+  lines,
+  onChange,
+  error,
+}: {
+  lines: DraftLineItem[];
+  onChange: (lines: DraftLineItem[]) => void;
+  /** Shown inline below the header, e.g. when no item has a catalog entry selected. */
+  error?: string | null;
+}) {
+  const nextKey = React.useRef(lines.length + 1);
 
   const total = lines.reduce((sum, line) => sum + (lineTotal(line) ?? 0), 0);
 
-  function updateLine(key: string, patch: Partial<DraftLine>) {
-    setLines((current) =>
-      current.map((line) => (line.key === key ? { ...line, ...patch } : line)),
+  function updateLine(key: string, patch: Partial<DraftLineItem>) {
+    onChange(
+      lines.map((line) => (line.key === key ? { ...line, ...patch } : line)),
     );
   }
 
   function addLine() {
     nextKey.current += 1;
-    setLines((current) => [
-      ...current,
-      {
-        key: `line-${nextKey.current}`,
-        itemName: null,
-        quantity: 1,
-        unitCost: null,
-        unit: null,
-        sourcing: "canvassing",
-        vendor: null,
-      },
-    ]);
+    onChange([...lines, createDraftLine(`line-${nextKey.current}`)]);
   }
 
   function removeLine(key: string) {
-    setLines((current) => current.filter((line) => line.key !== key));
-  }
-
-  function selectItem(key: string, itemName: string | null) {
-    const catalogEntry = catalogItems.find((item) => item.name === itemName);
-    updateLine(key, {
-      itemName,
-      unit: catalogEntry?.unit ?? null,
-      unitCost: catalogEntry?.unitCost ?? null,
-      sourcing: catalogEntry ? "canvassing" : "pending-item-creation",
-      vendor: null,
-    });
+    onChange(lines.filter((line) => line.key !== key));
   }
 
   return (
@@ -147,6 +101,12 @@ export function LineItemsEditor() {
           {lines.length} {lines.length === 1 ? "item" : "items"}
         </span>
       </CardHeader>
+
+      {error ? (
+        <CardContent className="pb-0">
+          <FieldError>{error}</FieldError>
+        </CardContent>
+      ) : null}
 
       <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
@@ -184,201 +144,159 @@ export function LineItemsEditor() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {lines.map((line, index) => {
-              const computed = lineTotal(line);
-              const notInCatalog = line.sourcing === "pending-item-creation";
+            {lines.map((line, index) => (
+              <TableRow key={line.key}>
+                <TableCell className="pl-4 text-muted-foreground">
+                  {index + 1}
+                </TableCell>
 
-              return (
-                <TableRow key={line.key}>
-                  <TableCell className="pl-4 text-muted-foreground">
-                    {index + 1}
-                  </TableCell>
+                <TableCell>
+                  <LookupPicker
+                    value={
+                      line.materialId && line.materialName
+                        ? { id: line.materialId, label: line.materialName }
+                        : null
+                    }
+                    queryKey={purchaseRequestKeys.materialOptions()}
+                    loadPage={fetchMaterialOptions}
+                    placeholder="Select an item"
+                    searchPlaceholder="Search the catalog…"
+                    ariaLabel={`Item for line ${index + 1}`}
+                    onSelect={(option) =>
+                      updateLine(line.key, {
+                        materialId: option.id,
+                        materialName: option.label,
+                        unit: option.unit ?? null,
+                        unitCost: option.unitCost ?? null,
+                        // Canvassed items get their vendor during canvassing,
+                        // so any previously chosen vendor is dropped.
+                        sourcing: option.needsCanvass ? "canvassing" : "direct",
+                        vendorId: null,
+                        vendorName: null,
+                      })
+                    }
+                  />
+                </TableCell>
 
-                  <TableCell>
-                    {notInCatalog ? (
-                      <div className="flex items-center justify-between gap-2 rounded-md border border-dashed border-status-warning/50 bg-status-warning/10 px-2 py-1 text-xs text-status-warning">
-                        Item not found in catalog
-                        <Link
-                          href="/purchase-requests/item-requests"
-                          className="underline"
-                        >
-                          Request New Item →
-                        </Link>
-                      </div>
-                    ) : (
-                      <Select
-                        items={catalogOptions}
-                        value={line.itemName}
-                        onValueChange={(value) =>
-                          selectItem(line.key, value as string | null)
+                <TableCell>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={line.quantity}
+                    aria-label={`Quantity for line ${index + 1}`}
+                    className="h-7 w-16"
+                    onChange={(event) =>
+                      updateLine(line.key, {
+                        quantity: Number(event.target.value) || 0,
+                      })
+                    }
+                  />
+                </TableCell>
+
+                <TableCell className="text-muted-foreground">
+                  {line.unit ?? "—"}
+                </TableCell>
+
+                <TableCell className="text-muted-foreground">
+                  {line.unitCost === null
+                    ? "—"
+                    : formatCurrency(line.unitCost, true)}
+                </TableCell>
+
+                <TableCell
+                  className={cn(
+                    lineTotal(line) === null
+                      ? "text-muted-foreground"
+                      : "font-medium",
+                  )}
+                >
+                  {lineTotal(line) === null
+                    ? "Pending"
+                    : formatCurrency(lineTotal(line) as number, true)}
+                </TableCell>
+
+                <TableCell>
+                  {line.materialId === null ? (
+                    <span className="text-xs text-muted-foreground">
+                      Set once an item is picked
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        "flex items-center gap-1.5 text-xs",
+                        line.sourcing === "canvassing"
+                          ? "text-status-info"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      <StatusDot
+                        tone={
+                          line.sourcing === "canvassing" ? "info" : "neutral"
                         }
-                      >
-                        <SelectTrigger
-                          size="sm"
-                          className="w-full"
-                          aria-label="Item"
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {catalogOptions.map((option) => (
-                              <SelectItem
-                                key={option.label}
-                                value={option.value}
-                              >
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </TableCell>
+                      />
+                      {line.sourcing === "canvassing"
+                        ? "Needs Canvassing"
+                        : "Direct"}
+                    </span>
+                  )}
+                </TableCell>
 
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={line.quantity}
-                      aria-label={`Quantity for line ${index + 1}`}
-                      className="h-7 w-16"
-                      onChange={(event) =>
+                <TableCell>
+                  {line.sourcing === "direct" && line.materialId ? (
+                    <LookupPicker
+                      value={
+                        line.vendorId && line.vendorName
+                          ? { id: line.vendorId, label: line.vendorName }
+                          : null
+                      }
+                      queryKey={purchaseRequestKeys.vendorOptions()}
+                      loadPage={fetchVendorOptions}
+                      placeholder="Select a vendor"
+                      searchPlaceholder="Search vendors…"
+                      ariaLabel={`Vendor for line ${index + 1}`}
+                      onSelect={(option) =>
                         updateLine(line.key, {
-                          quantity: Number(event.target.value) || 0,
+                          vendorId: option.id,
+                          vendorName: option.label,
                         })
                       }
                     />
-                  </TableCell>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">
+                      {line.materialId === null
+                        ? "—"
+                        : "Empty — set during canvassing"}
+                    </span>
+                  )}
+                </TableCell>
 
-                  <TableCell className="text-muted-foreground">
-                    {line.unit ?? "—"}
-                  </TableCell>
-
-                  <TableCell>
-                    {line.unitCost === null ? (
-                      <span className="text-muted-foreground">—</span>
-                    ) : (
-                      <Input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={line.unitCost}
-                        aria-label={`Estimated unit cost for line ${index + 1}`}
-                        className="h-7 w-24"
-                        onChange={(event) =>
-                          updateLine(line.key, {
-                            unitCost: Number(event.target.value) || 0,
-                          })
-                        }
-                      />
-                    )}
-                  </TableCell>
-
-                  <TableCell
-                    className={cn(
-                      computed === null
-                        ? "text-muted-foreground"
-                        : "font-medium",
-                    )}
+                <TableCell className="pr-4">
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={`Remove line ${index + 1}`}
+                    onClick={() => removeLine(line.key)}
                   >
-                    {computed === null
-                      ? "Pending"
-                      : formatCurrency(computed, true)}
-                  </TableCell>
-
-                  <TableCell>
-                    {notInCatalog ? (
-                      <span className="text-xs text-muted-foreground">
-                        Set after item is created
-                      </span>
-                    ) : (
-                      <span
-                        className={cn(
-                          "flex items-center gap-1.5 text-xs",
-                          line.sourcing === "canvassing"
-                            ? "text-status-info"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        <StatusDot
-                          tone={
-                            line.sourcing === "canvassing" ? "info" : "neutral"
-                          }
-                        />
-                        {line.sourcing === "canvassing"
-                          ? "Needs Canvassing"
-                          : "Direct"}
-                      </span>
-                    )}
-                  </TableCell>
-
-                  <TableCell>
-                    {line.sourcing === "direct" ? (
-                      <Select
-                        items={vendorOptions}
-                        value={line.vendor}
-                        onValueChange={(value) =>
-                          updateLine(line.key, {
-                            vendor: value as string | null,
-                          })
-                        }
-                      >
-                        <SelectTrigger
-                          size="sm"
-                          className="w-full"
-                          aria-label="Vendor"
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {vendorOptions.map((option) => (
-                              <SelectItem
-                                key={option.label}
-                                value={option.value}
-                              >
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic">
-                        {notInCatalog ? "—" : "Empty — set during canvassing"}
-                      </span>
-                    )}
-                  </TableCell>
-
-                  <TableCell className="pr-4">
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label={`Remove line ${index + 1}`}
-                      onClick={() => removeLine(line.key)}
-                    >
-                      <XIcon />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                    <XIcon />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </CardContent>
 
+      <Separator />
+
       <CardContent>
-        <Button variant="outline" size="sm" onClick={addLine}>
+        <Button variant="outline" size="sm" type="button" onClick={addLine}>
           <PlusIcon data-icon="inline-start" />
           Add Item
         </Button>
       </CardContent>
 
-      <Separator />
-
-      <CardFooter className="justify-end">
-        <div className="text-right">
+      <CardFooter className="justify-between gap-4 bg-white">
+        <div className="ml-auto shrink-0 text-right">
           <p className="text-xs text-muted-foreground">
             Total Estimated Amount
           </p>

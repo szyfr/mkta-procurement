@@ -1,0 +1,77 @@
+import { queryOptions } from "@tanstack/react-query";
+
+import {
+  fetchDepartmentOptions,
+  fetchPurchaseRequest,
+  fetchPurchaseRequests,
+} from "@/modules/purchase-requests/api/client";
+
+/**
+ * Query definitions for the Purchase Requests UI.
+ *
+ * These live in the module rather than the components so cache keys and
+ * fetchers stay next to the rest of the purchase request surface. The fetchers
+ * are still the module's API client, which talks to the BFF — the FastAPI
+ * calls themselves stay in the DAL, server-side.
+ */
+
+export interface PurchaseRequestListFilters {
+  search?: string;
+  priority?: string;
+  departments?: string;
+}
+
+export const purchaseRequestKeys = {
+  /** Prefix for everything below; invalidating it refetches the whole module. */
+  all: ["purchase-requests"] as const,
+  lists: () => [...purchaseRequestKeys.all, "list"] as const,
+  list: (page: number, filters: PurchaseRequestListFilters = {}) =>
+    [...purchaseRequestKeys.all, "list", page, filters] as const,
+  detail: (id: string) => [...purchaseRequestKeys.all, "detail", id] as const,
+  /**
+   * Reference data. Kept under this module's prefix because it is served by
+   * the purchase request lookup routes — the standalone Vendors module owns
+   * `["vendors", ...]` separately.
+   */
+  departmentOptions: () =>
+    [...purchaseRequestKeys.all, "lookups", "departments"] as const,
+  materialOptions: () =>
+    [...purchaseRequestKeys.all, "lookups", "materials"] as const,
+  vendorOptions: () =>
+    [...purchaseRequestKeys.all, "lookups", "vendors"] as const,
+};
+
+export function purchaseRequestListQuery(
+  page: number,
+  filters: PurchaseRequestListFilters = {},
+) {
+  const { search, priority, departments } = filters;
+
+  return queryOptions({
+    queryKey: purchaseRequestKeys.list(page, filters),
+    queryFn: ({ signal }) =>
+      fetchPurchaseRequests({ page, search, priority, departments, signal }),
+  });
+}
+
+export function purchaseRequestDetailQuery(id: string) {
+  return queryOptions({
+    queryKey: purchaseRequestKeys.detail(id),
+    queryFn: ({ signal }) => fetchPurchaseRequest(id, signal),
+  });
+}
+
+/**
+ * Departments as a flat option list. Used by the list toolbar filter; the
+ * create/edit forms read the same endpoint through the picker's infinite
+ * query instead, since it expects a paged shape.
+ */
+export function departmentOptionsQuery() {
+  return queryOptions({
+    queryKey: purchaseRequestKeys.departmentOptions(),
+    queryFn: ({ signal }) => fetchDepartmentOptions(signal),
+    // Departments change rarely and this only shapes a filter; an hour keeps
+    // it from refetching on every visit to the list.
+    staleTime: 60 * 60 * 1000,
+  });
+}

@@ -4,9 +4,11 @@ import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { purchaseRequestTone } from "@/data/purchase-requests";
-import type { PurchaseRequest } from "@/lib/types";
 import { cn, formatCurrency } from "@/lib/utils";
+import {
+  type PurchaseRequest,
+  purchaseRequestTone,
+} from "@/modules/purchase-requests";
 
 /** Left accent stripe echoes the status colour, as in the wireframe. */
 const accentClasses: Record<string, string> = {
@@ -36,7 +38,7 @@ function nextAction(request: PurchaseRequest) {
   if (request.status === "canvassing") {
     return {
       label: "Manage Canvassing",
-      href: `/canvassing/${request.id}`,
+      href: `/purchase-requests/${request.id}/canvassing`,
     };
   }
   return null;
@@ -45,10 +47,7 @@ function nextAction(request: PurchaseRequest) {
 export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
   const tone = purchaseRequestTone[request.status];
   const action = nextAction(request);
-  const href =
-    request.status === "draft"
-      ? "/purchase-requests/new"
-      : `/purchase-requests/${request.id}`;
+  const href = `/purchase-requests/${request.id}`;
 
   return (
     <Card
@@ -60,18 +59,13 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <Link href={href} className="font-medium hover:underline">
-            {request.id}
+            {request.no}
           </Link>
           <PriorityBadge priority={request.priority} />
         </div>
 
         {request.title ? (
-          <p className="text-xs text-muted-foreground">
-            {request.title}
-            {request.autoTitle ? (
-              <span className="italic"> (auto-generated title)</span>
-            ) : null}
-          </p>
+          <p className="text-xs text-muted-foreground">{request.title}</p>
         ) : (
           <p className="text-xs text-muted-foreground italic">
             Untitled — add a title while editing
@@ -81,7 +75,18 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
         <p className="text-sm text-muted-foreground">
           {request.requester} · {request.department}
         </p>
-        <p className="font-semibold">{formatCurrency(request.amount)}</p>
+        <p className="font-semibold">
+          {request.amount === null ? (
+            <span
+              className="text-muted-foreground"
+              title="No estimated amount on file"
+            >
+              —
+            </span>
+          ) : (
+            formatCurrency(request.amount)
+          )}
+        </p>
 
         <div className="flex items-center justify-between gap-2">
           <StatusBadge tone={tone}>{request.statusLabel}</StatusBadge>

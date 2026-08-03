@@ -1,4 +1,9 @@
-import { PlusIcon } from "lucide-react";
+import {
+  CalendarCheckIcon,
+  CircleCheckBigIcon,
+  ClipboardListIcon,
+  PlusIcon,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -10,6 +15,13 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -60,43 +72,58 @@ export default function DashboardPage() {
               </span>
             </CardHeader>
             <CardContent className="px-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead scope="col">PR No.</TableHead>
-                    <TableHead scope="col">Requester</TableHead>
-                    <TableHead scope="col">Department</TableHead>
-                    <TableHead scope="col">Amount</TableHead>
-                    <TableHead scope="col">Step</TableHead>
-                    <TableHead scope="col">Priority</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {actionableRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell className="px-4 font-medium">
-                        <Link
-                          href={`/purchase-requests/${request.id}`}
-                          className="hover:underline"
-                        >
-                          {request.id}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{request.requester}</TableCell>
-                      <TableCell>{request.department}</TableCell>
-                      <TableCell>{formatCurrency(request.amount)}</TableCell>
-                      <TableCell>
-                        <StatusBadge tone={request.stepTone}>
-                          {request.step}
-                        </StatusBadge>
-                      </TableCell>
-                      <TableCell className="px-4">
-                        <PriorityBadge priority={request.priority} />
-                      </TableCell>
+              {actionableRequests.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <CircleCheckBigIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>Nothing needs your attention</EmptyTitle>
+                    <EmptyDescription>
+                      All caught up — no purchase requests are waiting on you
+                      right now.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead scope="col">PR No.</TableHead>
+                      <TableHead scope="col">Requester</TableHead>
+                      <TableHead scope="col">Department</TableHead>
+                      <TableHead scope="col">Amount</TableHead>
+                      <TableHead scope="col">Step</TableHead>
+                      <TableHead scope="col">Priority</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {actionableRequests.map((request) => (
+                      <TableRow key={request.id}>
+                        <TableCell className="px-4 font-medium">
+                          <Link
+                            href={`/purchase-requests/${request.id}`}
+                            className="hover:underline"
+                          >
+                            {request.id}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{request.requester}</TableCell>
+                        <TableCell>{request.department}</TableCell>
+                        <TableCell>{formatCurrency(request.amount)}</TableCell>
+                        <TableCell>
+                          <StatusBadge tone={request.stepTone}>
+                            {request.step}
+                          </StatusBadge>
+                        </TableCell>
+                        <TableCell className="px-4">
+                          <PriorityBadge priority={request.priority} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
 
@@ -116,24 +143,38 @@ export default function DashboardPage() {
               <CardTitle>Pending Quotations</CardTitle>
             </CardHeader>
             <CardContent className="px-0">
-              <ul className="divide-y">
-                {pendingQuotations.map((quotation) => (
-                  <li
-                    key={quotation.id}
-                    className="flex flex-col gap-0.5 px-4 py-3"
-                  >
-                    <Link
-                      href={`/canvassing/${quotation.id}`}
-                      className="text-sm hover:underline"
+              {pendingQuotations.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <ClipboardListIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>No pending quotations</EmptyTitle>
+                    <EmptyDescription>
+                      Nothing is currently awaiting vendor quotes.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <ul className="divide-y">
+                  {pendingQuotations.map((quotation) => (
+                    <li
+                      key={quotation.id}
+                      className="flex flex-col gap-0.5 px-4 py-3"
                     >
-                      {quotation.summary}
-                    </Link>
-                    <span className="text-xs text-muted-foreground">
-                      {quotation.detail}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                      <Link
+                        href={`/canvassing/${quotation.id}`}
+                        className="text-sm hover:underline"
+                      >
+                        {quotation.summary}
+                      </Link>
+                      <span className="text-xs text-muted-foreground">
+                        {quotation.detail}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
 
@@ -142,21 +183,33 @@ export default function DashboardPage() {
               <CardTitle>Upcoming Deadlines</CardTitle>
             </CardHeader>
             <CardContent className="px-0">
-              <ul className="divide-y">
-                {upcomingDeadlines.map((deadline) => (
-                  <li
-                    key={deadline.id}
-                    className="flex items-center justify-between gap-2 px-4 py-3"
-                  >
-                    <span className="text-sm">{deadline.label}</span>
-                    {deadline.overdue ? (
-                      <StatusBadge tone="danger">{deadline.due}</StatusBadge>
-                    ) : (
-                      <Badge variant="outline">{deadline.due}</Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              {upcomingDeadlines.length === 0 ? (
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <CalendarCheckIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>No upcoming deadlines</EmptyTitle>
+                    <EmptyDescription>Nothing is due soon.</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              ) : (
+                <ul className="divide-y">
+                  {upcomingDeadlines.map((deadline) => (
+                    <li
+                      key={deadline.id}
+                      className="flex items-center justify-between gap-2 px-4 py-3"
+                    >
+                      <span className="text-sm">{deadline.label}</span>
+                      {deadline.overdue ? (
+                        <StatusBadge tone="danger">{deadline.due}</StatusBadge>
+                      ) : (
+                        <Badge variant="outline">{deadline.due}</Badge>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </div>

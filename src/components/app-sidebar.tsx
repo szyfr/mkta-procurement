@@ -42,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={mainNav} />
+        <NavMain groups={mainNav} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={currentUser} />

@@ -163,4 +163,13 @@
   html {
     @apply font-sans;
   }
+  /* Tailwind v4's preflight drops the browser's pointer cursor on buttons.
+     Restored here rather than in `components/ui`, which is generated and would
+     lose the change on the next regeneration. Sitting in the base layer means
+     an explicit cursor utility — `cursor-default` on menu and select items,
+     `cursor-not-allowed` on the unwired upload targets — still wins. */
+  button:not(:disabled):not([aria-disabled="true"]),
+  [role="button"]:not(:disabled):not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }

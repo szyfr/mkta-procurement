@@ -1,7 +1,7 @@
 import { CheckIcon } from "lucide-react";
 
-import type { PurchaseRequestStatus } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import type { PurchaseRequestStatus } from "@/modules/purchase-requests";
 
 const steps = ["Submitted", "Sourcing & Fulfillment", "Completed"] as const;
 

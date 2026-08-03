@@ -1,5 +1,14 @@
+import { SearchXIcon } from "lucide-react";
+
 import { ReportBarChart } from "@/components/charts/report-bar-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -46,43 +55,57 @@ export function ReportResult({ report }: { report: ReportDefinition }) {
       <Separator />
 
       <CardContent className="px-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {report.table.columns.map((column, index) => (
-                <TableHead
-                  key={column}
-                  scope="col"
-                  className={cn(
-                    index === 0 && "pl-4",
-                    index === report.table.columns.length - 1 && "pr-4",
-                  )}
-                >
-                  {column}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {report.table.rows.map((row) => (
-              <TableRow
-                key={typeof row[0] === "string" ? row[0] : row[0].value}
-              >
-                {row.map((cell, index) => (
-                  <TableCell
-                    key={report.table.columns[index]}
+        {report.table.rows.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <SearchXIcon />
+              </EmptyMedia>
+              <EmptyTitle>No data for this period</EmptyTitle>
+              <EmptyDescription>
+                Try a different date range or clear the filters.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {report.table.columns.map((column, index) => (
+                  <TableHead
+                    key={column}
+                    scope="col"
                     className={cn(
                       index === 0 && "pl-4",
-                      index === row.length - 1 && "pr-4",
+                      index === report.table.columns.length - 1 && "pr-4",
                     )}
                   >
-                    <Cell cell={cell} />
-                  </TableCell>
+                    {column}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {report.table.rows.map((row) => (
+                <TableRow
+                  key={typeof row[0] === "string" ? row[0] : row[0].value}
+                >
+                  {row.map((cell, index) => (
+                    <TableCell
+                      key={report.table.columns[index]}
+                      className={cn(
+                        index === 0 && "pl-4",
+                        index === row.length - 1 && "pr-4",
+                      )}
+                    >
+                      <Cell cell={cell} />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { paymentTerms, vendors } from "@/data/purchase-requests";
+import { paymentTerms, vendors } from "@/data/reference";
 import type { CanvassingBatch } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 

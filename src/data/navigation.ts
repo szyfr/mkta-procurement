@@ -1,8 +1,9 @@
 import {
+  Building2Icon,
   ChartColumnIcon,
   ClipboardListIcon,
   LayoutDashboardIcon,
-  Settings2Icon,
+  TruckIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -12,14 +13,26 @@ export const appIdentity = {
 };
 
 export const mainNav = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
   {
-    title: "Purchase Requests",
-    url: "/purchase-requests",
-    icon: ClipboardListIcon,
+    title: "Procurement",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
+      {
+        title: "Purchase Requests",
+        url: "/purchase-requests",
+        icon: ClipboardListIcon,
+      },
+      { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
+      { title: "Reports", url: "/reports", icon: ChartColumnIcon },
+    ],
   },
-  { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
-  { title: "Reports", url: "/reports", icon: ChartColumnIcon },
+  {
+    title: "Management",
+    items: [
+      { title: "Departments", url: "/departments", icon: Building2Icon },
+      { title: "Vendors", url: "/vendors", icon: TruckIcon },
+    ],
+  },
 ];
 
 export const settingsNav = [
@@ -39,6 +52,8 @@ export const breadcrumbLabels: Record<string, string> = {
   canvassing: "Canvassing",
   quotes: "Quotes",
   reports: "Reports",
+  departments: "Departments",
+  vendors: "Vendors",
   settings: "Settings",
   account: "My Account",
   users: "Users & Roles",

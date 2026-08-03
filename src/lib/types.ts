@@ -2,9 +2,10 @@
  * Domain types for the procurement module.
  *
  * Mirrors the entities in the wireframes: purchase requests move Draft →
- * Canvassing / PO Created → Partially Completed → Completed, with Rejected as
- * an off-ramp. Items within a single request can be sourced independently, so
- * status lives on both the request and its individual items.
+ * Pending → Canvassing / PO Created → Partially Completed → Completed, with
+ * Rejected and Canceled as off-ramps. Items within a single request can be
+ * sourced independently, so status lives on both the request and its
+ * individual items.
  */
 
 /** Visual tone shared by every status pill in the app. */
@@ -21,37 +22,47 @@ export type Priority = "High" | "Normal" | "Low";
 
 export type PurchaseRequestStatus =
   | "draft"
+  | "pending"
   | "canvassing"
   | "po-created"
   | "partially-completed"
   | "completed"
-  | "rejected";
+  | "rejected"
+  | "canceled";
 
+/**
+ * Items carry a wider set of states than their parent request, because a
+ * single item can be rejected or completed while the rest of the request moves
+ * on. Mirrors `Status` in the backend's purchase_request_item schema.
+ */
 export type PurchaseRequestItemStatus =
   | "pending"
+  | "draft"
   | "canvassing"
   | "po-created"
-  | "delivered"
-  | "awaiting-batch";
+  | "partially-completed"
+  | "completed"
+  | "rejected"
+  | "canceled";
 
-/** How an item is sourced. Decided automatically, not editable by the requester. */
-export type SourcingMode = "direct" | "canvassing" | "pending-item-creation";
+/**
+ * How an item is sourced. Derived from the material's `is_needs_canvass` flag,
+ * not editable by the requester.
+ */
+export type SourcingMode = "direct" | "canvassing";
 
 export interface PurchaseRequestItem {
   id: string;
+  materialId: string;
   name: string;
   quantity: number;
   unit: string | null;
+  /** Null whenever the material has no cost on file, which is currently always. */
   estimatedUnitCost: number | null;
+  vendorId: string | null;
   vendor: string | null;
   sourcing: SourcingMode;
   status: PurchaseRequestItemStatus;
-  /** Set once the item is delivered, e.g. "Jul 20". */
-  deliveredOn?: string;
-  /** Canvassing batch this item belongs to, if any. */
-  batch?: number;
-  /** Shown instead of the catalog picker when the item is not in the catalog. */
-  notInCatalog?: boolean;
 }
 
 export interface ActivityEntry {
@@ -60,44 +71,41 @@ export interface ActivityEntry {
   timestamp: string;
 }
 
-export interface Comment {
-  id: string;
-  author: string;
-  body: string;
-  timestamp: string;
-}
-
-export interface Document {
-  id: string;
-  name: string;
-  date: string;
-}
-
+/**
+ * A purchase request as the UI renders it.
+ *
+ * Several fields the wireframe imagined have no backend source and are
+ * deliberately absent rather than invented: submitted/completed/rejected
+ * dates, rejection reasons, documents, comments and activity history. The
+ * panels that would show them stay hidden until the endpoints exist.
+ */
 export interface PurchaseRequest {
   id: string;
+  /** Human-readable request number, e.g. "PR-0042". */
+  no: string;
   /** Null for drafts that have not been titled yet. */
   title: string | null;
-  /** True when the title was derived from the items and department. */
-  autoTitle?: boolean;
   requester: string;
   department: string;
-  amount: number;
+  departmentId: string;
+  /**
+   * Null when the total can't be established — no amount is stored on the
+   * request and materials currently sync without a cost.
+   */
+  amount: number | null;
   priority: Priority;
   status: PurchaseRequestStatus;
   /** Human label for the status pill, e.g. "PO-3025 Created". */
   statusLabel: string;
+  /** Why the purchase is needed, as entered by the requester. */
+  justification: string;
+  /** When the requester needs the items, e.g. "Aug 17". */
+  dateNeeded: string | null;
+  /** `dateNeeded` reformatted for a date input's `value`, e.g. "2026-08-17". */
+  dateNeededValue: string;
   /** Date shown on list rows and cards. Null while still a draft. */
   createdAt: string | null;
-  submittedOn?: string;
-  completedOn?: string;
-  rejectedOn?: string;
-  rejectionReason?: string;
   items: PurchaseRequestItem[];
-  documents?: Document[];
-  comments?: Comment[];
-  activity?: ActivityEntry[];
-  /** Copy for the right-hand action panel on the detail page. */
-  actionPanelNote?: string;
 }
 
 /** A row on the dashboard's "Requests Requiring Action" table. */
@@ -122,19 +130,6 @@ export interface Deadline {
   label: string;
   due: string;
   overdue?: boolean;
-}
-
-export type ItemCreationRequestStatus = "pending" | "approved" | "rejected";
-
-export interface ItemCreationRequest {
-  id: string;
-  itemName: string;
-  /** PR this was requested for, or null for standalone master-data requests. */
-  requestedFor: string | null;
-  requestedBy: string;
-  status: ItemCreationRequestStatus;
-  statusLabel: string;
-  submittedOn: string;
 }
 
 export type CanvassingStatus =
