@@ -1,6 +1,7 @@
 import { formatShortDate } from "@/lib/date";
 import type { ItemQuotationsDto, QuotationDto } from "@/modules/canvassing/dto";
 import type {
+  CreatedQuotation,
   ItemQuotations,
   Quotation,
 } from "@/modules/canvassing/models/quotation";
@@ -36,4 +37,12 @@ export function toItemQuotations(dto: ItemQuotationsDto): ItemQuotations {
       toQuotation(quotation, dto._id),
     ),
   };
+}
+
+/**
+ * The create response is the raw inserted document — no envelope, no joins.
+ * Only enough of it is kept to confirm the write; the comparison table refetches.
+ */
+export function toCreatedQuotation(dto: QuotationDto): CreatedQuotation {
+  return { id: dto._id, referenceNo: dto.reference_no };
 }

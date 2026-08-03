@@ -7,14 +7,18 @@
  * bundle through this barrel.
  */
 
+export { createQuotation } from "@/modules/canvassing/api/client";
 export { canvassingStatusOptions } from "@/modules/canvassing/constants";
 export type {
   CanvassingEntry,
   CanvassingList,
 } from "@/modules/canvassing/models/canvassing";
 export type {
+  CreatedQuotation,
+  CreateQuotationPayload,
   ItemQuotations,
   Quotation,
+  QuotationItemPrice,
 } from "@/modules/canvassing/models/quotation";
 export {
   canvassingKeys,

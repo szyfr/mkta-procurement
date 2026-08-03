@@ -32,3 +32,38 @@ export interface ItemQuotations {
   unit: string | null;
   quotations: Quotation[];
 }
+
+/** The price one quote puts on one purchase request item. */
+export interface QuotationItemPrice {
+  itemId: string;
+  unitPrice: number;
+}
+
+/**
+ * What the UI submits to record a quote. The BFF validates this shape before
+ * it becomes form parts, so it is shared by the API client and the Route
+ * Handler rather than owned by either.
+ *
+ * Attachments travel alongside it as `File[]` rather than inside it: the
+ * payload has to survive being read back out of a `FormData`, and files don't
+ * round-trip through that the way scalars do.
+ */
+export interface CreateQuotationPayload {
+  referenceNo: string;
+  /** `YYYY-MM-DD`. FastAPI parses these as dates and rejects a time component. */
+  date: string;
+  deliveryDate: string;
+  /** The vendor's Mongo `_id` — not the `vendorId` ERP field of the same name. */
+  vendorId: string;
+  paymentTermId: string;
+  itemPricing: QuotationItemPrice[];
+}
+
+/**
+ * The create response. It carries no material or vendor join and no documents
+ * array, so there is nothing worth rendering — callers refetch the comparison.
+ */
+export interface CreatedQuotation {
+  id: string;
+  referenceNo: string;
+}
