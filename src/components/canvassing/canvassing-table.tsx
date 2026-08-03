@@ -108,7 +108,7 @@ export function CanvassingTable({
                 </TableCell>
                 <TableCell className="pr-4">
                   <Link
-                    href={`/canvassing/${entry.purchaseRequestId}`}
+                    href={`/purchase-requests/${entry.purchaseRequestId}/canvassing`}
                     className="text-xs text-muted-foreground hover:underline"
                   >
                     Open →

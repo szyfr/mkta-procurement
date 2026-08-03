@@ -38,7 +38,7 @@ function nextAction(request: PurchaseRequest) {
   if (request.status === "canvassing") {
     return {
       label: "Manage Canvassing",
-      href: `/canvassing/${request.id}`,
+      href: `/purchase-requests/${request.id}/canvassing`,
     };
   }
   return null;
