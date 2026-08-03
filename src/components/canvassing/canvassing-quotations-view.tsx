@@ -5,6 +5,7 @@ import { InboxIcon } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
+import { AwardVendorDialog } from "@/components/canvassing/award-vendor-dialog";
 import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
@@ -35,9 +36,11 @@ import { purchaseRequestDetailQuery } from "@/modules/purchase-requests";
  * attach to a purchase request item, and a quote covering several items is
  * simply repeated under each one it prices.
  *
- * Awarding is not wired up. `PATCH /canvassing/award/{quotation_id}` records
- * the winning vendor from the item rather than the quotation and never moves
- * the item out of canvassing, so picking a row only marks it locally.
+ * Awarding writes through `PATCH /canvassing/award/{quotation_id}`, but this
+ * read has no award join: `GET /canvassing/quotations` returns the item's
+ * stored status, which the award never changes. A confirmed selection is
+ * therefore remembered for the session only — reload and the section looks
+ * unawarded again, while the canvassing list shows "Vendor Selected".
  */
 export function CanvassingQuotationsView({ id }: { id: string }) {
   // The same query the items card runs, so this shares its cache entry rather
@@ -60,6 +63,9 @@ export function CanvassingQuotationsView({ id }: { id: string }) {
   } = useQuery(canvassingQuotationsQuery(itemIds));
 
   const [selected, setSelected] = React.useState<Record<string, string>>({});
+  // Which quotation each item was awarded during this session. The read carries
+  // no award, so this is the only thing that can mark a section as settled.
+  const [awarded, setAwarded] = React.useState<Record<string, string>>({});
 
   // The request itself failing is already reported by the items card above.
   if (requestFailed) return null;
@@ -93,6 +99,10 @@ export function CanvassingQuotationsView({ id }: { id: string }) {
           onSelect={(quotationId) =>
             setSelected((current) => ({ ...current, [item.id]: quotationId }))
           }
+          awarded={awarded[item.id] ?? null}
+          onAwarded={(quotationId) =>
+            setAwarded((current) => ({ ...current, [item.id]: quotationId }))
+          }
         />
       ))}
     </>
@@ -105,14 +115,20 @@ function QuoteComparison({
   quotations,
   selected,
   onSelect,
+  awarded,
+  onAwarded,
 }: {
   purchaseRequestId: string;
   item: PurchaseRequestItem;
   quotations: ItemQuotations["quotations"];
   selected: string | null;
   onSelect: (quotationId: string) => void;
+  awarded: string | null;
+  onAwarded: (quotationId: string) => void;
 }) {
   const quantity = `${item.quantity}${item.unit ? ` ${item.unit}` : ""}`;
+  const selectedQuotation =
+    quotations.find((quotation) => quotation.id === selected) ?? null;
 
   // The cheapest quote is the one the comparison exists to surface. Ties keep
   // the first row, which is the order the backend returned.
@@ -135,6 +151,9 @@ function QuoteComparison({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {awarded ? (
+            <StatusBadge tone="success">Vendor selected</StatusBadge>
+          ) : null}
           {/* The count is all that's real — the backend enforces no quote minimum. */}
           <StatusBadge tone={quotations.length > 0 ? "success" : "neutral"}>
             {quotations.length} {quotations.length === 1 ? "quote" : "quotes"}{" "}
@@ -186,6 +205,8 @@ function QuoteComparison({
               value={selected}
               onValueChange={(value) => onSelect(String(value))}
               aria-label={`Select winning vendor for ${item.name}`}
+              // The award can't be moved to another quote once recorded.
+              disabled={awarded !== null}
               className="block"
             >
               <Table>
@@ -263,12 +284,22 @@ function QuoteComparison({
           </CardContent>
           <CardFooter className="justify-between gap-2">
             <span className="text-xs text-muted-foreground">
-              Awarding isn&apos;t wired up yet — a selection is only marked
-              here.
+              {awarded
+                ? "Vendor confirmed. The award is recorded on the canvassing list."
+                : "Pick the winning quote, then confirm the vendor."}
             </span>
-            <Button size="sm" disabled>
-              Confirm Vendor Selection
-            </Button>
+            <AwardVendorDialog
+              quotationId={selected}
+              itemId={item.id}
+              itemName={item.name}
+              vendorId={selectedQuotation?.vendorId ?? null}
+              unitPrice={selectedQuotation?.unitPrice ?? null}
+              quantity={quantity}
+              // Awarding again inserts a second award rather than replacing the
+              // first, so the section closes once it succeeds.
+              disabled={awarded !== null}
+              onAwarded={onAwarded}
+            />
           </CardFooter>
         </Card>
       )}

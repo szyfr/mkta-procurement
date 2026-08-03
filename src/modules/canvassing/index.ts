@@ -7,8 +7,12 @@
  * bundle through this barrel.
  */
 
-export { createQuotation } from "@/modules/canvassing/api/client";
+export {
+  awardQuotation,
+  createQuotation,
+} from "@/modules/canvassing/api/client";
 export { canvassingStatusOptions } from "@/modules/canvassing/constants";
+export type { CanvassAward } from "@/modules/canvassing/models/award";
 export type {
   CanvassingEntry,
   CanvassingList,
