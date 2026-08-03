@@ -17,13 +17,20 @@ export class BffError extends Error {
   }
 }
 
-type QueryValue = string | number | undefined | null;
+/** An array repeats its key (`items=a&items=b`); the route handler reads it back with `getAll`. */
+type QueryValue = string | number | string[] | undefined | null;
 
 function withQuery(path: string, query?: Record<string, QueryValue>) {
   const params = new URLSearchParams();
 
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value === undefined || value === null || value === "") continue;
+
+    if (Array.isArray(value)) {
+      for (const entry of value) params.append(key, entry);
+      continue;
+    }
+
     params.set(key, String(value));
   }
 

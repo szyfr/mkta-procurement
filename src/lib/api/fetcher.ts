@@ -10,8 +10,12 @@ export interface ServerFetchOptions {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** Serialized as JSON. */
   body?: unknown;
-  /** Appended as a query string; `undefined` and `null` entries are dropped. */
-  query?: Record<string, string | number | undefined | null>;
+  /**
+   * Appended as a query string; `undefined` and `null` entries are dropped. An
+   * array repeats its key (`items=a&items=b`), which is how FastAPI spells a
+   * `list[str] = Query(...)` parameter — a comma-joined value is rejected.
+   */
+  query?: Record<string, string | number | string[] | undefined | null>;
   signal?: AbortSignal;
 }
 
@@ -20,6 +24,12 @@ function buildUrl(path: string, query: ServerFetchOptions["query"]): string {
 
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value === undefined || value === null) continue;
+
+    if (Array.isArray(value)) {
+      for (const entry of value) url.searchParams.append(key, entry);
+      continue;
+    }
+
     url.searchParams.set(key, String(value));
   }
 
