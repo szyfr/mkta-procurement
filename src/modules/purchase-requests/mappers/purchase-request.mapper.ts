@@ -20,19 +20,6 @@ import type { LookupOption } from "@/modules/purchase-requests/models/purchase-r
  * transformation logic.
  */
 
-/** id → display name, so ids can be resolved without a lookup per row. */
-export type NameLookup = ReadonlyMap<string, string>;
-
-export function toDepartmentLookup(departments: DepartmentDto[]): NameLookup {
-  return new Map(
-    departments.map((department) => [department._id, department.title]),
-  );
-}
-
-export function toVendorLookup(vendors: VendorDto[]): NameLookup {
-  return new Map(vendors.map((vendor) => [vendor._id, vendorName(vendor)]));
-}
-
 /** Some synced vendors have a blank name; their number is the next best label. */
 function vendorName(vendor: VendorDto) {
   return vendor.name.trim() || vendor.no;
@@ -40,7 +27,6 @@ function vendorName(vendor: VendorDto) {
 
 export function toPurchaseRequestItem(
   dto: PurchaseRequestItemDto,
-  vendors: NameLookup,
 ): PurchaseRequestItem {
   const material = dto.material ?? null;
 
@@ -56,32 +42,25 @@ export function toPurchaseRequestItem(
     // synced material, so this is null in practice.
     estimatedUnitCost: material?.last_cost ?? null,
     vendorId: dto.vendor_id,
-    vendor: dto.vendor_id
-      ? (vendors.get(dto.vendor_id) ?? dto.vendor_id)
-      : null,
+    // The backend joins no vendor, so this is the raw id until it does.
+    vendor: dto.vendor_id,
     sourcing: dto.is_needs_canvass ? "canvassing" : "direct",
     status: dto.status,
   };
 }
 
-interface PurchaseRequestContext {
-  departments: NameLookup;
-  vendors?: NameLookup;
-}
-
 export function toPurchaseRequest(
   dto: PurchaseRequestDto | PurchaseRequestDetailDto,
-  context: PurchaseRequestContext,
 ): PurchaseRequest {
   const itemDtos = "items" in dto ? dto.items : [];
-  const vendors = context.vendors ?? new Map<string, string>();
 
   return {
     id: dto._id,
     no: dto.no,
     title: dto.title || null,
     requester: dto.requester_id,
-    department: context.departments.get(dto.department_id) ?? dto.department_id,
+    // Same as the item's vendor: no join exists, so the id stands in for the name.
+    department: dto.department_id,
     departmentId: dto.department_id,
     // No amount is stored and no item cost is available to derive one.
     amount: null,
@@ -92,7 +71,7 @@ export function toPurchaseRequest(
     dateNeeded: formatShortDate(dto.date_needed),
     dateNeededValue: toDateInputValue(dto.date_needed),
     createdAt: formatShortDate(dto.created_at),
-    items: itemDtos.map((item) => toPurchaseRequestItem(item, vendors)),
+    items: itemDtos.map(toPurchaseRequestItem),
   };
 }
 

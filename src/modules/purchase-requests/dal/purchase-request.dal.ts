@@ -8,10 +8,6 @@ import {
   toPageInfo,
 } from "@/lib/api/pagination";
 import { DEFAULT_PAGE_SIZE } from "@/modules/purchase-requests/constants";
-import {
-  getDepartmentLookup,
-  getVendorLookup,
-} from "@/modules/purchase-requests/dal/lookup.dal";
 import type {
   CreatePurchaseRequestDto,
   PurchaseRequestDetailDto,
@@ -46,10 +42,9 @@ export interface ListPurchaseRequestsQuery {
 export async function listPurchaseRequests(
   query: ListPurchaseRequestsQuery = {},
 ): Promise<PurchaseRequestList> {
-  // The list endpoint returns neither items nor a department join, so names are
-  // resolved from the memoized lookup alongside it.
-  const [response, departmentLookup] = await Promise.all([
-    serverFetch<PaginatedDto<PurchaseRequestDto>>("/purchase-requests", {
+  const response = await serverFetch<PaginatedDto<PurchaseRequestDto>>(
+    "/purchase-requests",
+    {
       query: {
         page: query.page ?? 1,
         page_size: clampPageSize(query.pageSize, DEFAULT_PAGE_SIZE),
@@ -57,14 +52,11 @@ export async function listPurchaseRequests(
         priority: query.priority,
         departments: query.departments,
       },
-    }),
-    getDepartmentLookup(),
-  ]);
+    },
+  );
 
   return {
-    requests: response.data.map((dto) =>
-      toPurchaseRequest(dto, { departments: departmentLookup }),
-    ),
+    requests: response.data.map(toPurchaseRequest),
     page: toPageInfo(response.pagination),
   };
 }
@@ -72,18 +64,16 @@ export async function listPurchaseRequests(
 export async function getPurchaseRequest(id: string): Promise<PurchaseRequest> {
   assertObjectId(id, NOT_FOUND);
 
-  const [dto, departments, vendors] = await Promise.all([
-    serverFetch<PurchaseRequestDetailDto | null>(`/purchase-requests/${id}`),
-    getDepartmentLookup(),
-    getVendorLookup(),
-  ]);
+  const dto = await serverFetch<PurchaseRequestDetailDto | null>(
+    `/purchase-requests/${id}`,
+  );
 
   // `get_full_details` returns a bare `null` body when the aggregation misses.
   if (!dto) {
     throw new ApiError(404, "not_found", NOT_FOUND);
   }
 
-  return toPurchaseRequest(dto, { departments, vendors });
+  return toPurchaseRequest(dto);
 }
 
 export async function createPurchaseRequest(
@@ -112,11 +102,9 @@ export async function createPurchaseRequest(
     },
   );
 
-  const departments = await getDepartmentLookup();
-
   // The create response carries no material join, so items map to bare ids
   // here. Callers that need full items re-read the request by id.
-  return toPurchaseRequest(dto, { departments });
+  return toPurchaseRequest(dto);
 }
 
 export async function updatePurchaseRequest(
@@ -130,9 +118,7 @@ export async function updatePurchaseRequest(
     { method: "PUT", body: input },
   );
 
-  const departments = await getDepartmentLookup();
-
-  return toPurchaseRequest(dto, { departments });
+  return toPurchaseRequest(dto);
 }
 
 /**
