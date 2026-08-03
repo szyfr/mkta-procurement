@@ -1,16 +1,27 @@
 /**
  * Payment terms module — public surface.
  *
- * Reference data only: the quotation form needs a `payment_term_id` and this
- * is where one comes from. There is no payment terms screen, so the module
- * carries no model, query or constants of its own — it produces `LookupOption`
- * for the shared picker.
+ * Two consumers share this module: the quotation form's picker (via
+ * `fetchPaymentTermOptions`, producing `LookupOption`) and the Payment Terms
+ * management screen (list/create/update/delete on the full model).
  *
  * The DAL is deliberately left out: it reaches FastAPI and must be imported
  * directly by Route Handlers (`@/modules/payment-terms/dal/...`) so it can
  * never be pulled into a client bundle through this barrel.
  */
 
-export { fetchPaymentTermOptions } from "@/modules/payment-terms/api/client";
+export {
+  createPaymentTerm,
+  deletePaymentTerm,
+  fetchPaymentTermOptions,
+  updatePaymentTerm,
+} from "@/modules/payment-terms/api/client";
 export { paymentTermEndpoints } from "@/modules/payment-terms/api/endpoints";
-export { paymentTermKeys } from "@/modules/payment-terms/queries/payment-term.queries";
+export type {
+  PaymentTerm,
+  PaymentTermPayload,
+} from "@/modules/payment-terms/models/payment-term";
+export {
+  paymentTermKeys,
+  paymentTermListQuery,
+} from "@/modules/payment-terms/queries/payment-term.queries";

@@ -1,12 +1,26 @@
+import { queryOptions } from "@tanstack/react-query";
+
+import { fetchPaymentTerms } from "@/modules/payment-terms/api/client";
+
 /**
- * Cache keys for the payment terms lookup.
+ * Query definitions for the Payment Terms UI.
  *
- * No `queryOptions` factory sits alongside them: the only consumer is the
- * shared `LookupPicker`, which builds its own `useInfiniteQuery` from a key
- * and a page loader.
+ * `options()` is the cache key the shared `LookupPicker` builds its own
+ * `useInfiniteQuery` from (page loader is `fetchPaymentTermOptions`, passed
+ * directly by the consumer). `list()`/`listQuery()` back the management
+ * table below.
  */
 
 export const paymentTermKeys = {
+  /** Prefix for every payment term query; invalidating it refetches all of them. */
   all: ["payment-terms"] as const,
   options: () => [...paymentTermKeys.all, "options"] as const,
+  list: (page: number) => [...paymentTermKeys.all, page] as const,
 };
+
+export function paymentTermListQuery(page: number) {
+  return queryOptions({
+    queryKey: paymentTermKeys.list(page),
+    queryFn: ({ signal }) => fetchPaymentTerms({ page, signal }),
+  });
+}

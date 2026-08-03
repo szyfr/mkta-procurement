@@ -2,6 +2,7 @@ import {
   Building2Icon,
   ChartColumnIcon,
   ClipboardListIcon,
+  HandCoinsIcon,
   LayoutDashboardIcon,
   TruckIcon,
   UsersIcon,
@@ -31,6 +32,11 @@ export const mainNav = [
     items: [
       { title: "Departments", url: "/departments", icon: Building2Icon },
       { title: "Vendors", url: "/vendors", icon: TruckIcon },
+      {
+        title: "Payment Terms",
+        url: "/payment-terms",
+        icon: HandCoinsIcon,
+      },
     ],
   },
 ];
@@ -54,6 +60,7 @@ export const breadcrumbLabels: Record<string, string> = {
   reports: "Reports",
   departments: "Departments",
   vendors: "Vendors",
+  "payment-terms": "Payment Terms",
   settings: "Settings",
   account: "My Account",
   users: "Users & Roles",

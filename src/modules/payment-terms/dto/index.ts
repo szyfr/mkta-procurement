@@ -1,1 +1,5 @@
-export type { PaymentTermDto } from "@/modules/payment-terms/dto/payment-term.dto";
+export type {
+  CreatePaymentTermDto,
+  PaymentTermDto,
+  UpdatePaymentTermDto,
+} from "@/modules/payment-terms/dto/payment-term.dto";

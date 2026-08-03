@@ -1,23 +1,28 @@
 import { serverFetch } from "@/lib/api/fetcher";
+import { assertObjectId } from "@/lib/api/object-id";
 import {
   clampPageSize,
   type PaginatedDto,
   toPageInfo,
 } from "@/lib/api/pagination";
-import { LOOKUP_PAGE_SIZE, type LookupPage } from "@/lib/lookup";
-import type { PaymentTermDto } from "@/modules/payment-terms/dto";
-import { toPaymentTermOption } from "@/modules/payment-terms/mappers/payment-term.mapper";
+import { DEFAULT_PAGE_SIZE } from "@/modules/payment-terms/constants";
+import type {
+  CreatePaymentTermDto,
+  PaymentTermDto,
+  UpdatePaymentTermDto,
+} from "@/modules/payment-terms/dto";
+import { toPaymentTerm } from "@/modules/payment-terms/mappers/payment-term.mapper";
+import type {
+  PaymentTerm,
+  PaymentTermList,
+} from "@/modules/payment-terms/models/payment-term";
 
 /**
- * Payment term reads against FastAPI. Server-side only, called from Route
- * Handlers — never from a component.
- *
- * Only the searchable list is wired up, because the one thing the UI needs a
- * payment term for is the quotation form's picker: `POST /quotations` requires
- * a `payment_term_id` and nothing else in the app resolves one. FastAPI also
- * exposes create, update, delete and a by-id read, none of which have a
- * screen behind them.
+ * Payment term reads and writes against FastAPI. Server-side only, called
+ * from Route Handlers — never from a component.
  */
+
+const NOT_FOUND = "Payment term not found";
 
 export interface ListPaymentTermsQuery {
   page?: number;
@@ -25,24 +30,61 @@ export interface ListPaymentTermsQuery {
   search?: string | null;
 }
 
-export async function listPaymentTermOptions(
+export async function listPaymentTerms(
   query: ListPaymentTermsQuery = {},
-): Promise<LookupPage> {
+): Promise<PaymentTermList> {
   const response = await serverFetch<PaginatedDto<PaymentTermDto>>(
     "/payment-terms",
     {
       query: {
         page: query.page ?? 1,
-        // The backend defaults to 10 per page, which would page a dropdown
-        // that rarely runs past a dozen rows.
-        page_size: clampPageSize(query.pageSize, LOOKUP_PAGE_SIZE),
+        page_size: clampPageSize(query.pageSize, DEFAULT_PAGE_SIZE),
         search: query.search || undefined,
       },
     },
   );
 
   return {
-    options: response.data.map(toPaymentTermOption),
+    paymentTerms: response.data.map(toPaymentTerm),
     page: toPageInfo(response.pagination),
   };
+}
+
+export async function getPaymentTerm(id: string): Promise<PaymentTerm> {
+  assertObjectId(id, NOT_FOUND);
+
+  const dto = await serverFetch<PaymentTermDto>(`/payment-terms/${id}`);
+
+  return toPaymentTerm(dto);
+}
+
+export async function createPaymentTerm(
+  input: CreatePaymentTermDto,
+): Promise<PaymentTerm> {
+  const dto = await serverFetch<PaymentTermDto>("/payment-terms", {
+    method: "POST",
+    body: input,
+  });
+
+  return toPaymentTerm(dto);
+}
+
+export async function updatePaymentTerm(
+  id: string,
+  input: UpdatePaymentTermDto,
+): Promise<PaymentTerm> {
+  assertObjectId(id, NOT_FOUND);
+
+  const dto = await serverFetch<PaymentTermDto>(`/payment-terms/${id}`, {
+    method: "PUT",
+    body: input,
+  });
+
+  return toPaymentTerm(dto);
+}
+
+export async function deletePaymentTerm(id: string): Promise<void> {
+  assertObjectId(id, NOT_FOUND);
+
+  await serverFetch<null>(`/payment-terms/${id}`, { method: "DELETE" });
 }
