@@ -2,14 +2,14 @@
 
 import { LineItemsEditor } from "@/components/purchase-requests/line-items-editor";
 import {
-  LookupPicker,
-  singlePageLoader,
-} from "@/components/purchase-requests/lookup-picker";
-import {
   type PriorityValue,
   type PurchaseRequestFormState,
   priorities,
 } from "@/components/purchase-requests/use-pr-form";
+import {
+  LookupPicker,
+  singlePageLoader,
+} from "@/components/shared/lookup-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,

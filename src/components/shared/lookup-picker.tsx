@@ -16,11 +16,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
+import { LOOKUP_PAGE_SIZE, type LookupOption } from "@/lib/lookup";
 import { cn } from "@/lib/utils";
-import {
-  LOOKUP_PAGE_SIZE,
-  type LookupOption,
-} from "@/modules/purchase-requests";
 
 /**
  * Reference-data picker for collections too large to put in a `<Select>` —

@@ -9,8 +9,8 @@ import type { PriorityDto } from "@/modules/purchase-requests/dto";
 /** Default page size for the request list. */
 export const DEFAULT_PAGE_SIZE = 10;
 
-/** Page size for the create form's material and vendor pickers. */
-export const LOOKUP_PAGE_SIZE = 50;
+/** Shared with Canvassing's pickers, so it lives in `@/lib/lookup` now. */
+export { LOOKUP_PAGE_SIZE } from "@/lib/lookup";
 
 export const priorityFromDto: Record<PriorityDto, Priority> = {
   low: "Low",

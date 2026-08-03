@@ -3,7 +3,7 @@
 import { PlusIcon, XIcon } from "lucide-react";
 import * as React from "react";
 
-import { LookupPicker } from "@/components/purchase-requests/lookup-picker";
+import { LookupPicker } from "@/components/shared/lookup-picker";
 import { StatusDot } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import {

@@ -30,27 +30,11 @@ export interface PurchaseRequestList {
   page: PageInfo;
 }
 
-/** A selectable reference record — a department, material, or vendor. */
-export interface LookupOption {
-  id: string;
-  label: string;
-  /** Secondary line in the picker, e.g. a material or vendor number. */
-  hint?: string;
-  /** Materials only: drives the item's sourcing mode. */
-  needsCanvass?: boolean;
-  /** Materials only: unit of measure. */
-  unit?: string | null;
-  /**
-   * Materials only: last known cost, used to prefill an estimate. Null for
-   * every material currently synced from Business Central.
-   */
-  unitCost?: number | null;
-}
-
-export interface LookupPage {
-  options: LookupOption[];
-  page: PageInfo;
-}
+/**
+ * Reference data is shared with Canvassing, so its shapes moved to
+ * `@/lib/lookup`. Re-exported here to keep this module's surface intact.
+ */
+export type { LookupOption, LookupPage } from "@/lib/lookup";
 
 /**
  * What the UI submits to create a request. The BFF validates this shape before
