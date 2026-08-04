@@ -2,12 +2,10 @@
  * The `PATCH /canvassing/award/{quotation_id}` contract, mirroring FastAPI.
  *
  * The body is plain JSON — `{ items: [...] }`, the ids of the purchase request
- * items the quotation wins — and the response is a **bare array** of the award
- * documents that were inserted, one per item, with no `{ data }` envelope.
- *
- * Nothing on the award points back at the item that produced it: the backend
- * stores the item's request and material instead, so an award is keyed by
- * (purchase request, material) rather than by line.
+ * items the quotation wins. The response carries one award document per item
+ * that succeeded and, since awards are keyed by (purchase request, material)
+ * and a second one is rejected rather than replacing the first, one issue per
+ * item that already had an award on record.
  */
 
 export interface CanvassAwardDto {
@@ -22,4 +20,15 @@ export interface CanvassAwardDto {
   material_id: string;
   created_at: string;
   updated_at: string;
+}
+
+/** One item the award endpoint refused, and why. */
+export interface CanvassAwardIssueDto {
+  item_id: string;
+  message: string;
+}
+
+export interface AwardQuotationResponseDto {
+  awards: CanvassAwardDto[];
+  issues: CanvassAwardIssueDto[];
 }

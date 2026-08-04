@@ -12,3 +12,14 @@ export interface CanvassAward {
   purchaseRequestId: string;
   materialId: string;
 }
+
+/** Why one item in an award request was refused — surfaced as UI validation. */
+export interface CanvassAwardIssue {
+  itemId: string;
+  message: string;
+}
+
+export interface AwardQuotationResult {
+  awards: CanvassAward[];
+  issues: CanvassAwardIssue[];
+}

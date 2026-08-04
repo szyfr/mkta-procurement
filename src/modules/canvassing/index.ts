@@ -12,7 +12,11 @@ export {
   createQuotation,
 } from "@/modules/canvassing/api/client";
 export { canvassingStatusOptions } from "@/modules/canvassing/constants";
-export type { CanvassAward } from "@/modules/canvassing/models/award";
+export type {
+  AwardQuotationResult,
+  CanvassAward,
+  CanvassAwardIssue,
+} from "@/modules/canvassing/models/award";
 export type {
   CanvassingEntry,
   CanvassingList,

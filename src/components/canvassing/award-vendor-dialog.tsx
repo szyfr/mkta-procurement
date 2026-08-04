@@ -54,17 +54,34 @@ export function AwardVendorDialog({
       // Only reachable from the dialog, which the trigger keeps shut until a
       // quotation is selected.
       awardQuotation({ quotationId: quotationId as string, itemIds: [itemId] }),
-    onSuccess: () => {
+    onSuccess: (result) => {
+      // A duplicate award isn't inserted — it comes back as an issue rather
+      // than a thrown error, so it has to be checked explicitly rather than
+      // assumed from a 200.
+      const [issue] = result.issues;
+
+      setOpen(false);
+      // Refetches both the canvassing list (derived status flips to "Vendor
+      // Selected") and the quote comparison (the item's `quotation_id` now
+      // names the winner). Worth doing even on an issue: it means this item
+      // already had an award on record, so the comparison should already be
+      // showing that instead of the stale "pick a quote" table.
+      queryClient.invalidateQueries({ queryKey: canvassingKeys.all });
+
+      if (issue) {
+        toast.add({
+          title: "Couldn't confirm this vendor",
+          description: issue.message,
+          type: "error",
+        });
+        return;
+      }
+
       toast.add({
         title: "Vendor selection confirmed",
         description: `${itemName} was awarded to the selected quote.`,
         type: "success",
       });
-      setOpen(false);
-      // Refetches both the canvassing list (derived status flips to "Vendor
-      // Selected") and the quote comparison (the item's `quotation_id` now
-      // names the winner), since both query keys share this prefix.
-      queryClient.invalidateQueries({ queryKey: canvassingKeys.all });
     },
     onError: (cause) => {
       toast.add({

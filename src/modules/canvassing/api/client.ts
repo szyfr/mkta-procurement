@@ -1,6 +1,6 @@
 import { bffRequest } from "@/lib/api/bff-client";
 import { canvassingEndpoints } from "@/modules/canvassing/api/endpoints";
-import type { CanvassAward } from "@/modules/canvassing/models/award";
+import type { AwardQuotationResult } from "@/modules/canvassing/models/award";
 import type { CanvassingList } from "@/modules/canvassing/models/canvassing";
 import type {
   CreatedQuotation,
@@ -79,8 +79,10 @@ export function createQuotation({
 }
 
 /**
- * Awards a quotation the items it won. One award is recorded per item, and the
- * documents that come back carry no joins — callers refetch instead.
+ * Awards a quotation the items it won. `issues` names any item that already
+ * had an award on record for that (purchase request, material) pair — the
+ * write for it was refused, not applied, so callers should treat it as a
+ * validation failure rather than a partial success.
  */
 export function awardQuotation({
   quotationId,
@@ -89,8 +91,8 @@ export function awardQuotation({
   quotationId: string;
   itemIds: string[];
 }) {
-  return bffRequest<CanvassAward[]>(canvassingEndpoints.award(quotationId), {
-    method: "PATCH",
-    body: { items: itemIds },
-  });
+  return bffRequest<AwardQuotationResult>(
+    canvassingEndpoints.award(quotationId),
+    { method: "PATCH", body: { items: itemIds } },
+  );
 }

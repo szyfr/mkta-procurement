@@ -1,4 +1,8 @@
-export type { CanvassAwardDto } from "@/modules/canvassing/dto/award.dto";
+export type {
+  AwardQuotationResponseDto,
+  CanvassAwardDto,
+  CanvassAwardIssueDto,
+} from "@/modules/canvassing/dto/award.dto";
 export type {
   CanvassingEntryDto,
   CanvassingMaterialDto,
