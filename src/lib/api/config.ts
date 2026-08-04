@@ -16,14 +16,5 @@ export function getApiBaseUrl() {
   return baseUrl.replace(/\/+$/, "");
 }
 
-/**
- * Stand-in for the authenticated subject. Auth is out of scope, but FastAPI
- * requires `requester_id` on every purchase request, so the BFF supplies it
- * server-side rather than letting the browser choose one.
- */
-export function getRequesterId() {
-  return process.env.PURCHASE_REQUEST_REQUESTER_ID ?? "1";
-}
-
 /** Upstream requests are abandoned after this long. */
 export const REQUEST_TIMEOUT_MS = 15_000;

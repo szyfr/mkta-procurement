@@ -15,7 +15,7 @@ npm run format   # biome format --write
 
 There is no test runner in this project. `npm run lint && npm run build` is the definition of done for a change — both must be clean (TypeScript errors, Biome issues, hydration errors, build errors).
 
-Env vars live in `.env.local`: `FASTAPI_BASE_URL` (where the BFF reaches FastAPI) and `PURCHASE_REQUEST_REQUESTER_ID` (a stand-in requester for purchase request writes — still a fixed id, not the signed-in user). Both are server-only and must never be read from a Client Component.
+Env vars live in `.env.local`: `FASTAPI_BASE_URL` (where the BFF reaches FastAPI). Server-only, must never be read from a Client Component.
 
 ## What this is
 

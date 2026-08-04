@@ -1,4 +1,3 @@
-import { getRequesterId } from "@/lib/api/config";
 import { ApiError } from "@/lib/api/errors";
 import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
@@ -7,6 +6,7 @@ import {
   type PaginatedDto,
   toPageInfo,
 } from "@/lib/api/pagination";
+import { getCurrentUser } from "@/modules/auth/dal/auth.dal";
 import { DEFAULT_PAGE_SIZE } from "@/modules/purchase-requests/constants";
 import type {
   CreatePurchaseRequestDto,
@@ -79,9 +79,13 @@ export async function getPurchaseRequest(id: string): Promise<PurchaseRequest> {
 export async function createPurchaseRequest(
   input: CreatePurchaseRequestPayload,
 ): Promise<PurchaseRequest> {
+  // Supplied server-side from the session cookie; the browser never picks its
+  // own requester. Also means an unauthenticated POST fails here with the
+  // same 401 `getCurrentUser` throws for any other read.
+  const requester = await getCurrentUser();
+
   const payload: CreatePurchaseRequestDto = {
-    // Supplied server-side; the browser never picks its own requester.
-    requester_id: getRequesterId(),
+    requester_id: requester.id,
     department_id: input.departmentId,
     title: input.title,
     date_needed: input.dateNeeded,

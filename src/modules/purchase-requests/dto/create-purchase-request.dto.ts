@@ -10,8 +10,9 @@ export interface CreatePurchaseRequestItemDto {
 /**
  * `app/http/requests/pr_request.py:PRRequest`.
  *
- * `requester_id` is filled in by the BFF, not the browser — see
- * `getRequesterId` in `lib/api/config`.
+ * `requester_id` is filled in by the BFF from the signed-in user's session,
+ * not sent by the browser — see `createPurchaseRequest` in
+ * `purchase-request.dal`.
  */
 export interface CreatePurchaseRequestDto {
   requester_id: string;

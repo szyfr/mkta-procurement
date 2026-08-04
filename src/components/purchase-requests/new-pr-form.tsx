@@ -16,8 +16,8 @@ import { createPurchaseRequest } from "@/modules/purchase-requests";
  * Create form. Owns all state for the request and its line items, then posts
  * once through the BFF.
  *
- * The requester is not collected here: authentication is out of scope, so the
- * BFF fills `requester_id` in server-side.
+ * The requester is not collected here: the BFF fills `requester_id` in
+ * server-side from the signed-in user's session cookie.
  */
 
 const submissionChecklist = [
