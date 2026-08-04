@@ -15,7 +15,7 @@ export const appIdentity = {
 
 export const mainNav = [
   {
-    title: "Procurement",
+    title: "PROCUREMENT",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
       {
@@ -28,7 +28,7 @@ export const mainNav = [
     ],
   },
   {
-    title: "Management",
+    title: "ADMINISTRATION",
     items: [
       { title: "Departments", url: "/departments", icon: Building2Icon },
       { title: "Vendors", url: "/vendors", icon: TruckIcon },
