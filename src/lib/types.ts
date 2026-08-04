@@ -182,3 +182,48 @@ export interface RolePermission {
   role: string;
   description: string;
 }
+
+/**
+ * Roles & Permissions. No backend endpoint exists for any of this yet — the
+ * catalogue below is the shape the page would read once one does, and
+ * `src/data/roles.ts` supplies it statically in the meantime.
+ */
+
+export type RoleStatus = "active" | "inactive";
+
+/** A single grantable action, addressed as `module.action` everywhere else. */
+export interface Permission {
+  action: string;
+  label: string;
+}
+
+export interface PermissionModule {
+  key: string;
+  name: string;
+  permissions: Permission[];
+}
+
+/** A person holding a role. Department is shown beside the name in the sheet. */
+export interface RoleAssignee {
+  id: string;
+  name: string;
+  department: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  /** Stable slug shown in mono under the role name. */
+  key: string;
+  description: string;
+  /** System roles ship with the product: they cannot be deleted. */
+  isSystem: boolean;
+  status: RoleStatus;
+  assignees: RoleAssignee[];
+  /** Grant keys, `module.action`. */
+  permissions: string[];
+  createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
+}
