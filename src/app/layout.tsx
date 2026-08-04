@@ -1,16 +1,14 @@
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
-import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/query-provider";
 import { Toaster } from "@/components/ui/toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-// Body copy uses the Segoe UI system stack defined in globals.css, matching the
-// wireframes; only the mono face (chart tooltips) is a loaded webfont.
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Geist throughout, with the mono face reserved for identifiers — PR numbers,
+// object ids, SKUs — so a code you might read aloud or paste is always set
+// apart from the prose around it.
 
 export const metadata: Metadata = {
   title: {
@@ -27,7 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
+    >
       <body>
         <QueryProvider>
           <Toaster>
