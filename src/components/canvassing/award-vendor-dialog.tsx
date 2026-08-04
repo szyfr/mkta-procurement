@@ -35,7 +35,6 @@ export function AwardVendorDialog({
   unitPrice,
   quantity,
   disabled,
-  onAwarded,
 }: {
   /** Null until a row is picked; the trigger stays disabled meanwhile. */
   quotationId: string | null;
@@ -46,7 +45,6 @@ export function AwardVendorDialog({
   /** Already display copy, e.g. "10 pcs". */
   quantity: string;
   disabled?: boolean;
-  onAwarded: (quotationId: string) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
@@ -63,10 +61,9 @@ export function AwardVendorDialog({
         type: "success",
       });
       setOpen(false);
-      onAwarded(quotationId as string);
-      // Only the canvassing list reflects an award — its derived status flips to
-      // "Vendor Selected". The purchase request's own items are untouched
-      // upstream, so there is nothing to refetch there.
+      // Refetches both the canvassing list (derived status flips to "Vendor
+      // Selected") and the quote comparison (the item's `quotation_id` now
+      // names the winner), since both query keys share this prefix.
       queryClient.invalidateQueries({ queryKey: canvassingKeys.all });
     },
     onError: (cause) => {

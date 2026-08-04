@@ -31,6 +31,14 @@ export interface ItemQuotations {
   quantity: number;
   unit: string | null;
   quotations: Quotation[];
+  /** The quote this item was awarded to, once `PATCH /canvassing/award/{id}` runs. */
+  awardedQuotationId: string | null;
+  /**
+   * When the award landed. Always null for now — the backend has no
+   * dedicated award timestamp, only the item's ordinary `updated_at`, which
+   * isn't reliable enough to show as the award date.
+   */
+  awardedOn: string | null;
 }
 
 /** The price one quote puts on one purchase request item. */

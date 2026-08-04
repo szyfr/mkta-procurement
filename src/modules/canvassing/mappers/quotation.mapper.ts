@@ -41,6 +41,11 @@ export function toItemQuotations(dto: ItemQuotationsDto): ItemQuotations {
     quotations: dto.quotations.map((quotation) =>
       toQuotation(quotation, dto._id),
     ),
+    awardedQuotationId: dto.quotation_id ?? null,
+    // `updated_at` isn't a real award timestamp — it's just whatever last
+    // touched the item, and nothing upstream distinguishes an award from any
+    // other write. Null until the backend adds a dedicated field.
+    awardedOn: null,
   };
 }
 

@@ -37,11 +37,10 @@ import { purchaseRequestDetailQuery } from "@/modules/purchase-requests";
  * attach to a purchase request item, and a quote covering several items is
  * simply repeated under each one it prices.
  *
- * Awarding writes through `PATCH /canvassing/award/{quotation_id}`, but this
- * read has no award join: `GET /canvassing/quotations` returns the item's
- * stored status, which the award never changes. A confirmed selection is
- * therefore remembered for the session only — reload and the section looks
- * unawarded again, while the canvassing list shows "Vendor Selected".
+ * Awarding writes through `PATCH /canvassing/award/{quotation_id}`, which
+ * stamps the winning quotation's id onto the item. `GET /canvassing/quotations`
+ * echoes it back as `quotation_id`, so which row won survives a reload rather
+ * than living only in this component's state.
  */
 export function CanvassingQuotationsView({ id }: { id: string }) {
   // The same query the items card runs, so this shares its cache entry rather
@@ -64,9 +63,6 @@ export function CanvassingQuotationsView({ id }: { id: string }) {
   } = useQuery(canvassingQuotationsQuery(itemIds));
 
   const [selected, setSelected] = React.useState<Record<string, string>>({});
-  // Which quotation each item was awarded during this session. The read carries
-  // no award, so this is the only thing that can mark a section as settled.
-  const [awarded, setAwarded] = React.useState<Record<string, string>>({});
 
   // The request itself failing is already reported by the items card above.
   if (requestFailed) return null;
@@ -100,10 +96,8 @@ export function CanvassingQuotationsView({ id }: { id: string }) {
           onSelect={(quotationId) =>
             setSelected((current) => ({ ...current, [item.id]: quotationId }))
           }
-          awarded={awarded[item.id] ?? null}
-          onAwarded={(quotationId) =>
-            setAwarded((current) => ({ ...current, [item.id]: quotationId }))
-          }
+          awardedQuotationId={byItemId.get(item.id)?.awardedQuotationId ?? null}
+          awardedOn={byItemId.get(item.id)?.awardedOn ?? null}
         />
       ))}
     </>
@@ -116,18 +110,70 @@ function QuoteComparison({
   quotations,
   selected,
   onSelect,
-  awarded,
-  onAwarded,
+  awardedQuotationId,
+  awardedOn,
 }: {
   purchaseRequestId: string;
   item: PurchaseRequestItem;
   quotations: ItemQuotations["quotations"];
   selected: string | null;
   onSelect: (quotationId: string) => void;
-  awarded: string | null;
-  onAwarded: (quotationId: string) => void;
+  awardedQuotationId: string | null;
+  awardedOn: string | null;
 }) {
   const quantity = `${item.quantity}${item.unit ? ` ${item.unit}` : ""}`;
+
+  if (awardedQuotationId) {
+    const winner =
+      quotations.find((quotation) => quotation.id === awardedQuotationId) ??
+      null;
+
+    return (
+      <section className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-0.5">
+            <h2 className="font-medium">{item.name}</h2>
+            <p className="text-xs text-muted-foreground">
+              Vendor already selected for this item
+            </p>
+          </div>
+          <StatusBadge tone="success">
+            Vendor Selected{winner ? ` — ${winner.vendorId}` : ""}
+          </StatusBadge>
+        </div>
+
+        <Card>
+          <CardContent className="grid gap-4 text-xs sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p className="text-muted-foreground">Winning Price</p>
+              <p>
+                {winner?.unitPrice == null
+                  ? "—"
+                  : formatCurrency(winner.unitPrice, true)}
+                {winner ? ` · ${winner.vendorId}` : ""}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Delivery Estimate</p>
+              <p>{winner?.deliveryDate ?? "—"}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Quotes Received</p>
+              <p>
+                {quotations.length}{" "}
+                {quotations.length === 1 ? "quote" : "quotes"}
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Selected On</p>
+              <p>{awardedOn ?? "—"}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    );
+  }
+
   const selectedQuotation =
     quotations.find((quotation) => quotation.id === selected) ?? null;
 
@@ -152,9 +198,6 @@ function QuoteComparison({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {awarded ? (
-            <StatusBadge tone="success">Vendor selected</StatusBadge>
-          ) : null}
           {/* The count is all that's real — the backend enforces no quote minimum. */}
           <StatusBadge tone={quotations.length > 0 ? "success" : "neutral"}>
             {quotations.length} {quotations.length === 1 ? "quote" : "quotes"}{" "}
@@ -206,8 +249,6 @@ function QuoteComparison({
               value={selected}
               onValueChange={(value) => onSelect(String(value))}
               aria-label={`Select winning vendor for ${item.name}`}
-              // The award can't be moved to another quote once recorded.
-              disabled={awarded !== null}
               className="block"
             >
               <Table>
@@ -265,7 +306,11 @@ function QuoteComparison({
                             ? "—"
                             : formatCurrency(quotation.unitPrice, true)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell
+                          className={cn(
+                            isLowest && "font-medium text-status-success",
+                          )}
+                        >
                           {quotation.unitPrice === null
                             ? "—"
                             : formatCurrency(
@@ -293,9 +338,7 @@ function QuoteComparison({
           </CardContent>
           <CardFooter className="justify-between gap-2">
             <span className="text-xs text-muted-foreground">
-              {awarded
-                ? "Vendor confirmed. The award is recorded on the canvassing list."
-                : "Pick the winning quote, then confirm the vendor."}
+              Pick the winning quote, then confirm the vendor.
             </span>
             <AwardVendorDialog
               quotationId={selected}
@@ -304,10 +347,6 @@ function QuoteComparison({
               vendorId={selectedQuotation?.vendorId ?? null}
               unitPrice={selectedQuotation?.unitPrice ?? null}
               quantity={quantity}
-              // Awarding again inserts a second award rather than replacing the
-              // first, so the section closes once it succeeds.
-              disabled={awarded !== null}
-              onAwarded={onAwarded}
             />
           </CardFooter>
         </Card>

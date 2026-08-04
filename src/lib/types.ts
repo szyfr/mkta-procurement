@@ -39,6 +39,7 @@ export type PurchaseRequestItemStatus =
   | "pending"
   | "draft"
   | "canvassing"
+  | "quotation-awarded"
   | "po-created"
   | "partially-completed"
   | "completed"

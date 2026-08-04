@@ -72,6 +72,9 @@ export const purchaseRequestItemStatusLabels: Record<
   pending: "Pending",
   draft: "Draft",
   canvassing: "Canvassing",
+  // Matches the label Canvassing's own list uses for the same event, so an
+  // awarded item reads identically in both places.
+  "quotation-awarded": "Vendor Selected",
   "po-created": "PO Created",
   "partially-completed": "Partially Completed",
   completed: "Completed",
@@ -86,6 +89,7 @@ export const purchaseRequestItemTone: Record<
   pending: "neutral",
   draft: "neutral",
   canvassing: "info",
+  "quotation-awarded": "success",
   "po-created": "ordered",
   "partially-completed": "partial",
   completed: "success",

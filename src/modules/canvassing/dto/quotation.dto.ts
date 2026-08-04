@@ -73,4 +73,10 @@ export interface ItemQuotationsDto {
   quotations: QuotationDto[];
   /** The `$unwind` preserves rows whose material lookup missed, dropping the key. */
   material?: CanvassingMaterialDto | null;
+  /**
+   * Set by `PATCH /canvassing/award/{quotation_id}`, which stamps it onto the
+   * item alongside `status: "quotation-awarded"`. Absent (not just null) on
+   * older items awarded before this field existed.
+   */
+  quotation_id?: string | null;
 }
