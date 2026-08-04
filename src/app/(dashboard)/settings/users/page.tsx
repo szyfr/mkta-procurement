@@ -2,6 +2,7 @@ import { PlusIcon, ShieldIcon, UsersIcon } from "lucide-react";
 import type { Metadata } from "next";
 
 import { StatusBadge } from "@/components/shared/status-badge";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,16 +71,14 @@ export default function UsersSettingsPage() {
               </EmptyHeader>
             </Empty>
           ) : (
-            <Table>
+            <Table className={dataTableClass}>
               <TableHeader>
                 <TableRow>
-                  <TableHead scope="col" className="pl-4">
-                    Name
-                  </TableHead>
+                  <TableHead scope="col">Name</TableHead>
                   <TableHead scope="col">Role</TableHead>
                   <TableHead scope="col">Department</TableHead>
                   <TableHead scope="col">Status</TableHead>
-                  <TableHead scope="col" className="pr-4">
+                  <TableHead scope="col">
                     <span className="sr-only">Actions</span>
                   </TableHead>
                 </TableRow>
@@ -87,7 +86,7 @@ export default function UsersSettingsPage() {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="pl-4">
+                    <TableCell>
                       {user.name}
                       {user.isCurrentUser ? " (you)" : ""}
                     </TableCell>
@@ -98,7 +97,7 @@ export default function UsersSettingsPage() {
                         {user.status === "active" ? "Active" : "Invited"}
                       </StatusBadge>
                     </TableCell>
-                    <TableCell className="pr-4">
+                    <TableCell>
                       {user.isCurrentUser ? (
                         <span className="text-xs text-muted-foreground">—</span>
                       ) : (

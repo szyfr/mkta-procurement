@@ -1,3 +1,4 @@
+import { dataTableClass } from "@/components/shared/table-classes";
 import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -23,24 +24,20 @@ export function VendorTable({
   return (
     <Card>
       <CardContent className="px-0">
-        <Table>
+        <Table className={dataTableClass}>
           <TableHeader>
             <TableRow>
-              <TableHead scope="col" className="pl-4">
-                Vendor No.
-              </TableHead>
+              <TableHead scope="col">Vendor No.</TableHead>
               <TableHead scope="col">Vendor Name</TableHead>
               <TableHead scope="col">Vendor ID</TableHead>
               <TableHead scope="col">Created At</TableHead>
-              <TableHead scope="col" className="pr-4">
-                Updated At
-              </TableHead>
+              <TableHead scope="col">Updated At</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {vendors.map((vendor) => (
               <TableRow key={vendor.id}>
-                <TableCell className="pl-4 font-medium">
+                <TableCell className="font-medium">
                   {vendor.no || "—"}
                 </TableCell>
                 <TableCell>{vendor.name || "—"}</TableCell>
@@ -50,7 +47,7 @@ export function VendorTable({
                 <TableCell className="text-muted-foreground">
                   {vendor.createdAt ?? "—"}
                 </TableCell>
-                <TableCell className="pr-4 text-muted-foreground">
+                <TableCell className="text-muted-foreground">
                   {vendor.updatedAt ?? "—"}
                 </TableCell>
               </TableRow>

@@ -13,6 +13,11 @@ import {
   AssigneeStack,
   RoleStatusBadge,
 } from "@/components/roles/role-primitives";
+import {
+  dropdownContentClass,
+  dropdownItemClass,
+} from "@/components/shared/menu-classes";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -33,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { totalPermissionCount } from "@/data/roles";
 import type { Role } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 /**
  * The roles list. The whole row opens the read-only sheet; the actions menu
@@ -57,46 +63,28 @@ export function RoleTable({
   return (
     <Card>
       <CardContent className="px-0">
-        <Table className="min-w-[1080px]">
+        <Table className={cn("min-w-[1080px]", dataTableClass)}>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead
-                scope="col"
-                className="h-auto w-[24%] px-3 py-2.5 text-xs text-muted-foreground"
-              >
+              <TableHead scope="col" className="w-[24%]">
                 Role
               </TableHead>
-              <TableHead
-                scope="col"
-                className="h-auto w-[28%] px-3 py-2.5 text-xs text-muted-foreground"
-              >
+              <TableHead scope="col" className="w-[28%]">
                 Description
               </TableHead>
-              <TableHead
-                scope="col"
-                className="h-auto w-[150px] px-3 py-2.5 text-xs text-muted-foreground"
-              >
+              <TableHead scope="col" className="w-[150px]">
                 Assigned users
               </TableHead>
-              <TableHead
-                scope="col"
-                className="h-auto w-[170px] px-3 py-2.5 text-xs text-muted-foreground"
-              >
+              <TableHead scope="col" className="w-[170px]">
                 Permissions
               </TableHead>
-              <TableHead
-                scope="col"
-                className="h-auto w-[110px] px-3 py-2.5 text-xs text-muted-foreground"
-              >
+              <TableHead scope="col" className="w-[110px]">
                 Status
               </TableHead>
-              <TableHead
-                scope="col"
-                className="h-auto w-[150px] px-3 py-2.5 text-xs text-muted-foreground"
-              >
+              <TableHead scope="col" className="w-[150px]">
                 Last updated
               </TableHead>
-              <TableHead scope="col" className="h-auto w-[56px] px-3 py-2.5">
+              <TableHead scope="col" className="w-[56px]">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
@@ -112,7 +100,7 @@ export function RoleTable({
                   aria-selected={openRoleId === role.id}
                   onClick={() => onView(role)}
                 >
-                  <TableCell className="p-3 align-middle">
+                  <TableCell className="align-middle">
                     <div className="flex items-start gap-2.5">
                       <span
                         aria-hidden
@@ -137,15 +125,15 @@ export function RoleTable({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="p-3 align-middle">
+                  <TableCell className="align-middle">
                     <p className="text-xs leading-[1.45] text-pretty whitespace-normal text-muted-foreground">
                       {role.description}
                     </p>
                   </TableCell>
-                  <TableCell className="p-3 align-middle">
+                  <TableCell className="align-middle">
                     <AssigneeStack assignees={role.assignees} />
                   </TableCell>
-                  <TableCell className="p-3 align-middle">
+                  <TableCell className="align-middle">
                     <div className="flex flex-col gap-1.5">
                       <p className="text-xs tabular-nums">
                         <span className="font-semibold text-foreground">
@@ -162,16 +150,16 @@ export function RoleTable({
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="p-3 align-middle">
+                  <TableCell className="align-middle">
                     <RoleStatusBadge status={role.status} />
                   </TableCell>
-                  <TableCell className="p-3 align-middle">
+                  <TableCell className="align-middle">
                     <p className="text-xs">{role.updatedAt}</p>
                     <p className="text-xs text-muted-foreground">
                       by {role.updatedBy}
                     </p>
                   </TableCell>
-                  <TableCell className="p-3 align-middle">
+                  <TableCell className="align-middle">
                     <div className="flex justify-end">
                       <DropdownMenu>
                         {/* The menu lives in a portal, so only the trigger's own
@@ -190,23 +178,33 @@ export function RoleTable({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="w-49 min-w-49"
+                          className={cn(dropdownContentClass, "min-w-[196px]")}
                         >
-                          <DropdownMenuItem onClick={() => onView(role)}>
+                          <DropdownMenuItem
+                            className={dropdownItemClass}
+                            onClick={() => onView(role)}
+                          >
                             <EyeIcon />
                             View details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit(role)}>
+                          <DropdownMenuItem
+                            className={dropdownItemClass}
+                            onClick={() => onEdit(role)}
+                          >
                             <PencilIcon />
                             Edit role
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onDuplicate(role)}>
+                          <DropdownMenuItem
+                            className={dropdownItemClass}
+                            onClick={() => onDuplicate(role)}
+                          >
                             <CopyIcon />
                             Duplicate
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             variant="destructive"
+                            className={dropdownItemClass}
                             onClick={() => onDelete(role)}
                           >
                             <Trash2Icon />

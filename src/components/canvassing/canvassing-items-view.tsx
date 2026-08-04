@@ -8,6 +8,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -147,17 +148,15 @@ export function CanvassingItemsView({ id }: { id: string }) {
         ) : (
           <>
             <CardContent className="px-0">
-              <Table>
+              <Table className={dataTableClass}>
                 <TableHeader>
                   <TableRow>
-                    <TableHead scope="col" className="w-8 pl-4">
+                    <TableHead scope="col" className="w-8">
                       <span className="sr-only">Select</span>
                     </TableHead>
                     <TableHead scope="col">Item</TableHead>
                     <TableHead scope="col">Qty</TableHead>
-                    <TableHead scope="col" className="pr-4">
-                      Status
-                    </TableHead>
+                    <TableHead scope="col">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -168,9 +167,9 @@ export function CanvassingItemsView({ id }: { id: string }) {
                     return (
                       <TableRow
                         key={item.id}
-                        className={cn(isSelected && "bg-status-info/5")}
+                        className={cn(isSelected && "bg-status-info-subtle")}
                       >
-                        <TableCell className="pl-4">
+                        <TableCell>
                           <Checkbox
                             checked={isSelected}
                             disabled={!quotable}
@@ -193,7 +192,7 @@ export function CanvassingItemsView({ id }: { id: string }) {
                           {item.name}
                         </TableCell>
                         <TableCell>{item.quantity}</TableCell>
-                        <TableCell className="pr-4">
+                        <TableCell>
                           <StatusBadge
                             tone={purchaseRequestItemTone[item.status]}
                           >

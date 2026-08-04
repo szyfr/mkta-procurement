@@ -3,17 +3,25 @@ import type { StatusTone } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 /**
- * Each tone derives its tint, border, and text from a single status token, so
- * a status reads identically everywhere and stays legible in both themes.
+ * Each tone names its own tint, border and text rather than reading one colour
+ * at three opacities — the palettes pick those three independently, and a
+ * green that is legible as text is too dark to sit behind it. A status reads
+ * identically on every page because the tone, not the page, chooses.
  */
 const toneClasses: Record<StatusTone, string> = {
-  neutral: "border-status-neutral/30 bg-status-neutral/10 text-status-neutral",
-  info: "border-status-info/30 bg-status-info/10 text-status-info",
-  ordered: "border-status-ordered/30 bg-status-ordered/10 text-status-ordered",
-  partial: "border-status-partial/30 bg-status-partial/10 text-status-partial",
-  success: "border-status-success/30 bg-status-success/10 text-status-success",
-  warning: "border-status-warning/30 bg-status-warning/10 text-status-warning",
-  danger: "border-status-danger/30 bg-status-danger/10 text-status-danger",
+  neutral:
+    "border-status-neutral-border bg-status-neutral-bg text-status-neutral-fg",
+  info: "border-status-info-border bg-status-info-bg text-status-info-fg",
+  ordered:
+    "border-status-ordered-border bg-status-ordered-bg text-status-ordered-fg",
+  partial:
+    "border-status-partial-border bg-status-partial-bg text-status-partial-fg",
+  success:
+    "border-status-success-border bg-status-success-bg text-status-success-fg",
+  warning:
+    "border-status-warning-border bg-status-warning-bg text-status-warning-fg",
+  danger:
+    "border-status-danger-border bg-status-danger-bg text-status-danger-fg",
 };
 
 export function StatusBadge({
@@ -25,7 +33,11 @@ export function StatusBadge({
   return (
     <Badge
       variant="outline"
-      className={cn("h-auto whitespace-normal", toneClasses[tone], className)}
+      className={cn(
+        "rounded-sm text-[11px] leading-none font-semibold",
+        toneClasses[tone],
+        className,
+      )}
       {...props}
     >
       {children}
@@ -55,7 +67,7 @@ export function StatusDot({
     <span
       aria-hidden
       className={cn(
-        "size-2.5 shrink-0 rounded-full",
+        "size-2 shrink-0 rounded-full",
         dotClasses[tone],
         className,
       )}

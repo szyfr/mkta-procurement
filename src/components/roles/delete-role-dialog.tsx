@@ -60,8 +60,8 @@ export function DeleteRoleDialog({
           </AlertDialogHeader>
 
           {blocked ? (
-            <div className="flex flex-col gap-2 rounded-lg border border-status-warning/30 bg-status-warning/10 px-3 py-2.5 text-left">
-              <p className="text-xs font-semibold tracking-[0.06em] text-status-warning uppercase">
+            <div className="flex flex-col gap-2 rounded-md border border-status-warning-border bg-status-warning-subtle px-3 py-2.5 text-left">
+              <p className="text-[10.5px] font-semibold tracking-[0.06em] text-status-warning-subtle-fg uppercase">
                 {blockedByUsers
                   ? `${assignedCount} assigned ${assignedCount === 1 ? "user" : "users"}`
                   : "System role"}
@@ -71,11 +71,11 @@ export function DeleteRoleDialog({
                   {role.assignees.map((person) => (
                     <li
                       key={person.id}
-                      className="inline-flex h-6 items-center gap-1.5 rounded-full border border-status-warning/30 bg-background pr-2 pl-0.5 text-xs"
+                      className="inline-flex h-6 items-center gap-1.5 rounded-sm border border-status-warning-border bg-background pr-2 pl-0.5 text-xs"
                     >
                       <span
                         aria-hidden
-                        className="flex size-4.5 items-center justify-center rounded-full bg-status-warning/15 text-[9px] font-semibold text-status-warning"
+                        className="flex size-4.5 items-center justify-center rounded-full bg-status-warning-bg text-[9px] font-semibold text-status-warning-fg"
                       >
                         {initials(person.name)}
                       </span>
@@ -84,7 +84,7 @@ export function DeleteRoleDialog({
                   ))}
                 </ul>
               ) : null}
-              <p className="text-xs text-status-warning">
+              <p className="text-xs text-status-warning-subtle-fg">
                 {blockedByUsers
                   ? "Open Users to reassign them, then delete this role."
                   : "System roles ship with Procura and stay available to every workspace."}

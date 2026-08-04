@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { InboxIcon } from "lucide-react";
+import { InboxIcon, SearchIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
@@ -186,7 +186,8 @@ export function PurchaseRequestListView({
       ) : data.requests.length === 0 ? (
         hasActiveFilters ? (
           <EmptyState
-            icon={<InboxIcon />}
+            variant="no-results"
+            icon={<SearchIcon />}
             title="No matching purchase requests"
             description="Try a different search term or clear the filters."
           />

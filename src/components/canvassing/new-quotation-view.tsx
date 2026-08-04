@@ -9,6 +9,7 @@ import * as React from "react";
 import { LookupPicker } from "@/components/shared/lookup-picker";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState, ErrorAlert } from "@/components/shared/query-states";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -441,17 +442,13 @@ export function NewQuotationView({
           </span>
         </CardHeader>
         <CardContent className="px-0">
-          <Table>
+          <Table className={dataTableClass}>
             <TableHeader>
               <TableRow>
-                <TableHead scope="col" className="pl-4">
-                  Item
-                </TableHead>
+                <TableHead scope="col">Item</TableHead>
                 <TableHead scope="col">Qty</TableHead>
                 <TableHead scope="col">Unit Price</TableHead>
-                <TableHead scope="col" className="pr-4">
-                  Line Total
-                </TableHead>
+                <TableHead scope="col">Line Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -460,7 +457,7 @@ export function NewQuotationView({
 
                 return (
                   <TableRow key={item.id}>
-                    <TableCell className="pl-4">{item.name}</TableCell>
+                    <TableCell>{item.name}</TableCell>
                     <TableCell>
                       {item.quantity}
                       {item.unit ? ` ${item.unit}` : ""}
@@ -484,7 +481,7 @@ export function NewQuotationView({
                         }}
                       />
                     </TableCell>
-                    <TableCell className="pr-4">
+                    <TableCell>
                       {formatCurrency(item.quantity * unitPrice, true)}
                     </TableCell>
                   </TableRow>

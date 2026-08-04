@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { StatusBadge } from "@/components/shared/status-badge";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -52,18 +53,16 @@ export function CanvassingTable({
   return (
     <Card>
       <CardContent className="px-0">
-        <Table>
+        <Table className={dataTableClass}>
           <TableHeader>
             <TableRow>
-              <TableHead scope="col" className="pl-4">
-                PR Reference
-              </TableHead>
+              <TableHead scope="col">PR Reference</TableHead>
               <TableHead scope="col">Item</TableHead>
               <TableHead scope="col">Department</TableHead>
               <TableHead scope="col">Quotes Received</TableHead>
               <TableHead scope="col">Status</TableHead>
               <TableHead scope="col">Initiated</TableHead>
-              <TableHead scope="col" className="pr-4">
+              <TableHead scope="col">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
@@ -74,7 +73,7 @@ export function CanvassingTable({
                 key={entry.id}
                 className={cn(tinted[index] && "bg-muted/40")}
               >
-                <TableCell className="pl-4">
+                <TableCell>
                   <Link
                     href={`/purchase-requests/${entry.purchaseRequestId}`}
                     className="font-mono text-xs hover:underline"
@@ -100,7 +99,7 @@ export function CanvassingTable({
                 <TableCell className="text-muted-foreground">
                   {entry.initiatedOn ?? NO_BACKEND_SOURCE}
                 </TableCell>
-                <TableCell className="pr-4">
+                <TableCell>
                   <Link
                     href={`/purchase-requests/${entry.purchaseRequestId}/canvassing`}
                     className="text-xs text-muted-foreground hover:underline"

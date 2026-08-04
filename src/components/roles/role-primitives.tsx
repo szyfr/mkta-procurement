@@ -66,7 +66,7 @@ export function GrantChip({
       className={cn(
         "inline-flex h-5 shrink-0 items-center rounded-md border px-1.5 text-xs font-semibold tabular-nums",
         highlight
-          ? "border-status-success/30 bg-status-success/10 text-status-success"
+          ? "border-status-success-border bg-status-success-bg text-status-success-fg"
           : "border-border bg-muted text-muted-foreground",
         className,
       )}

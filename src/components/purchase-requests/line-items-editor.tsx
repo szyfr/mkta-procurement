@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { LookupPicker } from "@/components/shared/lookup-picker";
 import { StatusDot } from "@/components/shared/status-badge";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -121,10 +122,10 @@ export function LineItemsEditor({
       </CardContent>
 
       <CardContent className="px-0">
-        <Table>
+        <Table className={dataTableClass}>
           <TableHeader>
             <TableRow>
-              <TableHead scope="col" className="w-8 pl-4">
+              <TableHead scope="col" className="w-8">
                 #
               </TableHead>
               <TableHead scope="col" className="min-w-56">
@@ -138,7 +139,7 @@ export function LineItemsEditor({
               <TableHead scope="col" className="min-w-44">
                 Vendor
               </TableHead>
-              <TableHead scope="col" className="w-8 pr-4">
+              <TableHead scope="col" className="w-8">
                 <span className="sr-only">Remove</span>
               </TableHead>
             </TableRow>
@@ -146,7 +147,7 @@ export function LineItemsEditor({
           <TableBody>
             {lines.map((line, index) => (
               <TableRow key={line.key}>
-                <TableCell className="pl-4 text-muted-foreground">
+                <TableCell className="text-muted-foreground">
                   {index + 1}
                 </TableCell>
 
@@ -225,7 +226,7 @@ export function LineItemsEditor({
                       className={cn(
                         "flex items-center gap-1.5 text-xs",
                         line.sourcing === "canvassing"
-                          ? "text-status-info"
+                          ? "text-status-info-fg"
                           : "text-muted-foreground",
                       )}
                     >
@@ -270,7 +271,7 @@ export function LineItemsEditor({
                   )}
                 </TableCell>
 
-                <TableCell className="pr-4">
+                <TableCell>
                   <Button
                     variant="ghost"
                     size="icon-xs"

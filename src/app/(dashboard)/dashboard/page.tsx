@@ -12,6 +12,7 @@ import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { PageHeader } from "@/components/shared/page-header";
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,7 +87,7 @@ export default function DashboardPage() {
                   </EmptyHeader>
                 </Empty>
               ) : (
-                <Table>
+                <Table className={dataTableClass}>
                   <TableHeader>
                     <TableRow>
                       <TableHead scope="col">PR No.</TableHead>
@@ -100,7 +101,7 @@ export default function DashboardPage() {
                   <TableBody>
                     {actionableRequests.map((request) => (
                       <TableRow key={request.id}>
-                        <TableCell className="px-4 font-medium">
+                        <TableCell className="font-medium">
                           <Link
                             href={`/purchase-requests/${request.id}`}
                             className="hover:underline"
@@ -116,7 +117,7 @@ export default function DashboardPage() {
                             {request.step}
                           </StatusBadge>
                         </TableCell>
-                        <TableCell className="px-4">
+                        <TableCell>
                           <PriorityBadge priority={request.priority} />
                         </TableCell>
                       </TableRow>
