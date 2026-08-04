@@ -22,10 +22,12 @@ export function PageHeader({
         className,
       )}
     >
-      <div className="flex flex-col gap-0.5">
-        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="font-heading text-2xl leading-8 font-bold tracking-[-0.01em] text-foreground">
+          {title}
+        </h1>
         {description ? (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-[13.5px] text-muted-foreground">{description}</p>
         ) : null}
       </div>
       {actions ? (

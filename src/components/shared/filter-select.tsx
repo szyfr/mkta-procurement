@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 export interface FilterSelectOption {
   label: string;
@@ -50,7 +51,11 @@ export function FilterSelect({
 
   return (
     <Select items={items} {...controlledProps}>
-      <SelectTrigger size="sm" className={className} aria-label={label}>
+      <SelectTrigger
+        size="sm"
+        className={cn("h-8 rounded-md text-[13px]", className)}
+        aria-label={label}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

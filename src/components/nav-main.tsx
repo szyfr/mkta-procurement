@@ -32,6 +32,13 @@ export interface NavGroup {
   items: NavItem[];
 }
 
+/**
+ * Nav rows sit a step quieter than body text — muted until hovered or active —
+ * so the sidebar reads as navigation rather than competing with the page.
+ */
+const navItemClass =
+  "h-[34px] gap-2.5 rounded-md px-2 text-[13.5px] font-medium text-muted-foreground data-active:text-foreground [&_svg]:size-[18px]";
+
 export function NavMain({ groups }: { groups: NavGroup[] }) {
   const pathname = usePathname();
 
@@ -42,8 +49,10 @@ export function NavMain({ groups }: { groups: NavGroup[] }) {
   return (
     <>
       {groups.map((group) => (
-        <SidebarGroup key={group.title}>
-          <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
+        <SidebarGroup key={group.title} className="gap-0.5 py-0">
+          <SidebarGroupLabel className="h-auto px-2 pt-3.5 pb-1.5 text-[10.5px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
+            {group.title}
+          </SidebarGroupLabel>
           <SidebarMenu>
             {group.items.map((item) => {
               const Icon = item.icon;
@@ -55,6 +64,7 @@ export function NavMain({ groups }: { groups: NavGroup[] }) {
                     <SidebarMenuButton
                       tooltip={item.title}
                       isActive={isActive(item.url)}
+                      className={navItemClass}
                       render={<Link href={item.url} />}
                     >
                       {Icon ? <Icon /> : null}
@@ -72,18 +82,24 @@ export function NavMain({ groups }: { groups: NavGroup[] }) {
                   render={<SidebarMenuItem />}
                 >
                   <CollapsibleTrigger
-                    render={<SidebarMenuButton tooltip={item.title} />}
+                    render={
+                      <SidebarMenuButton
+                        tooltip={item.title}
+                        className={navItemClass}
+                      />
+                    }
                   >
                     {Icon ? <Icon /> : null}
                     <span>{item.title}</span>
-                    <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                    <ChevronRightIcon className="ml-auto size-[15px]! transition-transform duration-200 group-data-open/collapsible:rotate-90" />
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <SidebarMenuSub>
+                    <SidebarMenuSub className="gap-0.5 py-1">
                       {item.items.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton
                             isActive={pathname === subItem.url}
+                            className="h-[30px] rounded-md text-[13px] text-muted-foreground data-active:font-medium data-active:text-foreground"
                             render={<Link href={subItem.url} />}
                           >
                             <span>{subItem.title}</span>

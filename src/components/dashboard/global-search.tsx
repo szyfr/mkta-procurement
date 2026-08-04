@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchIcon, XIcon } from "lucide-react";
+import { ArrowRightIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
@@ -83,7 +83,7 @@ export function GlobalSearch({ className }: { className?: string }) {
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
-      <InputGroup className="h-8">
+      <InputGroup className="h-8 rounded-md bg-accent text-[13px]">
         <InputGroupInput
           ref={inputRef}
           // Not type="search" — the native clear affordance would sit beside
@@ -176,9 +176,10 @@ export function GlobalSearch({ className }: { className?: string }) {
                   <Link
                     href="/purchase-requests"
                     onClick={() => setOpen(false)}
-                    className="block px-3 py-2 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   >
-                    See all results for &ldquo;{query}&rdquo; →
+                    See all results for &ldquo;{query}&rdquo;
+                    <ArrowRightIcon className="size-3.5" aria-hidden />
                   </Link>
                 </>
               ) : null}

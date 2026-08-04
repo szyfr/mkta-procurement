@@ -7,6 +7,7 @@ import {
   UserIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { dropdownItemClass } from "@/components/shared/menu-classes";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -36,26 +37,33 @@ export function NavUser({ user }: { user: AuthenticatedUser }) {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
+              <SidebarMenuButton
+                size="lg"
+                className="h-auto gap-2.5 rounded-md p-1.5 aria-expanded:bg-muted"
+              />
             }
           >
             {/* No avatar source: `/auth/me` carries no image, so initials are
                 the whole identity mark. */}
-            <Avatar>
-              <AvatarFallback>{initials(user.name)}</AvatarFallback>
+            <Avatar className="size-[30px]">
+              <AvatarFallback className="text-[11px] font-semibold">
+                {initials(user.name)}
+              </AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{user.name}</span>
+            <div className="grid flex-1 text-left leading-tight">
+              <span className="truncate text-[13px] font-medium">
+                {user.name}
+              </span>
               {/* The backend has no role on the user record yet, only a
                   permission list — the email identifies the account instead. */}
-              <span className="truncate text-xs text-muted-foreground">
+              <span className="truncate text-[11px] text-muted-foreground">
                 {user.email}
               </span>
             </div>
             <ChevronsUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-56"
+            className="w-56 rounded-lg p-[5px] shadow-md"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
@@ -77,11 +85,17 @@ export function NavUser({ user }: { user: AuthenticatedUser }) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link href="/settings/account" />}>
+              <DropdownMenuItem
+                className={dropdownItemClass}
+                render={<Link href="/settings/account" />}
+              >
                 <UserIcon />
                 My Account
               </DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/settings/account" />}>
+              <DropdownMenuItem
+                className={dropdownItemClass}
+                render={<Link href="/settings/account" />}
+              >
                 <Settings2Icon />
                 Settings
               </DropdownMenuItem>
@@ -91,6 +105,7 @@ export function NavUser({ user }: { user: AuthenticatedUser }) {
                 only the BFF can clear it. */}
             <DropdownMenuItem
               variant="destructive"
+              className={dropdownItemClass}
               disabled={logout.isPending}
               onClick={() => logout.mutate()}
             >
