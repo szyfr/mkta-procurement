@@ -63,8 +63,8 @@ export default function DashboardPage() {
 
       <KpiCards />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
               <CardTitle>Requests Requiring Action</CardTitle>
@@ -76,11 +76,16 @@ export default function DashboardPage() {
               {actionableRequests.length === 0 ? (
                 <Empty>
                   <EmptyHeader>
-                    <EmptyMedia variant="icon">
+                    <EmptyMedia
+                      variant="icon"
+                      className="mb-4 size-11 rounded-xl [&_svg:not([class*='size-'])]:size-[22px]"
+                    >
                       <CircleCheckBigIcon />
                     </EmptyMedia>
-                    <EmptyTitle>Nothing needs your attention</EmptyTitle>
-                    <EmptyDescription>
+                    <EmptyTitle className="text-base font-bold">
+                      Nothing needs your attention
+                    </EmptyTitle>
+                    <EmptyDescription className="max-w-[400px] text-[13px] leading-normal">
                       All caught up — no purchase requests are waiting on you
                       right now.
                     </EmptyDescription>
@@ -138,7 +143,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-5">
           <Card>
             <CardHeader className="border-b">
               <CardTitle>Pending Quotations</CardTitle>
@@ -147,11 +152,16 @@ export default function DashboardPage() {
               {pendingQuotations.length === 0 ? (
                 <Empty>
                   <EmptyHeader>
-                    <EmptyMedia variant="icon">
+                    <EmptyMedia
+                      variant="icon"
+                      className="mb-4 size-11 rounded-xl [&_svg:not([class*='size-'])]:size-[22px]"
+                    >
                       <ClipboardListIcon />
                     </EmptyMedia>
-                    <EmptyTitle>No pending quotations</EmptyTitle>
-                    <EmptyDescription>
+                    <EmptyTitle className="text-base font-bold">
+                      No pending quotations
+                    </EmptyTitle>
+                    <EmptyDescription className="max-w-[400px] text-[13px] leading-normal">
                       Nothing is currently awaiting vendor quotes.
                     </EmptyDescription>
                   </EmptyHeader>
@@ -193,11 +203,18 @@ export default function DashboardPage() {
               {upcomingDeadlines.length === 0 ? (
                 <Empty>
                   <EmptyHeader>
-                    <EmptyMedia variant="icon">
+                    <EmptyMedia
+                      variant="icon"
+                      className="mb-4 size-11 rounded-xl [&_svg:not([class*='size-'])]:size-[22px]"
+                    >
                       <CalendarCheckIcon />
                     </EmptyMedia>
-                    <EmptyTitle>No upcoming deadlines</EmptyTitle>
-                    <EmptyDescription>Nothing is due soon.</EmptyDescription>
+                    <EmptyTitle className="text-base font-bold">
+                      No upcoming deadlines
+                    </EmptyTitle>
+                    <EmptyDescription className="max-w-[400px] text-[13px] leading-normal">
+                      Nothing is due soon.
+                    </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
               ) : (

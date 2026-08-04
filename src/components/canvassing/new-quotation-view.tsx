@@ -9,7 +9,10 @@ import * as React from "react";
 import { LookupPicker } from "@/components/shared/lookup-picker";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState, ErrorAlert } from "@/components/shared/query-states";
-import { dataTableClass } from "@/components/shared/table-classes";
+import {
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -446,9 +449,15 @@ export function NewQuotationView({
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Item</TableHead>
-                <TableHead scope="col">Qty</TableHead>
-                <TableHead scope="col">Unit Price</TableHead>
-                <TableHead scope="col">Line Total</TableHead>
+                <TableHead scope="col" className={numericCellClass}>
+                  Qty
+                </TableHead>
+                <TableHead scope="col" className={numericCellClass}>
+                  Unit Price
+                </TableHead>
+                <TableHead scope="col" className={numericCellClass}>
+                  Line Total
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -471,7 +480,7 @@ export function NewQuotationView({
                         placeholder="0.00"
                         aria-label={`Unit price for ${item.name}`}
                         aria-invalid={fieldErrors.pricing ? true : undefined}
-                        className="h-7 w-28"
+                        className="h-8 w-28"
                         onChange={(event) => {
                           setUnitPrices((current) => ({
                             ...current,
@@ -498,7 +507,7 @@ export function NewQuotationView({
           )}
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Total Quote Amount</p>
-            <p className="text-lg font-semibold">
+            <p className="text-base font-bold tabular-nums">
               {formatCurrency(total, true)}
             </p>
           </div>
@@ -512,7 +521,7 @@ export function NewQuotationView({
         <CardContent className="flex flex-col gap-3">
           <label
             htmlFor="attachments"
-            className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed py-6 text-center text-sm text-muted-foreground hover:bg-muted/50"
+            className="flex cursor-pointer items-center justify-center rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground hover:bg-muted/50"
           >
             Upload the vendor&apos;s quotation (PDF, image, or spreadsheet)
             <input

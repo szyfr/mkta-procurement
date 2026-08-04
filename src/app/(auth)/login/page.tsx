@@ -32,8 +32,8 @@ export default async function LoginPage({
   if (await getOptionalUser()) redirect(redirectTo);
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
-      <div className="flex w-full max-w-sm flex-col gap-6">
+    <div className="flex min-h-svh flex-col items-center justify-center gap-5 bg-muted p-6 md:p-10">
+      <div className="flex w-full max-w-sm flex-col gap-5">
         <div className="flex flex-col items-center gap-2">
           <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <BuildingIcon className="size-5" />

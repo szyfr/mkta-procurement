@@ -23,7 +23,7 @@ export function ProofOfOrderForm({ itemName }: { itemName: string }) {
   return (
     <Card>
       <CardHeader className="border-b">
-        <CardTitle className="text-xs">
+        <CardTitle>
           Add Proof of Order &amp; Confirm Delivery — {itemName}
         </CardTitle>
       </CardHeader>

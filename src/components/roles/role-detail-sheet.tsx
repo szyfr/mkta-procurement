@@ -66,7 +66,7 @@ export function RoleDetailSheet({
           <SheetDescription className="font-mono text-xs">
             {role.key}
           </SheetDescription>
-          <SheetTitle className="text-lg font-semibold">{role.name}</SheetTitle>
+          <SheetTitle>{role.name}</SheetTitle>
           <div className="absolute top-4 right-12">
             <RoleStatusBadge status={role.status} />
           </div>
@@ -219,7 +219,7 @@ export function RoleDetailSheet({
             variant="outline"
             size="icon"
             aria-label={`Delete ${role.name}`}
-            className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="border-status-danger-border bg-background text-destructive hover:bg-status-danger-subtle hover:text-destructive"
             onClick={() => onDelete(role)}
           >
             <Trash2Icon />

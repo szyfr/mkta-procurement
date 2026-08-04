@@ -116,7 +116,7 @@ export default function UsersSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xs">Role Permissions</CardTitle>
+          <CardTitle>Role Permissions</CardTitle>
         </CardHeader>
         <CardContent>
           {rolePermissions.length === 0 ? (

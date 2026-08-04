@@ -1,7 +1,10 @@
+import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
-
 import { StatusBadge } from "@/components/shared/status-badge";
-import { dataTableClass } from "@/components/shared/table-classes";
+import {
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -29,7 +32,9 @@ export function PurchaseRequestItemsTable({
       <TableHeader>
         <TableRow>
           <TableHead scope="col">Item</TableHead>
-          <TableHead scope="col">Qty</TableHead>
+          <TableHead scope="col" className={numericCellClass}>
+            Qty
+          </TableHead>
           <TableHead scope="col">Vendor</TableHead>
           <TableHead scope="col">Status</TableHead>
           <TableHead scope="col">
@@ -46,7 +51,7 @@ export function PurchaseRequestItemsTable({
             )}
           >
             <TableCell>{item.name}</TableCell>
-            <TableCell>{item.quantity}</TableCell>
+            <TableCell className={numericCellClass}>{item.quantity}</TableCell>
             <TableCell>
               {item.vendor ?? (
                 <span className="text-muted-foreground italic">
@@ -75,7 +80,8 @@ export function PurchaseRequestItemsTable({
                   href={`/purchase-requests/${request.id}/canvassing`}
                   className="text-xs text-muted-foreground hover:underline"
                 >
-                  View Canvassing →
+                  View Canvassing
+                  <ArrowRightIcon className="size-3.5" aria-hidden />
                 </Link>
               ) : (
                 <span className="text-xs text-muted-foreground">—</span>

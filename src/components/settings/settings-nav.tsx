@@ -12,7 +12,7 @@ export function SettingsNav() {
 
   return (
     <nav aria-label="Settings">
-      <ul className="flex gap-1 lg:flex-col">
+      <ul className="flex gap-1 rounded-lg bg-muted p-1 lg:flex-col">
         {settingsNav.map((entry) => {
           const isActive = pathname === entry.url;
 
@@ -22,10 +22,10 @@ export function SettingsNav() {
                 href={entry.url}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "block rounded-lg px-3 py-2 text-sm transition-colors",
+                  "block rounded-md px-3 py-1.5 text-[13px] transition-colors",
                   isActive
-                    ? "bg-card font-medium text-foreground ring-1 ring-foreground/10"
-                    : "text-muted-foreground hover:bg-muted",
+                    ? "bg-background font-medium text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {entry.title}

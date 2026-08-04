@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { InboxIcon } from "lucide-react";
+import { InboxIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
@@ -9,7 +9,11 @@ import { AwardVendorDialog } from "@/components/canvassing/award-vendor-dialog";
 import { QuotationDetailDialog } from "@/components/canvassing/quotation-detail-dialog";
 import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { dataTableClass } from "@/components/shared/table-classes";
+import {
+  cellIdClass,
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -214,7 +218,8 @@ function QuoteComparison({
               />
             }
           >
-            + Add Vendor Quote
+            <PlusIcon data-icon="inline-start" />
+            Add Vendor Quote
           </Button>
         </div>
       </div>
@@ -239,7 +244,8 @@ function QuoteComparison({
                 />
               }
             >
-              + Add Vendor Quote
+              <PlusIcon data-icon="inline-start" />
+              Add Vendor Quote
             </Button>
           </CardContent>
         </Card>
@@ -260,8 +266,12 @@ function QuoteComparison({
                     </TableHead>
                     <TableHead scope="col">Vendor ID</TableHead>
                     <TableHead scope="col">Reference</TableHead>
-                    <TableHead scope="col">Unit Price</TableHead>
-                    <TableHead scope="col">Total</TableHead>
+                    <TableHead scope="col" className={numericCellClass}>
+                      Unit Price
+                    </TableHead>
+                    <TableHead scope="col" className={numericCellClass}>
+                      Total
+                    </TableHead>
                     <TableHead scope="col">Delivery</TableHead>
                     <TableHead scope="col">Quote Date</TableHead>
                     <TableHead scope="col">
@@ -295,11 +305,12 @@ function QuoteComparison({
                         >
                           {quotation.vendorId}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className={cellIdClass}>
                           {quotation.referenceNo}
                         </TableCell>
                         <TableCell
                           className={cn(
+                            numericCellClass,
                             isLowest && "font-semibold text-status-success-fg",
                           )}
                         >
@@ -309,6 +320,7 @@ function QuoteComparison({
                         </TableCell>
                         <TableCell
                           className={cn(
+                            numericCellClass,
                             isLowest && "font-semibold text-status-success-fg",
                           )}
                         >

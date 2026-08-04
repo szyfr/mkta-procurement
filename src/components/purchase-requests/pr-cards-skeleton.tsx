@@ -29,7 +29,7 @@ export function PurchaseRequestCardsSkeleton({
         <Card
           // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length placeholder cards
           key={card}
-          className="border-l-4 border-l-muted [&_[data-slot=skeleton]]:[animation-delay:var(--pulse-delay)]"
+          className="border-l-2 border-l-muted [&_[data-slot=skeleton]]:[animation-delay:var(--pulse-delay)]"
           // Cards pulse in sequence, which reads as loading rather than as one
           // block flashing. Set once here since animation delay doesn't inherit.
           style={{ "--pulse-delay": `${card * 90}ms` } as React.CSSProperties}

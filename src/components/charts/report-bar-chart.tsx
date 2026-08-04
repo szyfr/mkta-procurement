@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, Cell, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, XAxis } from "recharts";
 
 import {
   type ChartConfig,
@@ -45,6 +45,9 @@ export function ReportBarChart({
       className={className ?? "aspect-auto h-56 w-full"}
     >
       <BarChart accessibilityLayer data={data} margin={{ top: 8 }}>
+        {/* Horizontal rules only — vertical ones would repeat the category
+            labels the axis already carries. */}
+        <CartesianGrid vertical={false} stroke="var(--border)" />
         <XAxis
           dataKey={categoryKey}
           tickLine={false}

@@ -1,8 +1,12 @@
+import { ArrowRightIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
-
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { dataTableClass } from "@/components/shared/table-classes";
+import {
+  cellIdClass,
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
 import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -40,7 +44,9 @@ export function PurchaseRequestTable({
               <TableHead scope="col">Title</TableHead>
               <TableHead scope="col">Requester</TableHead>
               <TableHead scope="col">Department</TableHead>
-              <TableHead scope="col">Amount</TableHead>
+              <TableHead scope="col" className={numericCellClass}>
+                Amount
+              </TableHead>
               <TableHead scope="col">Priority</TableHead>
               <TableHead scope="col">Status</TableHead>
               <TableHead scope="col">Created</TableHead>
@@ -58,13 +64,13 @@ export function PurchaseRequestTable({
 
               return (
                 <TableRow key={request.id}>
-                  <TableCell className="font-medium">{request.no}</TableCell>
+                  <TableCell className={cellIdClass}>{request.no}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {request.title ?? <span className="italic">Untitled</span>}
                   </TableCell>
                   <TableCell>{request.requester}</TableCell>
                   <TableCell>{request.department}</TableCell>
-                  <TableCell>
+                  <TableCell className={numericCellClass}>
                     {request.amount === null ? (
                       <span
                         className="text-muted-foreground"
@@ -90,14 +96,16 @@ export function PurchaseRequestTable({
                   <TableCell>
                     <div className="flex flex-col items-start gap-1 text-xs">
                       <Link href={href} className="hover:underline">
-                        Open →
+                        Open
+                        <ArrowRightIcon className="size-3.5" aria-hidden />
                       </Link>
                       {needsProof ? (
                         <Link
                           href={href}
                           className="text-status-ordered-fg hover:underline"
                         >
-                          + Add Proof of Order
+                          <PlusIcon className="size-3.5" aria-hidden />
+                          Add Proof of Order
                         </Link>
                       ) : null}
                     </div>

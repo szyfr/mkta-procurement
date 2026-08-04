@@ -47,9 +47,7 @@ export function DeleteRoleDialog({
       <AlertDialogContent className="gap-0 p-0 data-[size=default]:sm:max-w-[470px]">
         <div className="flex flex-col gap-3 px-5 pt-5 pb-4">
           <AlertDialogHeader className="gap-2">
-            <AlertDialogTitle className="text-lg font-semibold">
-              Delete {role.name}?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Delete {role.name}?</AlertDialogTitle>
             <AlertDialogDescription>
               {blockedByUsers
                 ? `${role.name} is still assigned. Move those users to another role first — deleting a role in use would leave them without access.`

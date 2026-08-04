@@ -35,3 +35,10 @@ export const cellIdClass = "font-mono text-[11px] text-muted-foreground";
 /** Descriptions and meta beneath a primary identifier. */
 export const cellMetaClass =
   "text-[12.5px] leading-[1.45] text-muted-foreground";
+
+/**
+ * Money, quantities and counts. Right-aligned so the decimal points line up
+ * down the column; `tabular-nums` is already the table default from
+ * `globals.css`, but totals rendered outside a table need it named explicitly.
+ */
+export const numericCellClass = "text-right tabular-nums";

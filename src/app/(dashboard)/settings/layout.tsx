@@ -13,7 +13,7 @@ export default function SettingsLayout({
         description="Manage your profile and, for administrators, everyone's access"
       />
 
-      <div className="grid gap-6 lg:grid-cols-4">
+      <div className="grid gap-5 lg:grid-cols-4">
         <SettingsNav />
         <div className="flex min-w-0 flex-col gap-4 lg:col-span-3">
           {children}

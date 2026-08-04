@@ -320,6 +320,60 @@
   time {
     font-variant-numeric: tabular-nums;
   }
+  /* `components/ui` is generated, so the handful of places where the registry
+     defaults disagree with the design system are corrected here through the
+     `data-slot` hooks rather than by hand-editing files that get regenerated.
+     Everything below is a token value from §1, not a new decision. */
+
+  /* Cards carry a border, never elevation — and the registry's `ring-1` is a
+     hairline in a different colour than every other hairline in the app. */
+  [data-slot="card"] {
+    @apply border ring-0;
+  }
+  /* One heading size for a card section, instead of the base 16px/medium in
+     some cards and a shrunken 12px in others. */
+  [data-slot="card-title"] {
+    @apply text-[15px] font-semibold;
+  }
+
+  /* Overlays: a plain scrim at 38%, no frosted glass. */
+  [data-slot="dialog-overlay"],
+  [data-slot="alert-dialog-overlay"],
+  [data-slot="sheet-overlay"] {
+    @apply bg-black/38;
+    backdrop-filter: none;
+  }
+
+  /* The two modal elevations, and the 14px corner dialogs and sheets share. */
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"] {
+    @apply rounded-2xl ring-0;
+    box-shadow: var(--shadow-dialog);
+  }
+  [data-slot="sheet-content"] {
+    box-shadow: var(--shadow-sheet);
+  }
+  [data-slot="dialog-title"],
+  [data-slot="alert-dialog-title"],
+  [data-slot="sheet-title"] {
+    @apply text-[17px] font-semibold;
+  }
+
+  /* Popovers and tooltips sit on `shadow-md`; the chart tooltip was the one
+     surface reaching for a heavier shadow than the system defines. Recharts
+     renders it without a `data-slot`, so the wrapper is the only handle. */
+  .recharts-tooltip-wrapper > * {
+    @apply shadow-md!;
+  }
+
+  /* Toast copy matches the design system's feedback size. */
+  [data-slot="toast-title"] {
+    @apply text-[13.5px] font-medium;
+  }
+  [data-slot="toast-description"] {
+    @apply text-[13px];
+  }
+
   /* Tailwind v4's preflight drops the browser's pointer cursor on buttons.
      Restored here rather than in `components/ui`, which is generated and would
      lose the change on the next regeneration. Sitting in the base layer means

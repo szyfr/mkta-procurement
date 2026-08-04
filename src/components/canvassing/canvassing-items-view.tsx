@@ -1,14 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { PackageXIcon } from "lucide-react";
+import { ArrowRightIcon, PackageXIcon } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { dataTableClass } from "@/components/shared/table-classes";
+import {
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -155,7 +158,9 @@ export function CanvassingItemsView({ id }: { id: string }) {
                       <span className="sr-only">Select</span>
                     </TableHead>
                     <TableHead scope="col">Item</TableHead>
-                    <TableHead scope="col">Qty</TableHead>
+                    <TableHead scope="col" className={numericCellClass}>
+                      Qty
+                    </TableHead>
                     <TableHead scope="col">Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -191,7 +196,9 @@ export function CanvassingItemsView({ id }: { id: string }) {
                         >
                           {item.name}
                         </TableCell>
-                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell className={numericCellClass}>
+                          {item.quantity}
+                        </TableCell>
                         <TableCell>
                           <StatusBadge
                             tone={purchaseRequestItemTone[item.status]}
@@ -224,7 +231,8 @@ export function CanvassingItemsView({ id }: { id: string }) {
                 }
                 nativeButton={false}
               >
-                Create Quotation for Selected Items →
+                Create Quotation for Selected Items
+                <ArrowRightIcon data-icon="inline-end" />
               </Button>
             </CardFooter>
           </>

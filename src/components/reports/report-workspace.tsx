@@ -82,7 +82,7 @@ export function ReportWorkspace() {
                   <Icon className="size-8 rounded-lg border p-1.5 text-muted-foreground" />
                   {isActive ? <Badge>Active</Badge> : null}
                 </div>
-                <CardTitle className="text-xs">{report.title}</CardTitle>
+                <CardTitle>{report.title}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col justify-end gap-3">
                 <p className="text-xs text-muted-foreground">

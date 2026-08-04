@@ -140,13 +140,13 @@ export function RolesNoResults({
 
 export function RolesError({ onRetry }: { onRetry: () => void }) {
   return (
-    <Card className="bg-destructive/5 ring-destructive/20">
+    <Card className="border-status-danger-border bg-status-danger-subtle">
       <CardContent className="px-0">
         <Empty className="px-8 py-12">
           <EmptyHeader>
             <EmptyMedia
               variant="icon"
-              className="size-10 rounded-xl bg-destructive/10 text-destructive"
+              className="size-10 rounded-xl bg-status-danger-bg text-destructive"
             >
               <CircleXIcon className="size-4.5" />
             </EmptyMedia>
@@ -161,7 +161,7 @@ export function RolesError({ onRetry }: { onRetry: () => void }) {
           <EmptyContent>
             <Button
               variant="outline"
-              className="border-destructive/30 bg-background"
+              className="border-status-danger-border bg-background"
               onClick={onRetry}
             >
               Retry

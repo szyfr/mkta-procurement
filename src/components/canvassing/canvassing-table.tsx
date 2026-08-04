@@ -1,5 +1,5 @@
+import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
-
 import { StatusBadge } from "@/components/shared/status-badge";
 import { dataTableClass } from "@/components/shared/table-classes";
 import { TablePagination } from "@/components/shared/table-pagination";
@@ -71,7 +71,7 @@ export function CanvassingTable({
             {entries.map((entry, index) => (
               <TableRow
                 key={entry.id}
-                className={cn(tinted[index] && "bg-muted/40")}
+                className={cn(tinted[index] && "bg-accent")}
               >
                 <TableCell>
                   <Link
@@ -104,7 +104,8 @@ export function CanvassingTable({
                     href={`/purchase-requests/${entry.purchaseRequestId}/canvassing`}
                     className="text-xs text-muted-foreground hover:underline"
                   >
-                    Open →
+                    Open
+                    <ArrowRightIcon className="size-3.5" aria-hidden />
                   </Link>
                 </TableCell>
               </TableRow>

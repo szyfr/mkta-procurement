@@ -41,7 +41,7 @@ export function PurchaseRequestStepper({
             <div className="flex flex-1 flex-col items-center gap-1">
               <span
                 className={cn(
-                  "flex size-6 items-center justify-center rounded-full border-2 text-xs",
+                  "flex size-6 items-center justify-center rounded-full border text-xs",
                   isComplete &&
                     "border-primary bg-primary text-primary-foreground",
                   isCurrent && "border-primary text-primary",

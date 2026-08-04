@@ -177,7 +177,7 @@ export function RoleFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-[940px]">
         <DialogHeader className="gap-1 border-b px-5 py-4 pr-12">
-          <DialogTitle className="text-lg font-semibold">
+          <DialogTitle>
             {mode === "edit" ? "Edit role" : "New role"}
           </DialogTitle>
           <DialogDescription>
