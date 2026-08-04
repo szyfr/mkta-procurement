@@ -35,7 +35,7 @@ export function ProofOfOrderForm({ itemName }: { itemName: string }) {
             </FieldLabel>
             <label
               htmlFor={fileInputId}
-              className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed py-6 text-center text-xs text-muted-foreground hover:bg-muted/50"
+              className="flex cursor-pointer items-center justify-center rounded-lg border border-dashed py-6 text-center text-xs text-muted-foreground hover:bg-accent"
             >
               Drop file here or click to upload
               <input id={fileInputId} type="file" className="sr-only" />

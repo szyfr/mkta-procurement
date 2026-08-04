@@ -521,7 +521,7 @@ export function NewQuotationView({
         <CardContent className="flex flex-col gap-3">
           <label
             htmlFor="attachments"
-            className="flex cursor-pointer items-center justify-center rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground hover:bg-muted/50"
+            className="flex cursor-pointer items-center justify-center rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground hover:bg-accent"
           >
             Upload the vendor&apos;s quotation (PDF, image, or spreadsheet)
             <input

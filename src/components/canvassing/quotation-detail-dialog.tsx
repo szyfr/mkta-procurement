@@ -97,7 +97,7 @@ export function QuotationDetailDialog({
                     key={pricing.itemId}
                     className={cn(
                       "flex items-center justify-between px-3 py-2",
-                      pricing.itemId === itemId && "bg-muted/50",
+                      pricing.itemId === itemId && "bg-accent",
                     )}
                   >
                     <span className="font-mono text-xs">

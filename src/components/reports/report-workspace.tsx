@@ -122,7 +122,7 @@ export function ReportWorkspace() {
             </span>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed bg-muted/50 text-xs text-muted-foreground">
+            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed bg-accent text-xs text-muted-foreground">
               Crunching PO and evaluation data…
             </div>
             <Skeleton className="h-3 w-full" />

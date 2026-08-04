@@ -40,7 +40,7 @@ export function RolesLoading() {
       {/* Absolutely positioned by `sr-only`, so it announces without taking space. */}
       <output className="sr-only">Loading roles…</output>
       <CardContent className="px-0">
-        <div className="flex items-center gap-3 border-b bg-muted/50 px-3 py-2.5">
+        <div className="flex items-center gap-3 border-b bg-accent px-3 py-2.5">
           <Skeleton className="h-3 w-20" />
           <Skeleton className="h-3 w-24" />
           <Skeleton className="ml-auto h-3 w-16" />
@@ -153,7 +153,7 @@ export function RolesError({ onRetry }: { onRetry: () => void }) {
             <EmptyTitle className="text-base font-semibold text-destructive">
               Roles could not be loaded
             </EmptyTitle>
-            <EmptyDescription className="max-w-[400px] text-destructive/90">
+            <EmptyDescription className="max-w-[400px] text-status-danger-subtle-fg">
               The permissions service did not respond. Nothing was changed — try
               again in a moment.
             </EmptyDescription>
