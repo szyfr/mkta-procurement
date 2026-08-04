@@ -68,6 +68,16 @@ export function parseCreatePayload(
     throw invalid("Add at least one item.");
   }
 
+  // Undefined is a legitimate value here — the create form omits it for
+  // "Save as Draft" and leans on the backend's own draft default.
+  if (
+    payload.status !== undefined &&
+    payload.status !== "draft" &&
+    payload.status !== "pending"
+  ) {
+    throw invalid('Status must be "draft" or "pending" when creating.');
+  }
+
   const items = payload.items.map((item, index) => {
     if (!item?.materialId)
       throw invalid(`Item ${index + 1} needs an item selected.`);
@@ -89,6 +99,7 @@ export function parseCreatePayload(
     priority,
     justification: payload.justification.trim(),
     items,
+    status: payload.status,
   };
 }
 

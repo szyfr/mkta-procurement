@@ -23,4 +23,6 @@ export interface CreatePurchaseRequestDto {
   priority: PriorityDto;
   justification: string;
   items: CreatePurchaseRequestItemDto[];
+  /** Omitted for a draft — `PRRequest.status` defaults to `draft` upstream. */
+  status?: "draft" | "pending";
 }

@@ -48,6 +48,13 @@ export interface CreatePurchaseRequestPayload {
   priority: "low" | "normal" | "high";
   justification: string;
   items: { materialId: string; quantity: number; vendorId?: string | null }[];
+  /**
+   * Only the create form sets this — "Save as Draft" omits it (the backend
+   * defaults to draft) and "Submit for Approval" sends `"pending"`. The edit
+   * form never touches it; status changes there go through the dedicated
+   * transition endpoint instead.
+   */
+  status?: "draft" | "pending";
 }
 
 /**

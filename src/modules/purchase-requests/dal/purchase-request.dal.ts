@@ -96,6 +96,7 @@ export async function createPurchaseRequest(
       quantity: item.quantity,
       vendor_id: item.vendorId || null,
     })),
+    status: input.status,
   };
 
   const dto = await serverFetch<PurchaseRequestDetailDto>(

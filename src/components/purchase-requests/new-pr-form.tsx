@@ -25,11 +25,11 @@ const submissionChecklist = [
   "Every item needs a quantity before submitting.",
   "Estimated costs are for approval routing only and aren't saved — the backend has no field for them yet.",
   "Attachments aren't wired up yet and won't be saved with the request.",
-  "Every request is created as a draft; submit it for approval from the request itself once it's saved.",
+  "Save as Draft leaves the request in draft; Submit for Approval sends it in as pending straight away.",
 ];
 
 const routingNote =
-  "Approval routing isn't modelled on the backend yet. Requests are created as drafts and move on once their items are processed.";
+  "Approval routing itself isn't modelled on the backend yet — submitting only sets the request's status to pending.";
 
 export function NewPurchaseRequestForm() {
   const router = useRouter();
@@ -44,9 +44,9 @@ export function NewPurchaseRequestForm() {
     onSuccess: (created) => router.push(`/purchase-requests/${created.id}`),
   });
 
-  function submit() {
+  function submit(status: "draft" | "pending") {
     const payload = form.validate();
-    if (payload) create(payload);
+    if (payload) create({ ...payload, status });
   }
 
   return (
@@ -62,18 +62,14 @@ export function NewPurchaseRequestForm() {
             >
               Cancel
             </Button>
-            {/*
-              Both buttons perform the same POST, with no status on the payload:
-              the create endpoint would honour one, but a request has nothing to
-              approve until it exists, so it lands on the backend's `draft`
-              default either way. Submitting is a separate transition from the
-              draft's detail or edit screen. Called out in the checklist rather
-              than hidden behind the labels.
-            */}
-            <Button variant="outline" onClick={submit} disabled={submitting}>
+            <Button
+              variant="outline"
+              onClick={() => submit("draft")}
+              disabled={submitting}
+            >
               Save as Draft
             </Button>
-            <Button onClick={submit} disabled={submitting}>
+            <Button onClick={() => submit("pending")} disabled={submitting}>
               {submitting ? <Spinner data-icon="inline-start" /> : null}
               Submit for Approval
             </Button>
