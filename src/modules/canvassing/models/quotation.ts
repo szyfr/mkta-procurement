@@ -39,6 +39,29 @@ export interface QuotationItemPrice {
   unitPrice: number;
 }
 
+/** One file attached to a quotation. `url` is presigned and time-limited. */
+export interface QuotationDocument {
+  id: string;
+  filename: string;
+  url: string;
+}
+
+/**
+ * The full quotation, for the "view quotation" dialog. Unlike `Quotation`,
+ * `itemPricing` isn't unwound to a single item — this is every item the quote
+ * prices, since the dialog isn't scoped to one comparison row.
+ */
+export interface QuotationDetail {
+  id: string;
+  referenceNo: string;
+  vendorId: string;
+  paymentTermId: string;
+  quotedOn: string | null;
+  deliveryDate: string | null;
+  itemPricing: QuotationItemPrice[];
+  documents: QuotationDocument[];
+}
+
 /**
  * What the UI submits to record a quote. The BFF validates this shape before
  * it becomes form parts, so it is shared by the API client and the Route

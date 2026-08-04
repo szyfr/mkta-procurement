@@ -3,6 +3,7 @@ import { queryOptions } from "@tanstack/react-query";
 import {
   fetchCanvassing,
   fetchCanvassingQuotations,
+  fetchQuotation,
 } from "@/modules/canvassing/api/client";
 
 /**
@@ -20,6 +21,8 @@ export const canvassingKeys = {
   // Sorted, so the same set of items is one cache entry however it was ordered.
   quotations: (itemIds: string[]) =>
     ["canvassing", "quotations", [...itemIds].sort()] as const,
+  quotation: (quotationId: string) =>
+    ["canvassing", "quotation", quotationId] as const,
 };
 
 export function canvassingListQuery(page: number) {
@@ -37,5 +40,16 @@ export function canvassingQuotationsQuery(itemIds: string[]) {
     queryFn: ({ signal }) => fetchCanvassingQuotations(itemIds, signal),
     // The ids come from the purchase request, so this waits for that query.
     enabled: itemIds.length > 0,
+  });
+}
+
+/**
+ * A single quotation, including its attachments. The caller enables this only
+ * while the "view quotation" dialog is open, so it isn't fetched per row.
+ */
+export function quotationDetailQuery(quotationId: string) {
+  return queryOptions({
+    queryKey: canvassingKeys.quotation(quotationId),
+    queryFn: ({ signal }) => fetchQuotation(quotationId, signal),
   });
 }

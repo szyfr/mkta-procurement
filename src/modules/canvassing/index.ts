@@ -22,10 +22,13 @@ export type {
   CreateQuotationPayload,
   ItemQuotations,
   Quotation,
+  QuotationDetail,
+  QuotationDocument,
   QuotationItemPrice,
 } from "@/modules/canvassing/models/quotation";
 export {
   canvassingKeys,
   canvassingListQuery,
   canvassingQuotationsQuery,
+  quotationDetailQuery,
 } from "@/modules/canvassing/queries/canvassing.queries";

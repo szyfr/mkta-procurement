@@ -1,14 +1,20 @@
 import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
-import type { ItemQuotationsDto, QuotationDto } from "@/modules/canvassing/dto";
+import type {
+  ItemQuotationsDto,
+  QuotationDetailDto,
+  QuotationDto,
+} from "@/modules/canvassing/dto";
 import {
   toCreatedQuotation,
   toItemQuotations,
+  toQuotationDetail,
 } from "@/modules/canvassing/mappers/quotation.mapper";
 import type {
   CreatedQuotation,
   CreateQuotationPayload,
   ItemQuotations,
+  QuotationDetail,
 } from "@/modules/canvassing/models/quotation";
 
 /**
@@ -20,6 +26,7 @@ import type {
  */
 
 const NOT_FOUND = "We couldn't find that item.";
+const QUOTATION_NOT_FOUND = "We couldn't find that quotation.";
 
 /**
  * The quotes covering each of the given purchase request items.
@@ -45,6 +52,18 @@ export async function listItemQuotations(
   );
 
   return dtos.map(toItemQuotations);
+}
+
+/**
+ * One quotation in full, including its attachments. `GET /canvassing/quotations`
+ * carries no documents, so the "view quotation" dialog reads this instead.
+ */
+export async function getQuotation(id: string): Promise<QuotationDetail> {
+  assertObjectId(id, QUOTATION_NOT_FOUND);
+
+  const dto = await serverFetch<QuotationDetailDto>(`/quotations/${id}`);
+
+  return toQuotationDetail(dto);
 }
 
 /**

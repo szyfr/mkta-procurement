@@ -1,9 +1,14 @@
 import { formatShortDate } from "@/lib/date";
-import type { ItemQuotationsDto, QuotationDto } from "@/modules/canvassing/dto";
+import type {
+  ItemQuotationsDto,
+  QuotationDetailDto,
+  QuotationDto,
+} from "@/modules/canvassing/dto";
 import type {
   CreatedQuotation,
   ItemQuotations,
   Quotation,
+  QuotationDetail,
 } from "@/modules/canvassing/models/quotation";
 
 /** DTO → model for the quote comparison. */
@@ -45,4 +50,24 @@ export function toItemQuotations(dto: ItemQuotationsDto): ItemQuotations {
  */
 export function toCreatedQuotation(dto: QuotationDto): CreatedQuotation {
   return { id: dto._id, referenceNo: dto.reference_no };
+}
+
+export function toQuotationDetail(dto: QuotationDetailDto): QuotationDetail {
+  return {
+    id: dto._id,
+    referenceNo: dto.reference_no,
+    vendorId: dto.vendor_id,
+    paymentTermId: dto.payment_term_id,
+    quotedOn: formatShortDate(dto.date),
+    deliveryDate: formatShortDate(dto.delivery_date),
+    itemPricing: dto.item_pricing.map((pricing) => ({
+      itemId: pricing.item_id,
+      unitPrice: pricing.unit_price,
+    })),
+    documents: dto.documents.map((document) => ({
+      id: document._id,
+      filename: document.filename,
+      url: document.url,
+    })),
+  };
 }

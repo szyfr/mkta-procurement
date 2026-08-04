@@ -7,6 +7,8 @@ export type {
 } from "@/modules/canvassing/dto/canvassing.dto";
 export type {
   ItemQuotationsDto,
+  QuotationDetailDto,
+  QuotationDocumentDto,
   QuotationDto,
   QuotationItemPricingDto,
 } from "@/modules/canvassing/dto/quotation.dto";

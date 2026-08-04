@@ -33,6 +33,22 @@ export interface QuotationDto {
   updated_at: string;
 }
 
+/** One file attached to a quotation, with a presigned S3 url. */
+export interface QuotationDocumentDto {
+  _id: string;
+  filename: string;
+  url: string;
+}
+
+/**
+ * `GET /quotations/{id}` — the only read that carries attachments. The list
+ * endpoints above never join them, so this is the sole source for a
+ * quotation's documents.
+ */
+export interface QuotationDetailDto extends QuotationDto {
+  documents: QuotationDocumentDto[];
+}
+
 /**
  * One purchase request item with the quotes that cover it.
  *

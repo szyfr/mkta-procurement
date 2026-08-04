@@ -6,6 +6,7 @@ import Link from "next/link";
 import * as React from "react";
 
 import { AwardVendorDialog } from "@/components/canvassing/award-vendor-dialog";
+import { QuotationDetailDialog } from "@/components/canvassing/quotation-detail-dialog";
 import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
@@ -220,8 +221,9 @@ function QuoteComparison({
                     <TableHead scope="col">Unit Price</TableHead>
                     <TableHead scope="col">Total</TableHead>
                     <TableHead scope="col">Delivery</TableHead>
+                    <TableHead scope="col">Quote Date</TableHead>
                     <TableHead scope="col" className="pr-4">
-                      Quote Date
+                      <span className="sr-only">Actions</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -272,8 +274,15 @@ function QuoteComparison({
                               )}
                         </TableCell>
                         <TableCell>{quotation.deliveryDate ?? "—"}</TableCell>
-                        <TableCell className="pr-4 text-muted-foreground">
+                        <TableCell className="text-muted-foreground">
                           {quotation.quotedOn ?? "—"}
+                        </TableCell>
+                        <TableCell className="pr-4">
+                          <QuotationDetailDialog
+                            quotationId={quotation.id}
+                            itemId={item.id}
+                            itemName={item.name}
+                          />
                         </TableCell>
                       </TableRow>
                     );

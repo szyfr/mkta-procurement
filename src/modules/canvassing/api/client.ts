@@ -6,6 +6,7 @@ import type {
   CreatedQuotation,
   CreateQuotationPayload,
   ItemQuotations,
+  QuotationDetail,
 } from "@/modules/canvassing/models/quotation";
 
 /**
@@ -35,6 +36,14 @@ export function fetchCanvassingQuotations(
     query: { items: itemIds },
     signal,
   });
+}
+
+/** One quotation in full, including its attachments. */
+export function fetchQuotation(quotationId: string, signal?: AbortSignal) {
+  return bffRequest<QuotationDetail>(
+    canvassingEndpoints.quotation(quotationId),
+    { signal },
+  );
 }
 
 /**
