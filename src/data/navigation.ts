@@ -1,8 +1,11 @@
 import {
+  Building2Icon,
   ChartColumnIcon,
   ClipboardListIcon,
+  HandCoinsIcon,
   LayoutDashboardIcon,
-  Settings2Icon,
+  ShieldIcon,
+  TruckIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -12,14 +15,32 @@ export const appIdentity = {
 };
 
 export const mainNav = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
   {
-    title: "Purchase Requests",
-    url: "/purchase-requests",
-    icon: ClipboardListIcon,
+    title: "PROCUREMENT",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
+      {
+        title: "Purchase Requests",
+        url: "/purchase-requests",
+        icon: ClipboardListIcon,
+      },
+      { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
+      { title: "Reports", url: "/reports", icon: ChartColumnIcon },
+    ],
   },
-  { title: "Canvassing", url: "/canvassing", icon: UsersIcon },
-  { title: "Reports", url: "/reports", icon: ChartColumnIcon },
+  {
+    title: "ADMINISTRATION",
+    items: [
+      { title: "Departments", url: "/departments", icon: Building2Icon },
+      { title: "Vendors", url: "/vendors", icon: TruckIcon },
+      {
+        title: "Payment Terms",
+        url: "/payment-terms",
+        icon: HandCoinsIcon,
+      },
+      { title: "Roles & Permissions", url: "/roles", icon: ShieldIcon },
+    ],
+  },
 ];
 
 export const settingsNav = [
@@ -39,6 +60,10 @@ export const breadcrumbLabels: Record<string, string> = {
   canvassing: "Canvassing",
   quotes: "Quotes",
   reports: "Reports",
+  departments: "Departments",
+  vendors: "Vendors",
+  "payment-terms": "Payment Terms",
+  roles: "Roles & Permissions",
   settings: "Settings",
   account: "My Account",
   users: "Users & Roles",

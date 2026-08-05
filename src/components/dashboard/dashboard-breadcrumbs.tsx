@@ -39,7 +39,7 @@ export function DashboardBreadcrumbs() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="gap-1.5 text-[13px] sm:gap-1.5">
         {crumbs.map((crumb, index) => {
           const isLast = index === crumbs.length - 1;
 
@@ -49,7 +49,9 @@ export function DashboardBreadcrumbs() {
                 className={isLast ? undefined : "hidden md:block"}
               >
                 {isLast ? (
-                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                  <BreadcrumbPage className="font-medium text-foreground">
+                    {crumb.label}
+                  </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink render={<Link href={crumb.href} />}>
                     {crumb.label}
@@ -57,7 +59,7 @@ export function DashboardBreadcrumbs() {
                 )}
               </BreadcrumbItem>
               {isLast ? null : (
-                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbSeparator className="hidden md:block [&>svg]:size-3.5" />
               )}
             </React.Fragment>
           );

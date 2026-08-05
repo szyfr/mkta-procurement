@@ -1,0 +1,113 @@
+/**
+ * The single place the browser talks to the BFF.
+ *
+ * It knows nothing about FastAPI: no upstream URLs, no snake_case DTOs. Route
+ * Handlers return models already, so responses pass straight through. Every
+ * module's API client is a thin set of named calls on top of this.
+ */
+
+/** What a failed BFF call surfaces to a component. Already user-safe. */
+export class BffError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "BffError";
+    this.status = status;
+  }
+}
+
+/** An array repeats its key (`items=a&items=b`); the route handler reads it back with `getAll`. */
+type QueryValue = string | number | string[] | undefined | null;
+
+function withQuery(path: string, query?: Record<string, QueryValue>) {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value === undefined || value === null || value === "") continue;
+
+    if (Array.isArray(value)) {
+      for (const entry of value) params.append(key, entry);
+      continue;
+    }
+
+    params.set(key, String(value));
+  }
+
+  const search = params.toString();
+
+  return search ? `${path}?${search}` : path;
+}
+
+export interface BffRequestOptions {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  /** Serialized as JSON, unless it is `FormData` — see below. */
+  body?: unknown;
+  query?: Record<string, QueryValue>;
+  signal?: AbortSignal;
+}
+
+export async function bffRequest<T>(
+  path: string,
+  options: BffRequestOptions = {},
+): Promise<T> {
+  const { method = "GET", body, query, signal } = options;
+
+  // A quotation carries attachments, so it goes up as `multipart/form-data`.
+  // The browser has to set `Content-Type` itself there — writing the header by
+  // hand would omit the part boundary.
+  const multipart = body instanceof FormData;
+
+  let response: Response;
+
+  try {
+    response = await fetch(withQuery(path, query), {
+      method,
+      headers:
+        body === undefined || multipart
+          ? undefined
+          : { "Content-Type": "application/json" },
+      body:
+        body === undefined
+          ? undefined
+          : multipart
+            ? body
+            : JSON.stringify(body),
+      // The session cookie is HttpOnly and scoped to this origin, so the
+      // browser attaches it on its own — this only spells out that we rely on
+      // it. `include` would be wrong: every path here is same-origin, and the
+      // BFF is what talks to FastAPI cross-origin.
+      credentials: "same-origin",
+      signal,
+    });
+  } catch (cause) {
+    // An aborted request is the caller's own doing (a superseded query, an
+    // unmounted component) and must stay an `AbortError` for TanStack Query.
+    if (cause instanceof DOMException && cause.name === "AbortError")
+      throw cause;
+
+    throw new BffError(
+      0,
+      "Can't reach the server. Check your connection and try again.",
+    );
+  }
+
+  // Routes that only perform an action answer 204 with no body; there is no
+  // `{ data }` envelope to unwrap. Failures always carry one, so this is safe
+  // to check before the status.
+  if (response.status === 204) return undefined as T;
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message =
+      payload && typeof payload === "object" && "error" in payload
+        ? ((payload as { error?: { message?: string } }).error?.message ??
+          "Something went wrong.")
+        : "Something went wrong.";
+
+    throw new BffError(response.status, message);
+  }
+
+  return (payload as { data: T }).data;
+}

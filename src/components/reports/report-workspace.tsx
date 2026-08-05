@@ -1,11 +1,19 @@
 "use client";
 
+import { ChartNoAxesColumnIcon } from "lucide-react";
 import * as React from "react";
 
 import { ReportResult } from "@/components/reports/report-result";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { defaultReportId, reports } from "@/data/reports";
@@ -36,6 +44,26 @@ export function ReportWorkspace() {
     return () => window.clearTimeout(timer);
   }, [generatingId]);
 
+  if (reports.length === 0) {
+    return (
+      <Card>
+        <CardContent>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <ChartNoAxesColumnIcon />
+              </EmptyMedia>
+              <EmptyTitle>No reports available</EmptyTitle>
+              <EmptyDescription>
+                There are no report types configured yet.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
@@ -54,7 +82,7 @@ export function ReportWorkspace() {
                   <Icon className="size-8 rounded-lg border p-1.5 text-muted-foreground" />
                   {isActive ? <Badge>Active</Badge> : null}
                 </div>
-                <CardTitle className="text-xs">{report.title}</CardTitle>
+                <CardTitle>{report.title}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col justify-end gap-3">
                 <p className="text-xs text-muted-foreground">
@@ -94,7 +122,7 @@ export function ReportWorkspace() {
             </span>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed bg-muted/50 text-xs text-muted-foreground">
+            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed bg-accent text-xs text-muted-foreground">
               Crunching PO and evaluation data…
             </div>
             <Skeleton className="h-3 w-full" />

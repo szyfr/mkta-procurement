@@ -112,7 +112,7 @@ export function NotificationsMenu() {
                       "flex gap-3 border-l-2 px-4 py-2.5 hover:bg-accent hover:text-accent-foreground",
                       notification.read
                         ? "border-l-transparent"
-                        : "border-l-status-info bg-status-info/5",
+                        : "border-l-status-info bg-status-info-subtle",
                     )}
                   >
                     <span

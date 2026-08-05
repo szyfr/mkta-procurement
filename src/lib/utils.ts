@@ -19,6 +19,20 @@ const pesoWithCentavosFormatter = new Intl.NumberFormat("en-PH", {
   maximumFractionDigits: 2,
 });
 
+/**
+ * Builds initials from a name like "S. Galvis" → "SG". The avatar fallback
+ * everywhere, since the backend carries no profile image.
+ */
+export function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((part) => part.replace(/\W/g, "").charAt(0))
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
 /** Formats an amount as pesos, e.g. 84200 → "₱84,200". */
 export function formatCurrency(amount: number, withCentavos = false) {
   return withCentavos

@@ -1,0 +1,40 @@
+/**
+ * Canvassing module — public surface.
+ *
+ * Only the browser-safe pieces are re-exported here. The DAL is deliberately
+ * left out: it reaches FastAPI and must be imported directly by Route Handlers
+ * (`@/modules/canvassing/dal/...`) so it can never be pulled into a client
+ * bundle through this barrel.
+ */
+
+export {
+  awardQuotation,
+  createQuotation,
+} from "@/modules/canvassing/api/client";
+export {
+  canvassingStatusOptions,
+  canvassingStatusTone,
+} from "@/modules/canvassing/constants";
+export type { CreateQuotationDto } from "@/modules/canvassing/dto";
+export type {
+  AwardQuotationResult,
+  CanvassAward,
+  CanvassAwardIssue,
+} from "@/modules/canvassing/models/award";
+export type {
+  CanvassingEntry,
+  CanvassingStatus,
+} from "@/modules/canvassing/models/canvassing";
+export type {
+  ItemQuotations,
+  Quotation,
+  QuotationDetail,
+  QuotationDocument,
+  QuotationItemPricing,
+} from "@/modules/canvassing/models/quotation";
+export {
+  canvassingKeys,
+  canvassingListQuery,
+  canvassingQuotationsQuery,
+  quotationDetailQuery,
+} from "@/modules/canvassing/queries/canvassing.queries";

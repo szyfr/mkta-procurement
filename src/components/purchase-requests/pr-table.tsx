@@ -1,16 +1,14 @@
+import { ArrowRightIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
-
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+  cellIdClass,
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
+import { TablePagination } from "@/components/shared/table-pagination";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,82 +17,102 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { Pagination } from "@/lib/api/pagination";
+import { formatShortDate } from "@/lib/date";
 import {
-  purchaseRequestListTotal,
+  type PurchaseRequest,
+  purchaseRequestStatusLabels,
   purchaseRequestTone,
-} from "@/data/purchase-requests";
-import type { PurchaseRequest } from "@/lib/types";
-import { formatCurrency } from "@/lib/utils";
+} from "@/modules/purchase-requests";
 
 export function PurchaseRequestTable({
   requests,
+  page,
+  buildPageHref,
 }: {
   requests: PurchaseRequest[];
+  page: Pagination;
+  /** Keeps the current view (cards/table) intact while changing pages. */
+  buildPageHref: (page: number) => string;
 }) {
   return (
     <Card>
       <CardContent className="px-0">
-        <Table>
+        <Table className={dataTableClass}>
           <TableHeader>
             <TableRow>
-              <TableHead scope="col" className="pl-4">
-                PR No.
-              </TableHead>
+              <TableHead scope="col">PR No.</TableHead>
               <TableHead scope="col">Title</TableHead>
               <TableHead scope="col">Requester</TableHead>
               <TableHead scope="col">Department</TableHead>
-              <TableHead scope="col">Amount</TableHead>
+              <TableHead scope="col" className={numericCellClass}>
+                Amount
+              </TableHead>
               <TableHead scope="col">Priority</TableHead>
               <TableHead scope="col">Status</TableHead>
               <TableHead scope="col">Created</TableHead>
-              <TableHead scope="col" className="pr-4">
+              <TableHead scope="col">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {requests.map((request) => {
-              const href =
-                request.status === "draft"
-                  ? "/purchase-requests/new"
-                  : `/purchase-requests/${request.id}`;
+              const href = `/purchase-requests/${request._id}`;
               const needsProof =
                 request.status === "po-created" ||
                 request.status === "partially-completed";
 
               return (
-                <TableRow key={request.id}>
-                  <TableCell className="pl-4 font-medium">
-                    {request.id}
-                  </TableCell>
+                <TableRow key={request._id}>
+                  <TableCell className={cellIdClass}>{request.no}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {request.title ?? <span className="italic">Untitled</span>}
+                    {request.title || <span className="italic">Untitled</span>}
                   </TableCell>
-                  <TableCell>{request.requester}</TableCell>
-                  <TableCell>{request.department}</TableCell>
-                  <TableCell>{formatCurrency(request.amount)}</TableCell>
+                  <TableCell>
+                    {request.requester_name || (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {request.department_name || (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  {/* No amount is stored on a request and materials sync
+                      without a cost, so there is nothing to total. */}
+                  <TableCell className={numericCellClass}>
+                    <span
+                      className="text-muted-foreground"
+                      title="No estimated amount on file"
+                    >
+                      —
+                    </span>
+                  </TableCell>
                   <TableCell>
                     <PriorityBadge priority={request.priority} />
                   </TableCell>
                   <TableCell>
                     <StatusBadge tone={purchaseRequestTone[request.status]}>
-                      {request.statusLabel}
+                      {purchaseRequestStatusLabels[request.status]}
                     </StatusBadge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {request.createdAt ?? "Not submitted"}
+                    {formatShortDate(request.created_at) ?? "Not submitted"}
                   </TableCell>
-                  <TableCell className="pr-4">
+                  <TableCell>
                     <div className="flex flex-col items-start gap-1 text-xs">
                       <Link href={href} className="hover:underline">
-                        Open →
+                        Open
+                        <ArrowRightIcon className="size-3.5" aria-hidden />
                       </Link>
                       {needsProof ? (
                         <Link
-                          href={`/purchase-requests/${request.id}`}
-                          className="text-status-ordered hover:underline"
+                          href={href}
+                          className="text-status-ordered-fg hover:underline"
                         >
-                          + Add Proof of Order
+                          <PlusIcon className="size-3.5" aria-hidden />
+                          Add Proof of Order
                         </Link>
                       ) : null}
                     </div>
@@ -105,28 +123,11 @@ export function PurchaseRequestTable({
           </TableBody>
         </Table>
       </CardContent>
-      <CardFooter className="justify-between gap-2 text-xs text-muted-foreground">
-        <span>
-          Showing {requests.length} of {purchaseRequestListTotal}
-        </span>
-        <Pagination className="mx-0 w-auto">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="?page=1" />
-            </PaginationItem>
-            {[1, 2, 3].map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink href={`?page=${page}`} isActive={page === 1}>
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext href="?page=2" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </CardFooter>
+      <TablePagination
+        shown={requests.length}
+        page={page}
+        buildPageHref={buildPageHref}
+      />
     </Card>
   );
 }

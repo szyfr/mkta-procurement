@@ -1,0 +1,394 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import * as React from "react";
+
+import { CancelPurchaseRequestDialog } from "@/components/purchase-requests/cancel-pr-dialog";
+import { PurchaseRequestItemsTable } from "@/components/purchase-requests/pr-items-table";
+import { PurchaseRequestStepper } from "@/components/purchase-requests/pr-stepper";
+import { ProofOfOrderForm } from "@/components/purchase-requests/proof-of-order-form";
+import { PageHeader } from "@/components/shared/page-header";
+import { PriorityBadge } from "@/components/shared/priority-badge";
+import { ErrorAlert } from "@/components/shared/query-states";
+import { StatusBadge } from "@/components/shared/status-badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
+import { Textarea } from "@/components/ui/textarea";
+import { formatShortDate } from "@/lib/date";
+import {
+  type PurchaseRequestDetail,
+  purchaseRequestDetailQuery,
+  purchaseRequestKeys,
+  purchaseRequestStatusLabels,
+  purchaseRequestTone,
+  setPurchaseRequestStatus,
+} from "@/modules/purchase-requests";
+
+/**
+ * Purchase request detail, fetched from the BFF in the browser via TanStack
+ * Query.
+ *
+ * Several panels the wireframe shows have no backend behind them yet —
+ * documents, comments, activity history and the action panel. They already
+ * render conditionally, so they simply stay hidden rather than being filled
+ * with placeholder content.
+ */
+
+/** Summary line under the title, assembled from whatever the backend gave us. */
+function metaLine(request: PurchaseRequestDetail) {
+  // The detail response joins no requester, so that part is always absent
+  // here; the department arrives as a whole document rather than a name.
+  const parts = [request.requester_name, request.department?.title].filter(
+    (part): part is string => Boolean(part),
+  );
+
+  // No submitted/completed/rejected timestamps are stored, so the created date
+  // is the only point in the request's history we can show.
+  const created = formatShortDate(request.created_at);
+  if (created) parts.push(`Created ${created}`);
+
+  // No amount is stored and no item cost is available to derive one.
+  parts.push(
+    `Amount unavailable (${request.items.length} ${
+      request.items.length === 1 ? "item" : "items"
+    })`,
+  );
+
+  return parts.join(" · ");
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-7 w-72" />
+        <Skeleton className="h-4 w-96 max-w-full" />
+      </div>
+      <Skeleton className="h-20 w-full" />
+      <div className="grid gap-5 lg:grid-cols-3">
+        <Skeleton className="h-64 w-full lg:col-span-2" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    </div>
+  );
+}
+
+export function PurchaseRequestDetailView({ id }: { id: string }) {
+  const queryClient = useQueryClient();
+  const {
+    data: request,
+    isPending,
+    isError,
+    error,
+  } = useQuery(purchaseRequestDetailQuery(id));
+
+  /**
+   * Submitting fails two ways: the request can be incomplete, which is caught
+   * here before anything is sent, or the transition itself can fail. The banner
+   * shows whichever happened, so the local check is kept alongside the
+   * mutation's own error.
+   */
+  const [validationError, setValidationError] = React.useState<string | null>(
+    null,
+  );
+
+  const {
+    mutate: submit,
+    isPending: submitting,
+    error: submitFailure,
+    reset: resetSubmit,
+  } = useMutation({
+    mutationFn: () => setPurchaseRequestStatus(id, "pending"),
+    onSuccess: () => {
+      // The transition returns nothing, so the new status comes from a refetch.
+      // The list picks it up too.
+      queryClient.invalidateQueries({
+        queryKey: purchaseRequestKeys.detail(id),
+      });
+      queryClient.invalidateQueries({ queryKey: purchaseRequestKeys.lists() });
+    },
+  });
+
+  const submitError =
+    validationError ??
+    (submitFailure
+      ? submitFailure instanceof Error
+        ? submitFailure.message
+        : "Something went wrong."
+      : null);
+
+  if (isError) {
+    return (
+      <>
+        <PageHeader
+          title="Purchase Request"
+          actions={
+            <Button
+              variant="outline"
+              render={<Link href="/purchase-requests" />}
+              nativeButton={false}
+            >
+              Back to Purchase Requests
+            </Button>
+          }
+        />
+        <ErrorAlert title="Couldn't load this purchase request" error={error} />
+      </>
+    );
+  }
+
+  if (isPending) return <DetailSkeleton />;
+
+  const isDraft = request.status === "draft";
+  const isRejected = request.status === "rejected";
+  const isCanceled = request.status === "canceled";
+  // Cancelling is only meaningful while there is still work to stop.
+  const isClosed = isRejected || isCanceled || request.status === "completed";
+  const deliveredCount = request.items.filter(
+    (item) => item.status === "completed",
+  ).length;
+  const awaitingProof = request.items.find(
+    (item) => item.status === "po-created",
+  );
+  const canvassingItem = request.items.find(
+    (item) => item.status === "canvassing",
+  );
+
+  function submitForApproval() {
+    if (!request) return;
+
+    setValidationError(null);
+    resetSubmit();
+
+    if (!request.title?.trim()) {
+      setValidationError(
+        "Add a title before submitting — use Continue Editing.",
+      );
+      return;
+    }
+    if (request.items.length === 0) {
+      setValidationError(
+        "Add at least one item before submitting — use Continue Editing.",
+      );
+      return;
+    }
+
+    // Nothing is edited here, so this is the transition alone — the request is
+    // submitted exactly as stored.
+    submit();
+  }
+
+  return (
+    <>
+      <PageHeader
+        title={
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-base">{request.no}</span>
+            <StatusBadge tone={purchaseRequestTone[request.status]}>
+              {purchaseRequestStatusLabels[request.status]}
+            </StatusBadge>
+            <PriorityBadge priority={request.priority} />
+          </span>
+        }
+        description={
+          <>
+            <span className="block text-sm text-foreground">
+              {request.title || (
+                <span className="italic text-muted-foreground">
+                  Untitled — add a title while editing
+                </span>
+              )}
+            </span>
+            <span className="block">{metaLine(request)}</span>
+          </>
+        }
+        actions={
+          isDraft ? (
+            <>
+              <CancelPurchaseRequestDialog id={request._id} no={request.no} />
+              <Button
+                variant="outline"
+                render={
+                  <Link href={`/purchase-requests/${request._id}/edit`} />
+                }
+                nativeButton={false}
+              >
+                Continue Editing
+              </Button>
+              <Button onClick={submitForApproval} disabled={submitting}>
+                {submitting ? <Spinner data-icon="inline-start" /> : null}
+                Submit for Approval
+              </Button>
+            </>
+          ) : isRejected ? (
+            <Button
+              render={<Link href="/purchase-requests/new" />}
+              nativeButton={false}
+            >
+              Revise &amp; Resubmit
+            </Button>
+          ) : (
+            <>
+              <Button variant="outline" size="sm">
+                Download PDF
+              </Button>
+              {isClosed ? null : (
+                <CancelPurchaseRequestDialog id={request._id} no={request.no} />
+              )}
+            </>
+          )
+        }
+      />
+
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTitle>Couldn&apos;t submit this request</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {isDraft ? (
+        <Card>
+          <CardContent className="text-xs text-muted-foreground">
+            No approval workflow has started — nothing to show here until you
+            submit.
+          </CardContent>
+        </Card>
+      ) : isCanceled ? (
+        // The stepper has no rung for a request that stopped, so it would read
+        // as still sitting at "Submitted".
+        <Card>
+          <CardContent className="text-xs text-muted-foreground">
+            This request was canceled and is no longer being processed.
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent>
+            <PurchaseRequestStepper status={request.status} />
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
+              <CardTitle>Items</CardTitle>
+              <span className="text-xs text-muted-foreground">
+                {deliveredCount} of {request.items.length} completed
+              </span>
+            </CardHeader>
+            <CardContent className="px-0">
+              {request.items.length === 0 ? (
+                <p className="px-4 py-6 text-center text-xs text-muted-foreground">
+                  No items on this request.
+                </p>
+              ) : (
+                <PurchaseRequestItemsTable request={request} />
+              )}
+            </CardContent>
+          </Card>
+
+          {awaitingProof ? (
+            <ProofOfOrderForm
+              itemName={
+                awaitingProof.material?.description || awaitingProof.material_id
+              }
+            />
+          ) : null}
+
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle>Justification</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                {request.justification || "No justification provided."}
+              </p>
+            </CardContent>
+          </Card>
+
+          {isDraft ? null : (
+            <Card>
+              <CardHeader className="border-b">
+                <CardTitle>Comments</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
+                <p className="text-xs text-muted-foreground">
+                  Comments aren&apos;t stored yet — this panel is inert until
+                  the backend supports them.
+                </p>
+                <Textarea
+                  aria-label="Add a comment"
+                  placeholder="Add a comment…"
+                  rows={2}
+                  disabled
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-5">
+          {canvassingItem ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Action Panel</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
+                <p className="text-xs text-muted-foreground">
+                  Items on this request are routed to canvassing and are waiting
+                  on vendor quotes.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  render={
+                    <Link
+                      href={`/purchase-requests/${request._id}/canvassing`}
+                    />
+                  }
+                  nativeButton={false}
+                >
+                  View Canvassing
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <Card>
+            <CardHeader className="border-b">
+              <CardTitle>Details</CardTitle>
+            </CardHeader>
+            <CardContent className="px-0">
+              <dl className="divide-y text-xs">
+                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <dt className="text-muted-foreground">Requester</dt>
+                  <dd>{request.requester_name || "—"}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <dt className="text-muted-foreground">Department</dt>
+                  <dd>{request.department?.title || "—"}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <dt className="text-muted-foreground">Date needed</dt>
+                  <dd>{formatShortDate(request.date_needed) ?? "—"}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
+                  <dt className="text-muted-foreground">Created</dt>
+                  <dd>{formatShortDate(request.created_at) ?? "—"}</dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}
