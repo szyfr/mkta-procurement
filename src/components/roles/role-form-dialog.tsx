@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import * as React from "react";
 
@@ -26,13 +26,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { MAX_PAGE_SIZE } from "@/lib/api/pagination";
 import { permissionListQuery } from "@/modules/permissions";
-import type { Role } from "@/modules/roles";
+import { createRole, type Role, roleKeys } from "@/modules/roles";
 
 /**
  * Create and edit share one dialog: the only differences are the copy and
- * whether the fields start populated. Nothing is persisted — saving closes
- * the dialog and confirms with a toast, because FastAPI has no write
- * endpoint for roles yet.
+ * whether the fields start populated. Create persists through
+ * `POST /roles`; edit is still mocked — saving just closes the dialog and
+ * confirms with a toast, because FastAPI has no update endpoint for roles
+ * yet.
  *
  * The permission catalogue comes from `GET /permissions`, fetched at the
  * backend's page-size cap — there is no module grouping upstream, so the
@@ -68,6 +69,31 @@ export function RoleFormDialog({
 }) {
   const [draft, setDraft] = React.useState<DraftRole>(() => draftFrom(role));
   const [search, setSearch] = React.useState("");
+  const queryClient = useQueryClient();
+
+  const { mutate: submitRole, isPending: submitting } = useMutation({
+    mutationFn: (values: DraftRole) =>
+      createRole({
+        title: values.name,
+        description: values.description,
+        permission_ids: Array.from(values.permissions),
+      }),
+    onSuccess: (_created, values) => {
+      toast.add({ title: `${values.name} created`, type: "success" });
+      queryClient.invalidateQueries({ queryKey: roleKeys.all });
+      onOpenChange(false);
+    },
+    onError: (mutationError) => {
+      toast.add({
+        title: "Couldn't create role",
+        description:
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Something went wrong.",
+        type: "error",
+      });
+    },
+  });
 
   // Reopening for a different role has to reset the whole form, including the
   // toolbar state — otherwise a stale search would hide most of the catalogue.
@@ -110,10 +136,12 @@ export function RoleFormDialog({
   }
 
   function save() {
-    toast.add({
-      title: `${draft.name} ${mode === "edit" ? "updated" : "created"}`,
-      type: "success",
-    });
+    if (mode === "create") {
+      submitRole(draft);
+      return;
+    }
+
+    toast.add({ title: `${draft.name} updated`, type: "success" });
     onOpenChange(false);
   }
 
@@ -270,8 +298,15 @@ export function RoleFormDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button disabled={draft.name.trim().length === 0} onClick={save}>
-              {mode === "edit" ? "Save changes" : "Create role"}
+            <Button
+              disabled={draft.name.trim().length === 0 || submitting}
+              onClick={save}
+            >
+              {mode === "edit"
+                ? "Save changes"
+                : submitting
+                  ? "Creating…"
+                  : "Create role"}
             </Button>
           </div>
         </div>

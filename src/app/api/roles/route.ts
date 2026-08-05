@@ -3,9 +3,10 @@ import type { NextRequest } from "next/server";
 import { toErrorResponse } from "@/lib/api/errors";
 import { readPageParam } from "@/lib/api/pagination";
 import { DEFAULT_PAGE_SIZE } from "@/modules/roles/constants";
-import { listRoles } from "@/modules/roles/dal/role.dal";
+import { createRole, listRoles } from "@/modules/roles/dal/role.dal";
+import { parseCreateRolePayload } from "@/modules/roles/validation/role.validation";
 
-/** BFF for the role collection. Create is not wired — FastAPI has no write endpoint yet. */
+/** BFF for the role collection. */
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +19,20 @@ export async function GET(request: NextRequest) {
     });
 
     return Response.json({ data: result });
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const payload = parseCreateRolePayload(
+      await request.json().catch(() => null),
+    );
+
+    const created = await createRole(payload);
+
+    return Response.json({ data: created }, { status: 201 });
   } catch (error) {
     return toErrorResponse(error);
   }

@@ -7,5 +7,6 @@ const BASE = "/api/roles";
 
 export const roleEndpoints = {
   list: BASE,
+  create: BASE,
   detail: (id: string) => `${BASE}/${encodeURIComponent(id)}`,
 } as const;
