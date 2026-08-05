@@ -231,15 +231,8 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
             >
               Revise &amp; Resubmit
             </Button>
-          ) : (
-            <>
-              <Button variant="outline" size="sm">
-                Download PDF
-              </Button>
-              {isClosed ? null : (
-                <CancelPurchaseRequestDialog id={request._id} no={request.no} />
-              )}
-            </>
+          ) : isClosed || request.status === "po-created" ? null : (
+            <CancelPurchaseRequestDialog id={request._id} no={request.no} />
           )
         }
       />
