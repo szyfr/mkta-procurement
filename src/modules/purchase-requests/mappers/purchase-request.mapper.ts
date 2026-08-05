@@ -49,18 +49,29 @@ export function toPurchaseRequestItem(
   };
 }
 
+/** A joined name is null whenever the lookup missed, and blank for a user with no name on file. */
+function joinedName(value: string | null | undefined) {
+  return value?.trim() || null;
+}
+
 export function toPurchaseRequest(
   dto: PurchaseRequestDto | PurchaseRequestDetailDto,
 ): PurchaseRequest {
   const itemDtos = "items" in dto ? dto.items : [];
+  // The list flattens the department onto the request; the detail joins the
+  // whole document instead. Either way the id is never shown.
+  const department =
+    joinedName(dto.department_name) ??
+    joinedName("department" in dto ? dto.department?.title : null);
 
   return {
     id: dto._id,
     no: dto.no,
     title: dto.title || null,
-    requester: dto.requester_id,
-    // Same as the item's vendor: no join exists, so the id stands in for the name.
-    department: dto.department_id,
+    // Only the list pipeline joins a requester, so the detail, create and
+    // update responses leave this null rather than showing a raw id.
+    requester: joinedName(dto.requester_name),
+    department,
     departmentId: dto.department_id,
     // No amount is stored and no item cost is available to derive one.
     amount: null,

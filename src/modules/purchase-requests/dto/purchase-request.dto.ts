@@ -5,6 +5,8 @@
  * is shared — see `lib/api/pagination`.
  */
 
+import type { DepartmentDto } from "@/modules/purchase-requests/dto/lookup.dto";
+
 export type PriorityDto = "low" | "normal" | "high";
 
 /** `app/schemas/purchase_request_schema.py:Status`. */
@@ -69,9 +71,22 @@ export interface PurchaseRequestDto {
   department_id: string;
   created_at: string;
   updated_at: string;
+  /**
+   * Joined by the list pipeline only, and left null when the lookup misses —
+   * both stages unwind with `preserveNullAndEmptyArrays`. The create, update
+   * and detail responses carry neither.
+   */
+  department_name?: string | null;
+  requester_name?: string | null;
 }
 
 /** `GET /purchase-requests/{id}` — the list endpoint returns no items. */
 export interface PurchaseRequestDetailDto extends PurchaseRequestDto {
   items: PurchaseRequestItemDto[];
+  /**
+   * The detail pipeline joins the whole department document rather than
+   * flattening a name onto the request the way the list does. It joins no
+   * requester at all, so the detail page has no name to show for one.
+   */
+  department?: DepartmentDto | null;
 }

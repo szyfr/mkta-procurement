@@ -83,7 +83,11 @@ export function usePurchaseRequestForm(): PurchaseRequestFormState {
 
   const seedFrom = React.useCallback((request: PurchaseRequest) => {
     setTitle(request.title ?? "");
-    setDepartment({ id: request.departmentId, label: request.department });
+    setDepartment({
+      id: request.departmentId,
+      // The detail join supplies the name; the id only shows if it missed.
+      label: request.department ?? request.departmentId,
+    });
     setDateNeeded(request.dateNeededValue);
     setPriority(priorityToDto[request.priority]);
     setJustification(request.justification);

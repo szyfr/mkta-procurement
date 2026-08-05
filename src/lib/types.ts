@@ -86,8 +86,12 @@ export interface PurchaseRequest {
   no: string;
   /** Null for drafts that have not been titled yet. */
   title: string | null;
-  requester: string;
-  department: string;
+  /**
+   * Joined names, null when the backend has none to give: only the list
+   * pipeline joins a requester, and either lookup can miss.
+   */
+  requester: string | null;
+  department: string | null;
   departmentId: string;
   /**
    * Null when the total can't be established — no amount is stored on the

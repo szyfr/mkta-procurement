@@ -48,6 +48,8 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
   const tone = purchaseRequestTone[request.status];
   const action = nextAction(request);
   const href = `/purchase-requests/${request.id}`;
+  // Either name can be missing; the line collapses rather than showing a gap.
+  const meta = [request.requester, request.department].filter(Boolean);
 
   return (
     <Card
@@ -75,9 +77,11 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
           </p>
         )}
 
-        <p className="text-[12.5px] text-muted-foreground">
-          {request.requester} · {request.department}
-        </p>
+        {meta.length > 0 ? (
+          <p className="text-[12.5px] text-muted-foreground">
+            {meta.join(" · ")}
+          </p>
+        ) : null}
         <p className="font-semibold tabular-nums">
           {request.amount === null ? (
             <span

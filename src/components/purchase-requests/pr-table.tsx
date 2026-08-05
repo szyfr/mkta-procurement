@@ -68,8 +68,16 @@ export function PurchaseRequestTable({
                   <TableCell className="text-muted-foreground">
                     {request.title ?? <span className="italic">Untitled</span>}
                   </TableCell>
-                  <TableCell>{request.requester}</TableCell>
-                  <TableCell>{request.department}</TableCell>
+                  <TableCell>
+                    {request.requester ?? (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {request.department ?? (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className={numericCellClass}>
                     {request.amount === null ? (
                       <span

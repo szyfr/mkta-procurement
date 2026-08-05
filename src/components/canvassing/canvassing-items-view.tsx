@@ -119,9 +119,13 @@ export function CanvassingItemsView({ id }: { id: string }) {
             <span className="font-mono text-base">{request.no}</span>
           </span>
         }
-        description={`${request.department} · ${itemCount} ${
-          itemCount === 1 ? "item" : "items"
-        } · not all items need to go to the same vendor`}
+        description={[
+          request.department,
+          `${itemCount} ${itemCount === 1 ? "item" : "items"}`,
+          "not all items need to go to the same vendor",
+        ]
+          .filter(Boolean)
+          .join(" · ")}
       />
 
       <Card>

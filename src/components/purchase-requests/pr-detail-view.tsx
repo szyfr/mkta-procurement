@@ -39,7 +39,10 @@ import {
 
 /** Summary line under the title, assembled from whatever the backend gave us. */
 function metaLine(request: PurchaseRequest) {
-  const parts = [request.requester, request.department];
+  // The detail response joins no requester, so that part is usually absent here.
+  const parts = [request.requester, request.department].filter(
+    (part): part is string => Boolean(part),
+  );
 
   // No submitted/completed/rejected timestamps are stored, so the created date
   // is the only point in the request's history we can show.
@@ -361,11 +364,11 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
               <dl className="divide-y text-xs">
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <dt className="text-muted-foreground">Requester</dt>
-                  <dd>{request.requester}</dd>
+                  <dd>{request.requester ?? "—"}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <dt className="text-muted-foreground">Department</dt>
-                  <dd>{request.department}</dd>
+                  <dd>{request.department ?? "—"}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <dt className="text-muted-foreground">Date needed</dt>
