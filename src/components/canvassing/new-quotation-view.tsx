@@ -39,13 +39,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/toast";
-import type { LookupOption } from "@/lib/lookup";
+import type { SelectedOption } from "@/lib/lookup";
 import { formatCurrency } from "@/lib/utils";
 import { canvassingKeys, createQuotation } from "@/modules/canvassing";
-import {
-  fetchPaymentTermOptions,
-  paymentTermKeys,
-} from "@/modules/payment-terms";
+import { fetchPaymentTerms, paymentTermKeys } from "@/modules/payment-terms";
 import {
   fetchVendorOptions,
   purchaseRequestDetailQuery,
@@ -59,35 +56,13 @@ import {
  * date and one set of payment terms cover every item it prices, which is why
  * the items arrive as a list and only their unit prices vary.
  *
- * Saving records the quote and nothing more. Awarding is a separate endpoint
- * that isn't wired up, so the comparison table's winner selection stays
- * disabled — see `canvassing.dal.ts` for why.
+ * Saving records the quote and nothing more; awarding a vendor is a separate
+ * step on the comparison screen.
  */
 
 /** Both pickers page through the BFF; only their fetcher differs. */
-const loadVendorPage = ({
-  page,
-  pageSize,
-  search,
-  signal,
-}: {
-  page: number;
-  pageSize: number;
-  search: string;
-  signal: AbortSignal;
-}) => fetchVendorOptions({ page, pageSize, search, signal });
-
-const loadPaymentTermPage = ({
-  page,
-  pageSize,
-  search,
-  signal,
-}: {
-  page: number;
-  pageSize: number;
-  search: string;
-  signal: AbortSignal;
-}) => fetchPaymentTermOptions({ page, pageSize, search, signal });
+const loadVendorPage = fetchVendorOptions;
+const loadPaymentTermPage = fetchPaymentTerms;
 
 /**
  * The backend accepts any file at any size and stores it straight to S3, so
@@ -125,8 +100,8 @@ export function NewQuotationView({
     error,
   } = useQuery(purchaseRequestDetailQuery(purchaseRequestId));
 
-  const [vendor, setVendor] = React.useState<LookupOption | null>(null);
-  const [paymentTerm, setPaymentTerm] = React.useState<LookupOption | null>(
+  const [vendor, setVendor] = React.useState<SelectedOption | null>(null);
+  const [paymentTerm, setPaymentTerm] = React.useState<SelectedOption | null>(
     null,
   );
   const [referenceNo, setReferenceNo] = React.useState("");
@@ -149,7 +124,7 @@ export function NewQuotationView({
     onSuccess: (created) => {
       toast.add({
         title: "Quote saved",
-        description: `${created.referenceNo} is now in the comparison. Selecting a winner is a separate step.`,
+        description: `${created.reference_no} is now in the comparison. Selecting a winner is a separate step.`,
         type: "success",
       });
 
@@ -200,7 +175,7 @@ export function NewQuotationView({
    * appear in the comparison.
    */
   const items = request.items.filter(
-    (item) => itemIds.includes(item.id) && item.sourcing === "canvassing",
+    (item) => itemIds.includes(item._id) && item.is_needs_canvass,
   );
 
   if (items.length === 0) {
@@ -229,7 +204,7 @@ export function NewQuotationView({
   }
 
   const total = items.reduce(
-    (sum, item) => sum + item.quantity * (Number(unitPrices[item.id]) || 0),
+    (sum, item) => sum + item.quantity * (Number(unitPrices[item._id]) || 0),
     0,
   );
 
@@ -244,13 +219,13 @@ export function NewQuotationView({
     if (!paymentTerm) nextErrors.paymentTerm = "Payment terms are required.";
 
     const priced = items.map((item) => ({
-      itemId: item.id,
-      unitPrice: Number(unitPrices[item.id]),
+      item_id: item._id,
+      unit_price: Number(unitPrices[item._id]),
     }));
 
-    if (priced.some((price) => !Number.isFinite(price.unitPrice))) {
+    if (priced.some((price) => !Number.isFinite(price.unit_price))) {
       nextErrors.pricing = "Every item needs a unit price.";
-    } else if (priced.some((price) => price.unitPrice < 0)) {
+    } else if (priced.some((price) => price.unit_price < 0)) {
       nextErrors.pricing = "Unit prices can't be negative.";
     }
 
@@ -260,14 +235,14 @@ export function NewQuotationView({
 
     return {
       payload: {
-        referenceNo: referenceNo.trim(),
+        reference_no: referenceNo.trim(),
         date,
-        deliveryDate,
-        // `LookupOption.id` is the vendor's Mongo `_id`, which is what the
+        delivery_date: deliveryDate,
+        // The picker's id is the vendor's Mongo `_id`, which is what the
         // upstream `vendor_id` wants — not the ERP field of the same name.
-        vendorId: vendor?.id ?? "",
-        paymentTermId: paymentTerm?.id ?? "",
-        itemPricing: priced,
+        vendor_id: vendor?.id ?? "",
+        payment_term_id: paymentTerm?.id ?? "",
+        item_pricing: priced,
       },
       attachments,
     };
@@ -341,12 +316,22 @@ export function NewQuotationView({
                 value={vendor}
                 queryKey={purchaseRequestKeys.vendorOptions()}
                 loadPage={loadVendorPage}
+                toOption={(record) => ({
+                  id: record._id,
+                  // Some synced vendors have a blank name; the number is the
+                  // only other thing that identifies them.
+                  label: record.name?.trim() || record.no,
+                  hint: record.no,
+                })}
                 placeholder="Select vendor"
                 searchPlaceholder="Search vendors…"
                 ariaLabel="Vendor"
                 aria-invalid={fieldErrors.vendor ? true : undefined}
-                onSelect={(option) => {
-                  setVendor(option);
+                onSelect={(record) => {
+                  setVendor({
+                    id: record._id,
+                    label: record.name?.trim() || record.no,
+                  });
                   clearFieldError("vendor");
                 }}
               />
@@ -379,12 +364,24 @@ export function NewQuotationView({
                 value={paymentTerm}
                 queryKey={paymentTermKeys.options()}
                 loadPage={loadPaymentTermPage}
+                toOption={(record) => ({
+                  id: record._id,
+                  // Seeded terms occasionally have a blank title; the
+                  // description is the only other thing that names them.
+                  label:
+                    record.title?.trim() || record.description || record._id,
+                  hint: record.description || undefined,
+                })}
                 placeholder="Select terms"
                 searchPlaceholder="Search payment terms…"
                 ariaLabel="Payment terms"
                 aria-invalid={fieldErrors.paymentTerm ? true : undefined}
-                onSelect={(option) => {
-                  setPaymentTerm(option);
+                onSelect={(record) => {
+                  setPaymentTerm({
+                    id: record._id,
+                    label:
+                      record.title?.trim() || record.description || record._id,
+                  });
                   clearFieldError("paymentTerm");
                 }}
               />
@@ -462,29 +459,32 @@ export function NewQuotationView({
             </TableHeader>
             <TableBody>
               {items.map((item) => {
-                const unitPrice = Number(unitPrices[item.id]) || 0;
+                const unitPrice = Number(unitPrices[item._id]) || 0;
+                // The detail pipeline joins the material; the raw id stands in
+                // if the lookup missed.
+                const name = item.material?.description || item.material_id;
 
                 return (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.name}</TableCell>
+                  <TableRow key={item._id}>
+                    <TableCell>{name}</TableCell>
                     <TableCell>
                       {item.quantity}
-                      {item.unit ? ` ${item.unit}` : ""}
+                      {item.material?.uom ? ` ${item.material.uom}` : ""}
                     </TableCell>
                     <TableCell>
                       <Input
                         type="number"
                         min={0}
                         step="0.01"
-                        value={unitPrices[item.id] ?? ""}
+                        value={unitPrices[item._id] ?? ""}
                         placeholder="0.00"
-                        aria-label={`Unit price for ${item.name}`}
+                        aria-label={`Unit price for ${name}`}
                         aria-invalid={fieldErrors.pricing ? true : undefined}
                         className="h-8 w-28"
                         onChange={(event) => {
                           setUnitPrices((current) => ({
                             ...current,
-                            [item.id]: event.target.value,
+                            [item._id]: event.target.value,
                           }));
                           clearFieldError("pricing");
                         }}

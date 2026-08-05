@@ -40,14 +40,15 @@ Two layers are both called "client" — do not conflate them:
 
 | Layer | Runs | Talks to | Never touches |
 |---|---|---|---|
-| `modules/*/api/client.ts` | browser | own-origin `/api/*` only | FastAPI, snake_case DTOs |
+| `modules/*/api/client.ts` | browser | own-origin `/api/*` only | FastAPI's address, `serverFetch` |
 | `modules/*/dal/*.dal.ts` | server, inside Route Handlers | FastAPI only | React |
 
 Consequences that are easy to get wrong:
 
 - **Module barrels (`modules/*/index.ts`) deliberately omit the DAL.** Route Handlers import DALs by full path (`@/modules/purchase-requests/dal/purchase-request.dal`) so a DAL can never be pulled into a client bundle through the barrel. Keep it that way when adding exports.
 - `lib/api/fetcher.ts` (`serverFetch`) is the *only* place the server calls FastAPI; DALs use it and nothing else does.
-- `lib/api/bff-client.ts` (`bffRequest`) is the *only* place the browser issues fetches. Route Handlers already return models, so responses pass through untransformed.
+- `lib/api/bff-client.ts` (`bffRequest`) is the *only* place the browser issues fetches.
+- **The BFF is a proxy, not a translator.** A DAL hands back the FastAPI response as it arrived and the Route Handler wraps it in `{ data }` — nothing is renamed, reshaped or reformatted on the way through, so the browser works in `snake_case` and `_id` exactly as the backend does. The one deliberate exception is auth (below), where the upstream body carries secrets that must not leave the server.
 - Route Handlers return `{ data }` on success and `{ error: { message } }` on failure. `bffRequest` unwraps `.data`; `toErrorResponse` builds the failure envelope.
 
 ## Module layout
@@ -58,18 +59,21 @@ Feature modules under `src/modules/<feature>/` follow **Module + DAL + DTO**:
 api/client.ts        browser calls against the BFF
 api/endpoints.ts     every BFF path the feature may call (relative, own origin)
 dal/*.dal.ts         server-side FastAPI reads/writes
-dto/                 the FastAPI contract, snake_case, verbatim
-models/              what the UI renders, camelCase
-mappers/             DTO → model; the only place the two shapes meet
+models/              the FastAPI response shape, verbatim — what components render
+dto/                 request contracts only (create/update bodies)
 validation/          request-body parsing for Route Handlers, throws ApiError(422)
 queries/             TanStack Query keys + queryOptions factories
-constants/           status labels, tones, page sizes, enum maps
+constants/           status labels, tones, page sizes
 index.ts             public surface (no DAL)
 ```
 
+There is no `mappers/`. A response has one shape and it is the backend's: `models/` declares it and every layer above reads it directly. `dto/` holds request bodies only — a resource whose writes take the same fields it returns needs no response DTO at all, and vendors (read-only) have no `dto/` directory.
+
 `purchase-requests`, `departments`, `vendors`, `payment-terms`, `canvassing` and `auth` exist. New modules should mirror this. `auth` adds `hooks/` (the sign-in and sign-out mutations) and keeps its cookie writer beside the DAL, so both stay out of the barrel.
 
-Transformation logic belongs in `mappers/`. Route Handlers stay thin: parse params → call DAL → wrap in `Response.json({ data })` → `catch` → `toErrorResponse(error)`.
+Route Handlers stay thin: parse params → call DAL → wrap in `Response.json({ data })` → `catch` → `toErrorResponse(error)`.
+
+Display concerns — date formatting, status labels, priority copy, "fall back to the id when a join missed" — belong at the render site or in the module's `constants/`, not in a layer between the response and the component. `lib/date.ts` (`formatDate`, `formatShortDate`, `toDateInputValue`) is what tables and detail panels call on a raw timestamp.
 
 ## Authentication
 
@@ -81,7 +85,7 @@ Cookie-based, and the BFF boundary is what makes it work: FastAPI's cookies are 
 - CSRF is a double submit completed **server-side**: the BFF holds the token in an HttpOnly cookie and echoes it in `X-XSRF-TOKEN`. `SameSite=Lax` is the actual cross-site defense at our own boundary.
 - Route protection is two layers, per the Next.js auth guide. `src/proxy.ts` (Next 16's renamed middleware) does the cheap check — no session cookie, no protected page. The `(dashboard)` layout and the login page do the authoritative one via `getOptionalUser()`, because only FastAPI can say whether a token is still valid. Never bounce off cookie presence in both directions or the two layers will loop.
 - "Am I signed in?" is always a question for the backend (`GET /api/auth/session` → `/auth/me`), never a decoded token.
-- `/auth/me` returns the stored user document, hashed password included. `mappers/auth.mapper.ts` is what keeps it server-side; do not widen `CurrentUserDto`.
+- `/auth/me` returns the stored user document, hashed password included, and `/auth/login` returns the raw JWT. These are the **only** two responses the BFF does not pass through: `getCurrentUser` drops `password` before returning, and `signIn` splits the token off so it can go into an HttpOnly cookie and nowhere else. Keep both projections; they are a security boundary, not a mapping layer.
 
 ## Errors
 
@@ -97,7 +101,7 @@ Query definitions live in the module's `queries/`, not the component, so keys an
 
 ## Mock data still in play
 
-`src/data/*` is static mock data. Purchase Requests, Departments, Vendors, Payment Terms and the signed-in user are wired to the real backend; **Dashboard, Reports, Settings/Users, notifications and global search are still mock-driven**. The user's role and department have no backend source — `/auth/me` carries a permission list and no organizational placement — so the My Account panel leaves both blank. When a backend endpoint doesn't exist yet, keep the page functional with its existing empty state — do not invent data, and document the gap. Several fields on `PurchaseRequest` (`amount`, `estimatedUnitCost`) are permanently `null` because no backend source exists; the comments in `lib/types.ts` record which.
+`src/data/*` is static mock data. Purchase Requests, Departments, Vendors, Payment Terms and the signed-in user are wired to the real backend; **Dashboard, Reports, Settings/Users, notifications and global search are still mock-driven**. The user's role and department have no backend source — `/auth/me` carries a permission list and no organizational placement — so the My Account panel leaves both blank. When a backend endpoint doesn't exist yet, keep the page functional with its existing empty state — do not invent data, and document the gap. Columns with no backend source are rendered as a literal em-dash at the call site rather than carried as a permanently-null field — a request has no stored amount and materials sync without a cost, so the Amount column is empty everywhere and the comment beside it says why.
 
 ## UI conventions
 

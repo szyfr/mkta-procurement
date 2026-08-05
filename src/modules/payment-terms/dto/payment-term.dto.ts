@@ -1,19 +1,9 @@
 /**
- * The `/payment-terms` contract, mirroring FastAPI exactly — snake_case,
- * `_id` keys. List responses arrive in the shared pagination envelope
- * (`lib/api/pagination`).
+ * Request contracts for the payment term writes, mirroring FastAPI exactly.
  *
- * A payment term is only `title` and `description` upstream. There is no
- * `days` field and no numeric net period to render or sort on.
+ * There is no response DTO: every read and write answers with the payment term
+ * document itself, and that shape is the model — see `models/payment-term`.
  */
-
-export interface PaymentTermDto {
-  _id: string;
-  title: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
 
 export interface CreatePaymentTermDto {
   title: string;

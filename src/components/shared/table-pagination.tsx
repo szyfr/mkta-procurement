@@ -7,7 +7,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import type { PageInfo } from "@/lib/api/pagination";
+// Aliased only because shadcn's `Pagination` component shares the name.
+import type { Pagination as PaginationEnvelope } from "@/lib/api/pagination";
 
 /** Page numbers to render, windowed so long result sets stay readable. */
 function pageWindow(current: number, total: number) {
@@ -20,6 +21,9 @@ function pageWindow(current: number, total: number) {
 /**
  * Footer every paginated list card ends with: how much of the collection is on
  * screen, plus the page links when there is more than one page.
+ *
+ * Reads the backend's pagination envelope as it arrives — `total_items`,
+ * `next_page` and the rest are the field names FastAPI sent.
  */
 export function TablePagination({
   shown,
@@ -28,45 +32,47 @@ export function TablePagination({
 }: {
   /** Rows currently rendered, which is the page size on all but the last page. */
   shown: number;
-  page: PageInfo;
+  page: PaginationEnvelope;
   /** Keeps any other URL state (e.g. the cards/table view) intact while paging. */
   buildPageHref: (page: number) => string;
 }) {
   return (
     <CardFooter className="justify-between gap-2 text-xs text-muted-foreground">
       <span>
-        Showing {shown} of {page.totalItems}
+        Showing {shown} of {page.total_items}
       </span>
-      {page.totalPages > 1 ? (
+      {page.total_pages > 1 ? (
         <Pagination className="mx-0 w-auto">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                href={buildPageHref(page.prevPage ?? 1)}
-                aria-disabled={page.prevPage === null}
+                href={buildPageHref(page.prev_page ?? 1)}
+                aria-disabled={page.prev_page === null}
                 className={
-                  page.prevPage === null
+                  page.prev_page === null
                     ? "pointer-events-none opacity-50"
                     : undefined
                 }
               />
             </PaginationItem>
-            {pageWindow(page.currentPage, page.totalPages).map((pageNumber) => (
-              <PaginationItem key={pageNumber}>
-                <PaginationLink
-                  href={buildPageHref(pageNumber)}
-                  isActive={pageNumber === page.currentPage}
-                >
-                  {pageNumber}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {pageWindow(page.current_page, page.total_pages).map(
+              (pageNumber) => (
+                <PaginationItem key={pageNumber}>
+                  <PaginationLink
+                    href={buildPageHref(pageNumber)}
+                    isActive={pageNumber === page.current_page}
+                  >
+                    {pageNumber}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
             <PaginationItem>
               <PaginationNext
-                href={buildPageHref(page.nextPage ?? page.totalPages)}
-                aria-disabled={page.nextPage === null}
+                href={buildPageHref(page.next_page ?? page.total_pages)}
+                aria-disabled={page.next_page === null}
                 className={
-                  page.nextPage === null
+                  page.next_page === null
                     ? "pointer-events-none opacity-50"
                     : undefined
                 }

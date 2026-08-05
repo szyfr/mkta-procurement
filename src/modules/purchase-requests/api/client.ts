@@ -1,18 +1,23 @@
 import { bffRequest } from "@/lib/api/bff-client";
+import type { Paginated } from "@/lib/api/pagination";
+import type { Department } from "@/modules/departments";
 import { purchaseRequestEndpoints } from "@/modules/purchase-requests/api/endpoints";
 import type {
-  CreatePurchaseRequestPayload,
-  LookupPage,
+  CreatePurchaseRequestInput,
+  UpdatePurchaseRequestDto,
+} from "@/modules/purchase-requests/dto";
+import type { Material } from "@/modules/purchase-requests/models/material";
+import type {
   PurchaseRequest,
-  PurchaseRequestList,
+  PurchaseRequestDetail,
   SettablePurchaseRequestStatus,
-  UpdatePurchaseRequestPayload,
 } from "@/modules/purchase-requests/models/purchase-request";
+import type { Vendor } from "@/modules/vendors";
 
 /**
  * Purchase request calls against the BFF. Runs in the browser and knows nothing
- * about FastAPI — Route Handlers return models already, so responses pass
- * straight through. The transport itself lives in `lib/api/bff-client`.
+ * about FastAPI's address — Route Handlers pass the upstream response through
+ * untouched. The transport itself lives in `lib/api/bff-client`.
  */
 
 export interface ListPurchaseRequestsParams {
@@ -32,20 +37,21 @@ export function fetchPurchaseRequests({
   departments,
   signal,
 }: ListPurchaseRequestsParams = {}) {
-  return bffRequest<PurchaseRequestList>(purchaseRequestEndpoints.list, {
+  return bffRequest<Paginated<PurchaseRequest>>(purchaseRequestEndpoints.list, {
     query: { page, search, priority, departments },
     signal,
   });
 }
 
 export function fetchPurchaseRequest(id: string, signal?: AbortSignal) {
-  return bffRequest<PurchaseRequest>(purchaseRequestEndpoints.detail(id), {
-    signal,
-  });
+  return bffRequest<PurchaseRequestDetail>(
+    purchaseRequestEndpoints.detail(id),
+    { signal },
+  );
 }
 
-export function createPurchaseRequest(payload: CreatePurchaseRequestPayload) {
-  return bffRequest<PurchaseRequest>(purchaseRequestEndpoints.create, {
+export function createPurchaseRequest(payload: CreatePurchaseRequestInput) {
+  return bffRequest<PurchaseRequestDetail>(purchaseRequestEndpoints.create, {
     method: "POST",
     body: payload,
   });
@@ -53,12 +59,12 @@ export function createPurchaseRequest(payload: CreatePurchaseRequestPayload) {
 
 export function updatePurchaseRequest(
   id: string,
-  payload: UpdatePurchaseRequestPayload,
+  payload: UpdatePurchaseRequestDto,
 ) {
-  return bffRequest<PurchaseRequest>(purchaseRequestEndpoints.detail(id), {
-    method: "PUT",
-    body: payload,
-  });
+  return bffRequest<PurchaseRequestDetail>(
+    purchaseRequestEndpoints.detail(id),
+    { method: "PUT", body: payload },
+  );
 }
 
 /**
@@ -76,17 +82,22 @@ export function setPurchaseRequestStatus(
   });
 }
 
-export function fetchDepartmentOptions(signal?: AbortSignal) {
-  return bffRequest<LookupPage>(purchaseRequestEndpoints.departments, {
-    signal,
-  });
-}
-
 export interface LookupParams {
   page?: number;
   pageSize?: number;
   search?: string;
   signal?: AbortSignal;
+}
+
+export function fetchDepartmentOptions({
+  page,
+  pageSize,
+  signal,
+}: LookupParams = {}) {
+  return bffRequest<Paginated<Department>>(
+    purchaseRequestEndpoints.departments,
+    { query: { page, pageSize }, signal },
+  );
 }
 
 export function fetchMaterialOptions({
@@ -95,7 +106,7 @@ export function fetchMaterialOptions({
   search,
   signal,
 }: LookupParams = {}) {
-  return bffRequest<LookupPage>(purchaseRequestEndpoints.materials, {
+  return bffRequest<Paginated<Material>>(purchaseRequestEndpoints.materials, {
     query: { page, pageSize, search },
     signal,
   });
@@ -107,7 +118,7 @@ export function fetchVendorOptions({
   search,
   signal,
 }: LookupParams = {}) {
-  return bffRequest<LookupPage>(purchaseRequestEndpoints.vendors, {
+  return bffRequest<Paginated<Vendor>>(purchaseRequestEndpoints.vendors, {
     query: { page, pageSize, search },
     signal,
   });

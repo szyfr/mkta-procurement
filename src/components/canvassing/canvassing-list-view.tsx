@@ -35,7 +35,7 @@ export function CanvassingListView({ page }: { page: number }) {
     return <TableSkeleton columns={8} />;
   }
 
-  const { entries, page: pageInfo } = data;
+  const { data: entries, pagination } = data;
 
   if (entries.length === 0) {
     // Richer than the shared `EmptyState` on purpose: there is a next step to
@@ -74,7 +74,7 @@ export function CanvassingListView({ page }: { page: number }) {
   return (
     <CanvassingTable
       entries={entries}
-      page={pageInfo}
+      page={pagination}
       buildPageHref={(next) => buildPageHref("/canvassing", next)}
     />
   );

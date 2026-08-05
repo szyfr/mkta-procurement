@@ -23,13 +23,13 @@ import { deleteDepartment, departmentKeys } from "@/modules/departments";
 export function DeleteDepartmentDialog({
   department,
 }: {
-  department: { id: string; title: string };
+  department: { _id: string; title: string };
 }) {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
   const { mutate: remove, isPending: deleting } = useMutation({
-    mutationFn: () => deleteDepartment(department.id),
+    mutationFn: () => deleteDepartment(department._id),
     onSuccess: () => {
       toast.add({
         title: "Department deleted",

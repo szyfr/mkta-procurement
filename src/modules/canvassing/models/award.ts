@@ -1,21 +1,30 @@
 /**
- * What an award looks like once recorded. camelCase, ids left unresolved — the
- * response carries no joins, so there is nothing to render from it beyond a
- * confirmation that the write landed.
+ * The `PATCH /canvassing/award/{quotation_id}` response, verbatim.
+ *
+ * It carries one award document per item that succeeded and, since awards are
+ * keyed by (purchase request, material) and a second one is rejected rather
+ * than replacing the first, one issue per item that already had an award on
+ * record. The award documents carry no joins, so there is nothing to render
+ * from them beyond a confirmation that the write landed.
  */
 
 export interface CanvassAward {
-  id: string;
-  quotationId: string;
-  /** The item's stored vendor, which is what the backend awards. */
-  vendorId: string;
-  purchaseRequestId: string;
-  materialId: string;
+  _id: string;
+  quotation_id: string;
+  /**
+   * Copied from the purchase request *item*, not from the awarded quotation —
+   * the endpoint never reads the quote's vendor. See `awardQuotation`.
+   */
+  vendor_id: string;
+  purchase_request_id: string;
+  material_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
-/** Why one item in an award request was refused — surfaced as UI validation. */
+/** One item the award endpoint refused, and why. Surfaced as UI validation. */
 export interface CanvassAwardIssue {
-  itemId: string;
+  item_id: string;
   message: string;
 }
 

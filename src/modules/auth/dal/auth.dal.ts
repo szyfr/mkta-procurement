@@ -7,10 +7,6 @@ import type {
   LoginRequestDto,
   LoginResponseDto,
 } from "@/modules/auth/dto/auth.dto";
-import {
-  toAuthenticatedUser,
-  toSignedInUser,
-} from "@/modules/auth/mappers/auth.mapper";
 import type {
   AuthenticatedUser,
   Credentials,
@@ -80,7 +76,7 @@ export async function signIn(
 ): Promise<SignInResult> {
   const token = csrfToken ?? (await requestCsrfToken());
 
-  const dto = await serverFetch<LoginResponseDto>("/auth/login", {
+  const response = await serverFetch<LoginResponseDto>("/auth/login", {
     method: "POST",
     body: {
       email: credentials.email,
@@ -95,9 +91,11 @@ export async function signIn(
   });
 
   return {
-    user: toSignedInUser(dto),
-    accessToken: dto.token.access_token,
-    expiresIn: dto.token.expires_in,
+    // Only `user` crosses back to the Route Handler; the token is split off
+    // here so it can go into a cookie and nowhere else.
+    user: response.user,
+    accessToken: response.token.access_token,
+    expiresIn: response.token.expires_in,
     csrfToken: token,
   };
 }
@@ -108,9 +106,13 @@ export async function signIn(
  * — the cookie's presence is not.
  */
 export async function getCurrentUser(): Promise<AuthenticatedUser> {
-  const dto = await serverFetch<CurrentUserDto>("/auth/me");
+  const { password: _password, ...user } =
+    await serverFetch<CurrentUserDto>("/auth/me");
 
-  return toAuthenticatedUser(dto);
+  // The one field that is not passed through. `/auth/me` answers with the
+  // stored user document, bcrypt hash included, and this is the boundary it
+  // stops at — the rest of the response is handed on as it arrived.
+  return user;
 }
 
 /** `null` instead of throwing, for the page shells that redirect on their own. */

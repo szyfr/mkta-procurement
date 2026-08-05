@@ -1,17 +1,9 @@
 /**
- * Response/request contracts, mirroring FastAPI exactly — snake_case, `_id`
- * keys. These never reach React components; the mapper converts them to
- * models first. The pagination envelope they arrive in is shared — see
- * `lib/api/pagination`.
+ * Request contracts for the department writes, mirroring FastAPI exactly.
+ *
+ * There is no response DTO: `GET`/`POST`/`PUT` all answer with the department
+ * document itself, and that shape is the model — see `models/department`.
  */
-
-export interface DepartmentDto {
-  _id: string;
-  title: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
 
 export interface CreateDepartmentDto {
   title: string;

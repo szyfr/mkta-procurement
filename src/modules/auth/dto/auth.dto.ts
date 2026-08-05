@@ -1,6 +1,12 @@
+import type { SignedInUser } from "@/modules/auth/models/session";
+
 /**
- * The FastAPI `/auth` contract, verbatim. Server-side only — these shapes stop
- * at the mappers and never reach the browser.
+ * The FastAPI `/auth` contracts that do not reach the browser.
+ *
+ * `LoginResponseDto` is the one response shape still declared as a DTO: its
+ * payload carries the raw JWT, so the sign-in route takes the token out and
+ * writes it to an HttpOnly cookie instead of passing the response through.
+ * Everything else the BFF serves is handed back as it arrived.
  */
 
 export interface LoginRequestDto {
@@ -10,12 +16,7 @@ export interface LoginRequestDto {
 
 export interface LoginResponseDto {
   status: number;
-  user: {
-    _id: string;
-    email: string;
-    /** Already joined upstream from `firstname` and `lastname`. */
-    name: string;
-  };
+  user: SignedInUser;
   token: {
     access_token: string;
     token_type: string;
@@ -25,15 +26,11 @@ export interface LoginResponseDto {
 }
 
 /**
- * `GET /auth/me`.
+ * `GET /auth/me`, as it actually arrives.
  *
- * Its response model extends the stored user document, so the payload also
- * carries `password` — the bcrypt hash. It is deliberately absent from this
- * interface: nothing downstream should be able to reach for it, and
- * `toAuthenticatedUser` is what keeps it from leaving the server.
- *
- * The id arrives as `_id` (FastAPI serializes response models by alias) but the
- * handler also sets a plain `id`, so both spellings are accepted.
+ * Its response model extends the stored user document, so the payload carries
+ * `password` — the bcrypt hash. It is declared here precisely so the DAL can
+ * name the field it drops; nothing downstream should ever see this type.
  */
 export interface CurrentUserDto {
   _id?: string;
@@ -42,4 +39,5 @@ export interface CurrentUserDto {
   firstname: string;
   lastname: string;
   permissions?: string[];
+  password?: string;
 }

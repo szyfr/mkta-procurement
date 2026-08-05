@@ -14,10 +14,8 @@ import { DataToolbar } from "@/components/shared/data-toolbar";
 import { EmptyState, ErrorAlert } from "@/components/shared/query-states";
 import { TableSkeleton } from "@/components/shared/table-skeleton";
 import { buildPageHref } from "@/lib/page-href";
-import type { Priority } from "@/lib/types";
 import {
   departmentOptionsQuery,
-  priorityToDto,
   purchaseRequestListQuery,
 } from "@/modules/purchase-requests";
 
@@ -43,11 +41,12 @@ const statusFilter = {
   ],
 };
 
-const priorityLabels: Priority[] = ["High", "Normal", "Low"];
-const priorityOptions = priorityLabels.map((label) => ({
-  label,
-  value: priorityToDto[label],
-}));
+/** The backend's own values; the labels are the display copy for them. */
+const priorityOptions = [
+  { label: "High", value: "high" },
+  { label: "Normal", value: "normal" },
+  { label: "Low", value: "low" },
+];
 
 const dateFilter = {
   label: "Date",
@@ -128,9 +127,9 @@ export function PurchaseRequestListView({
 
   const departmentSelectOptions = React.useMemo(
     () =>
-      departmentOptions.data?.options.map((option) => ({
-        label: option.label,
-        value: option.id,
+      departmentOptions.data?.data.map((department) => ({
+        label: department.title,
+        value: department._id,
       })) ?? [],
     [departmentOptions.data],
   );
@@ -183,7 +182,7 @@ export function PurchaseRequestListView({
         ) : (
           <PurchaseRequestCardsSkeleton />
         )
-      ) : data.requests.length === 0 ? (
+      ) : data.data.length === 0 ? (
         hasActiveFilters ? (
           <EmptyState
             variant="no-results"
@@ -200,14 +199,14 @@ export function PurchaseRequestListView({
         )
       ) : view === "table" ? (
         <PurchaseRequestTable
-          requests={data.requests}
-          page={data.page}
+          requests={data.data}
+          page={data.pagination}
           buildPageHref={tablePageHref}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {data.requests.map((request) => (
-            <PurchaseRequestCard key={request.id} request={request} />
+          {data.data.map((request) => (
+            <PurchaseRequestCard key={request._id} request={request} />
           ))}
         </div>
       )}

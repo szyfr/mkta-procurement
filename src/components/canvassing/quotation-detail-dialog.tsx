@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatShortDate } from "@/lib/date";
 import { cn, formatCurrency } from "@/lib/utils";
 import { quotationDetailQuery } from "@/modules/canvassing";
 
@@ -29,7 +30,7 @@ export function QuotationDetailDialog({
   itemName,
 }: {
   quotationId: string;
-  /** Which row in `itemPricing` is the one this dialog was opened from. */
+  /** Which row in `item_pricing` is the one this dialog was opened from. */
   itemId: string;
   itemName: string;
 }) {
@@ -47,7 +48,7 @@ export function QuotationDetailDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Quotation {data?.referenceNo ?? ""}</DialogTitle>
+          <DialogTitle>Quotation {data?.reference_no ?? ""}</DialogTitle>
         </DialogHeader>
 
         {isError ? (
@@ -63,27 +64,27 @@ export function QuotationDetailDialog({
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
               <div>
                 <dt className="text-xs text-muted-foreground">Reference No.</dt>
-                <dd>{data.referenceNo}</dd>
+                <dd>{data.reference_no}</dd>
               </div>
               <div>
                 {/* No vendor join upstream — the id stands in for the name. */}
                 <dt className="text-xs text-muted-foreground">Vendor ID</dt>
-                <dd className="font-mono text-xs">{data.vendorId}</dd>
+                <dd className="font-mono text-xs">{data.vendor_id}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Quote Date</dt>
-                <dd>{data.quotedOn ?? "—"}</dd>
+                <dd>{formatShortDate(data.date) ?? "—"}</dd>
               </div>
               <div>
                 <dt className="text-xs text-muted-foreground">Delivery Date</dt>
-                <dd>{data.deliveryDate ?? "—"}</dd>
+                <dd>{formatShortDate(data.delivery_date) ?? "—"}</dd>
               </div>
               <div>
                 {/* Payment terms have their own module, but nothing here resolves this id to it. */}
                 <dt className="text-xs text-muted-foreground">
                   Payment Term ID
                 </dt>
-                <dd className="font-mono text-xs">{data.paymentTermId}</dd>
+                <dd className="font-mono text-xs">{data.payment_term_id}</dd>
               </div>
             </dl>
 
@@ -92,18 +93,18 @@ export function QuotationDetailDialog({
                 Items Priced
               </span>
               <ul className="flex flex-col divide-y rounded-md border">
-                {data.itemPricing.map((pricing) => (
+                {data.item_pricing.map((pricing) => (
                   <li
-                    key={pricing.itemId}
+                    key={pricing.item_id}
                     className={cn(
                       "flex items-center justify-between px-3 py-2",
-                      pricing.itemId === itemId && "bg-accent",
+                      pricing.item_id === itemId && "bg-accent",
                     )}
                   >
                     <span className="font-mono text-xs">
-                      {pricing.itemId === itemId ? itemName : pricing.itemId}
+                      {pricing.item_id === itemId ? itemName : pricing.item_id}
                     </span>
-                    <span>{formatCurrency(pricing.unitPrice, true)}</span>
+                    <span>{formatCurrency(pricing.unit_price, true)}</span>
                   </li>
                 ))}
               </ul>
@@ -118,7 +119,7 @@ export function QuotationDetailDialog({
               ) : (
                 <ul className="flex flex-col gap-1">
                   {data.documents.map((document) => (
-                    <li key={document.id}>
+                    <li key={document._id}>
                       <a
                         href={document.url}
                         target="_blank"

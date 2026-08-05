@@ -21,7 +21,7 @@ export function VendorListView({ page }: { page: number }) {
     return <TableSkeleton />;
   }
 
-  const { vendors, page: pageInfo } = data;
+  const { data: vendors, pagination } = data;
 
   if (vendors.length === 0) {
     return (
@@ -36,7 +36,7 @@ export function VendorListView({ page }: { page: number }) {
   return (
     <VendorTable
       vendors={vendors}
-      page={pageInfo}
+      page={pagination}
       buildPageHref={(next) => buildPageHref("/vendors", next)}
     />
   );

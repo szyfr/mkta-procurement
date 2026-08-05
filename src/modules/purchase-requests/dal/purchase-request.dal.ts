@@ -1,30 +1,25 @@
 import { ApiError } from "@/lib/api/errors";
 import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
-import {
-  clampPageSize,
-  type PaginatedDto,
-  toPageInfo,
-} from "@/lib/api/pagination";
+import { clampPageSize, type Paginated } from "@/lib/api/pagination";
 import { getCurrentUser } from "@/modules/auth/dal/auth.dal";
+import { userId } from "@/modules/auth/models/session";
 import { DEFAULT_PAGE_SIZE } from "@/modules/purchase-requests/constants";
 import type {
   CreatePurchaseRequestDto,
-  PurchaseRequestDetailDto,
-  PurchaseRequestDto,
-  PurchaseRequestStatusDto,
+  CreatePurchaseRequestInput,
   UpdatePurchaseRequestDto,
 } from "@/modules/purchase-requests/dto";
-import { toPurchaseRequest } from "@/modules/purchase-requests/mappers/purchase-request.mapper";
 import type {
-  CreatePurchaseRequestPayload,
   PurchaseRequest,
-  PurchaseRequestList,
+  PurchaseRequestDetail,
+  PurchaseRequestStatus,
 } from "@/modules/purchase-requests/models/purchase-request";
 
 /**
  * Purchase request reads and writes against FastAPI. Server-side only, called
- * from Route Handlers — never from a component.
+ * from Route Handlers — never from a component. Every read hands back the
+ * upstream response as it arrived.
  */
 
 const NOT_FOUND = "Purchase request not found";
@@ -39,91 +34,68 @@ export interface ListPurchaseRequestsQuery {
   departments?: string;
 }
 
-export async function listPurchaseRequests(
+export function listPurchaseRequests(
   query: ListPurchaseRequestsQuery = {},
-): Promise<PurchaseRequestList> {
-  const response = await serverFetch<PaginatedDto<PurchaseRequestDto>>(
-    "/purchase-requests",
-    {
-      query: {
-        page: query.page ?? 1,
-        page_size: clampPageSize(query.pageSize, DEFAULT_PAGE_SIZE),
-        search: query.search,
-        priority: query.priority,
-        departments: query.departments,
-      },
+): Promise<Paginated<PurchaseRequest>> {
+  return serverFetch<Paginated<PurchaseRequest>>("/purchase-requests", {
+    query: {
+      page: query.page ?? 1,
+      page_size: clampPageSize(query.pageSize, DEFAULT_PAGE_SIZE),
+      search: query.search,
+      priority: query.priority,
+      departments: query.departments,
     },
-  );
-
-  return {
-    requests: response.data.map(toPurchaseRequest),
-    page: toPageInfo(response.pagination),
-  };
+  });
 }
 
-export async function getPurchaseRequest(id: string): Promise<PurchaseRequest> {
+export async function getPurchaseRequest(
+  id: string,
+): Promise<PurchaseRequestDetail> {
   assertObjectId(id, NOT_FOUND);
 
-  const dto = await serverFetch<PurchaseRequestDetailDto | null>(
+  const request = await serverFetch<PurchaseRequestDetail | null>(
     `/purchase-requests/${id}`,
   );
 
   // `get_full_details` returns a bare `null` body when the aggregation misses.
-  if (!dto) {
+  if (!request) {
     throw new ApiError(404, "not_found", NOT_FOUND);
   }
 
-  return toPurchaseRequest(dto);
+  return request;
 }
 
 export async function createPurchaseRequest(
-  input: CreatePurchaseRequestPayload,
-): Promise<PurchaseRequest> {
+  input: CreatePurchaseRequestInput,
+): Promise<PurchaseRequestDetail> {
   // Supplied server-side from the session cookie; the browser never picks its
   // own requester. Also means an unauthenticated POST fails here with the
   // same 401 `getCurrentUser` throws for any other read.
   const requester = await getCurrentUser();
 
   const payload: CreatePurchaseRequestDto = {
-    requester_id: requester.id,
-    department_id: input.departmentId,
-    title: input.title,
-    date_needed: input.dateNeeded,
-    priority: input.priority,
-    justification: input.justification,
-    items: input.items.map((item) => ({
-      material_id: item.materialId,
-      quantity: item.quantity,
-      vendor_id: item.vendorId || null,
-    })),
-    status: input.status,
+    ...input,
+    requester_id: userId(requester),
   };
 
-  const dto = await serverFetch<PurchaseRequestDetailDto>(
-    "/purchase-requests",
-    {
-      method: "POST",
-      body: payload,
-    },
-  );
-
-  // The create response carries no material join, so items map to bare ids
-  // here. Callers that need full items re-read the request by id.
-  return toPurchaseRequest(dto);
+  // The create response carries no material join, so its items name only ids.
+  // Callers that need full items re-read the request by id.
+  return serverFetch<PurchaseRequestDetail>("/purchase-requests", {
+    method: "POST",
+    body: payload,
+  });
 }
 
-export async function updatePurchaseRequest(
+export function updatePurchaseRequest(
   id: string,
   input: UpdatePurchaseRequestDto,
-): Promise<PurchaseRequest> {
+): Promise<PurchaseRequestDetail> {
   assertObjectId(id, NOT_FOUND);
 
-  const dto = await serverFetch<PurchaseRequestDetailDto>(
-    `/purchase-requests/${id}`,
-    { method: "PUT", body: input },
-  );
-
-  return toPurchaseRequest(dto);
+  return serverFetch<PurchaseRequestDetail>(`/purchase-requests/${id}`, {
+    method: "PUT",
+    body: input,
+  });
 }
 
 /**
@@ -138,7 +110,7 @@ export async function updatePurchaseRequest(
  */
 export async function updatePurchaseRequestStatus(
   id: string,
-  status: PurchaseRequestStatusDto,
+  status: PurchaseRequestStatus,
 ): Promise<void> {
   assertObjectId(id, NOT_FOUND);
 

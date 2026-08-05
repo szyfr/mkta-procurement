@@ -6,7 +6,7 @@ import {
   getPurchaseRequest,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests/dal/purchase-request.dal";
-import { toUpdateDto } from "@/modules/purchase-requests/validation/purchase-request.validation";
+import { parseUpdatePayload } from "@/modules/purchase-requests/validation/purchase-request.validation";
 
 /**
  * BFF for a single purchase request.
@@ -36,7 +36,7 @@ export async function PUT(
     const { id } = await context.params;
     const body = await request.json().catch(() => null);
 
-    const updated = await updatePurchaseRequest(id, toUpdateDto(body));
+    const updated = await updatePurchaseRequest(id, parseUpdatePayload(body));
 
     return Response.json({ data: updated });
   } catch (error) {

@@ -41,7 +41,7 @@ export function NewPurchaseRequestForm() {
     error,
   } = useMutation({
     mutationFn: createPurchaseRequest,
-    onSuccess: (created) => router.push(`/purchase-requests/${created.id}`),
+    onSuccess: (created) => router.push(`/purchase-requests/${created._id}`),
   });
 
   function submit(status: "draft" | "pending") {

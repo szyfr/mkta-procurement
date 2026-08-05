@@ -12,8 +12,7 @@ import { parsePaymentTermPayload } from "@/modules/payment-terms/validation/paym
 /**
  * BFF for the payment term collection. Serves both the Payment Terms
  * management screen and the quotation form's picker — the picker passes its
- * own `pageSize` and `search`, and `fetchPaymentTermOptions` (browser-side)
- * adapts this route's full-model response into a `LookupPage`.
+ * own `pageSize` and `search` and reads the records as they arrive.
  */
 
 export async function GET(request: NextRequest) {

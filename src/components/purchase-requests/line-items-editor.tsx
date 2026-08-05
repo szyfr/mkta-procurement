@@ -169,18 +169,27 @@ export function LineItemsEditor({
                     }
                     queryKey={purchaseRequestKeys.materialOptions()}
                     loadPage={fetchMaterialOptions}
+                    toOption={(material) => ({
+                      id: material._id,
+                      label: material.description || material.no,
+                      hint: material.no,
+                    })}
                     placeholder="Select an item"
                     searchPlaceholder="Search the catalog…"
                     ariaLabel={`Item for line ${index + 1}`}
-                    onSelect={(option) =>
+                    onSelect={(material) =>
                       updateLine(line.key, {
-                        materialId: option.id,
-                        materialName: option.label,
-                        unit: option.unit ?? null,
-                        unitCost: option.unitCost ?? null,
+                        materialId: material._id,
+                        materialName: material.description || material.no,
+                        unit: material.uom || null,
+                        // `last_cost` is declared by the backend schema but
+                        // absent from every synced material.
+                        unitCost: material.last_cost ?? null,
                         // Canvassed items get their vendor during canvassing,
                         // so any previously chosen vendor is dropped.
-                        sourcing: option.needsCanvass ? "canvassing" : "direct",
+                        sourcing: material.is_needs_canvass
+                          ? "canvassing"
+                          : "direct",
                         vendorId: null,
                         vendorName: null,
                       })
@@ -261,13 +270,20 @@ export function LineItemsEditor({
                       }
                       queryKey={purchaseRequestKeys.vendorOptions()}
                       loadPage={fetchVendorOptions}
+                      toOption={(vendor) => ({
+                        id: vendor._id,
+                        // Some synced vendors have a blank name; the number is
+                        // the only other thing that identifies them.
+                        label: vendor.name?.trim() || vendor.no,
+                        hint: vendor.no,
+                      })}
                       placeholder="Select a vendor"
                       searchPlaceholder="Search vendors…"
                       ariaLabel={`Vendor for line ${index + 1}`}
-                      onSelect={(option) =>
+                      onSelect={(vendor) =>
                         updateLine(line.key, {
-                          vendorId: option.id,
-                          vendorName: option.label,
+                          vendorId: vendor._id,
+                          vendorName: vendor.name?.trim() || vendor.no,
                         })
                       }
                     />

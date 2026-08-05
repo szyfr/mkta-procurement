@@ -1,23 +1,14 @@
 import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
-import {
-  clampPageSize,
-  type PaginatedDto,
-  toPageInfo,
-} from "@/lib/api/pagination";
+import { clampPageSize, type Paginated } from "@/lib/api/pagination";
 import { DEFAULT_PAGE_SIZE } from "@/modules/canvassing/constants";
-import type {
-  AwardQuotationResponseDto,
-  CanvassingEntryDto,
-} from "@/modules/canvassing/dto";
-import { toAwardQuotationResult } from "@/modules/canvassing/mappers/award.mapper";
-import { toCanvassingEntry } from "@/modules/canvassing/mappers/canvassing.mapper";
 import type { AwardQuotationResult } from "@/modules/canvassing/models/award";
-import type { CanvassingList } from "@/modules/canvassing/models/canvassing";
+import type { CanvassingEntry } from "@/modules/canvassing/models/canvassing";
 
 /**
  * Canvassing reads and awards against FastAPI. Server-side only, called from
- * Route Handlers — never from a component.
+ * Route Handlers — never from a component. The upstream response is handed
+ * back as it arrived.
  *
  * The list and the award live here; the quote comparison is in
  * `quotation.dal.ts`. There is no by-id read for a canvassing case at all.
@@ -30,23 +21,15 @@ export interface ListCanvassingQuery {
   pageSize?: number;
 }
 
-export async function listCanvassing(
+export function listCanvassing(
   query: ListCanvassingQuery = {},
-): Promise<CanvassingList> {
-  const response = await serverFetch<PaginatedDto<CanvassingEntryDto>>(
-    "/canvassing",
-    {
-      query: {
-        page: query.page ?? 1,
-        page_size: clampPageSize(query.pageSize, DEFAULT_PAGE_SIZE),
-      },
+): Promise<Paginated<CanvassingEntry>> {
+  return serverFetch<Paginated<CanvassingEntry>>("/canvassing", {
+    query: {
+      page: query.page ?? 1,
+      page_size: clampPageSize(query.pageSize, DEFAULT_PAGE_SIZE),
     },
-  );
-
-  return {
-    entries: response.data.map(toCanvassingEntry),
-    page: toPageInfo(response.pagination),
-  };
+  });
 }
 
 /**
@@ -62,16 +45,14 @@ export async function listCanvassing(
  *   pair isn't inserted, and comes back as an `issues` entry instead of an
  *   award — the caller renders those as validation, not a thrown error.
  */
-export async function awardQuotation(
+export function awardQuotation(
   quotationId: string,
   itemIds: string[],
 ): Promise<AwardQuotationResult> {
   assertObjectId(quotationId, NOT_FOUND);
 
-  const dto = await serverFetch<AwardQuotationResponseDto>(
-    `/canvassing/award/${quotationId}`,
-    { method: "PATCH", body: { items: itemIds } },
-  );
-
-  return toAwardQuotationResult(dto);
+  return serverFetch<AwardQuotationResult>(`/canvassing/award/${quotationId}`, {
+    method: "PATCH",
+    body: { items: itemIds },
+  });
 }

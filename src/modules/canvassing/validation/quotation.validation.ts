@@ -1,9 +1,7 @@
 import { ApiError } from "@/lib/api/errors";
 import { isObjectId } from "@/lib/api/object-id";
-import type {
-  CreateQuotationPayload,
-  QuotationItemPrice,
-} from "@/modules/canvassing/models/quotation";
+import type { CreateQuotationDto } from "@/modules/canvassing/dto";
+import type { QuotationItemPricing } from "@/modules/canvassing/models/quotation";
 
 /**
  * Request-body parsing for the quotation Route Handler.
@@ -52,7 +50,7 @@ function readObjectId(form: FormData, field: string, label: string): string {
   return value;
 }
 
-function parseItemPricing(raw: string): QuotationItemPrice[] {
+function parseItemPricing(raw: string): QuotationItemPricing[] {
   if (!raw) throw invalid("Price at least one item.");
 
   let parsed: unknown;
@@ -68,39 +66,39 @@ function parseItemPricing(raw: string): QuotationItemPrice[] {
   }
 
   return parsed.map((entry, index) => {
-    const row = entry as Partial<QuotationItemPrice> | null;
+    const row = entry as Partial<QuotationItemPricing> | null;
     const position = index + 1;
 
-    if (!row || !isObjectId(row.itemId)) {
+    if (!row || !isObjectId(row.item_id)) {
       throw invalid(`Item ${position} is not a valid purchase request item.`);
     }
 
-    if (!Number.isFinite(row.unitPrice) || (row.unitPrice as number) < 0) {
+    if (!Number.isFinite(row.unit_price) || (row.unit_price as number) < 0) {
       throw invalid(`Item ${position} needs a unit price of zero or more.`);
     }
 
-    return { itemId: row.itemId, unitPrice: row.unitPrice as number };
+    return { item_id: row.item_id, unit_price: row.unit_price as number };
   });
 }
 
 /**
  * The browser posts `multipart/form-data` because the upstream does, so the
- * scalars arrive as strings and `itemPricing` as a JSON blob in one field.
+ * scalars arrive as strings and `item_pricing` as a JSON blob in one field.
  */
 export function parseCreateQuotationForm(form: FormData): {
-  payload: CreateQuotationPayload;
+  payload: CreateQuotationDto;
   attachments: File[];
 } {
-  const referenceNo = readText(form, "referenceNo");
+  const referenceNo = readText(form, "reference_no");
   if (!referenceNo) throw invalid("Quote reference number is required.");
 
-  const payload: CreateQuotationPayload = {
-    referenceNo,
+  const payload: CreateQuotationDto = {
+    reference_no: referenceNo,
     date: readDate(form, "date", "Quote date"),
-    deliveryDate: readDate(form, "deliveryDate", "Delivery date"),
-    vendorId: readObjectId(form, "vendorId", "Vendor"),
-    paymentTermId: readObjectId(form, "paymentTermId", "Payment term"),
-    itemPricing: parseItemPricing(readText(form, "itemPricing")),
+    delivery_date: readDate(form, "delivery_date", "Delivery date"),
+    vendor_id: readObjectId(form, "vendor_id", "Vendor"),
+    payment_term_id: readObjectId(form, "payment_term_id", "Payment term"),
+    item_pricing: parseItemPricing(readText(form, "item_pricing")),
   };
 
   // Empty parts are what a file input contributes when nothing was picked.

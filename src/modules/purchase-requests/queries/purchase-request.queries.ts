@@ -62,14 +62,13 @@ export function purchaseRequestDetailQuery(id: string) {
 }
 
 /**
- * Departments as a flat option list. Used by the list toolbar filter; the
- * create/edit forms read the same endpoint through the picker's infinite
- * query instead, since it expects a paged shape.
+ * The department collection for the list toolbar's filter. The create/edit
+ * forms read the same endpoint through the picker's own infinite query.
  */
 export function departmentOptionsQuery() {
   return queryOptions({
     queryKey: purchaseRequestKeys.departmentOptions(),
-    queryFn: ({ signal }) => fetchDepartmentOptions(signal),
+    queryFn: ({ signal }) => fetchDepartmentOptions({ signal }),
     // Departments change rarely and this only shapes a filter; an hour keeps
     // it from refetching on every visit to the list.
     staleTime: 60 * 60 * 1000,

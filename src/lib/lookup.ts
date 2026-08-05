@@ -1,35 +1,20 @@
-import type { PageInfo } from "@/lib/api/pagination";
-
 /**
  * Reference-data picking, shared by every feature that has to resolve an id
  * against a collection too large to enumerate — materials, vendors, payment
  * terms. The picker that renders these is `components/shared/lookup-picker`.
  *
- * These started out inside the Purchase Requests module. They live here now
- * because Canvassing needs the same shapes, and a shared component may not
- * reach into a feature module for its own types.
+ * There is no `LookupOption` here any more: the picker reads the backend
+ * records as they arrive and the caller says which fields are the label and
+ * the hint, so nothing has to be reshaped into a common option type first.
  */
 
-/** A selectable reference record — a department, material, vendor or payment term. */
-export interface LookupOption {
+/**
+ * What a picker keeps once a record is chosen: the id it will submit and the
+ * label it shows. Pure UI state — it holds a selection, not a response.
+ */
+export interface SelectedOption {
   id: string;
   label: string;
-  /** Secondary line in the picker, e.g. a material or vendor number. */
-  hint?: string;
-  /** Materials only: drives the item's sourcing mode. */
-  needsCanvass?: boolean;
-  /** Materials only: unit of measure. */
-  unit?: string | null;
-  /**
-   * Materials only: last known cost, used to prefill an estimate. Null for
-   * every material currently synced from Business Central.
-   */
-  unitCost?: number | null;
-}
-
-export interface LookupPage {
-  options: LookupOption[];
-  page: PageInfo;
 }
 
 /** Page size for the reference pickers. */

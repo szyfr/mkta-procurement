@@ -2,14 +2,10 @@
 
 import { LineItemsEditor } from "@/components/purchase-requests/line-items-editor";
 import {
-  type PriorityValue,
   type PurchaseRequestFormState,
   priorities,
 } from "@/components/purchase-requests/use-pr-form";
-import {
-  LookupPicker,
-  singlePageLoader,
-} from "@/components/shared/lookup-picker";
+import { LookupPicker } from "@/components/shared/lookup-picker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
@@ -28,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { Priority } from "@/lib/types";
 import {
   fetchDepartmentOptions,
   purchaseRequestKeys,
@@ -39,8 +36,8 @@ import {
  * differs between the two, so it is passed in.
  */
 
-/** Departments are a short list, so they arrive in one page. */
-const loadDepartmentPage = singlePageLoader(fetchDepartmentOptions);
+/** Departments are a short list, so they normally arrive in a single page. */
+const loadDepartmentPage = fetchDepartmentOptions;
 
 export function PurchaseRequestFormLayout({
   form,
@@ -93,12 +90,20 @@ export function PurchaseRequestFormLayout({
                   value={form.department}
                   queryKey={purchaseRequestKeys.departmentOptions()}
                   loadPage={loadDepartmentPage}
+                  toOption={(department) => ({
+                    id: department._id,
+                    label: department.title,
+                    hint: department.description || undefined,
+                  })}
                   placeholder="Select department"
                   searchPlaceholder="Search departments…"
                   ariaLabel="Department"
                   aria-invalid={fieldErrors.department ? true : undefined}
-                  onSelect={(option) => {
-                    form.setDepartment(option);
+                  onSelect={(department) => {
+                    form.setDepartment({
+                      id: department._id,
+                      label: department.title,
+                    });
                     form.clearFieldError("department");
                   }}
                 />
@@ -130,9 +135,7 @@ export function PurchaseRequestFormLayout({
                 <Select
                   items={priorities}
                   value={form.priority}
-                  onValueChange={(value) =>
-                    form.setPriority(value as PriorityValue)
-                  }
+                  onValueChange={(value) => form.setPriority(value as Priority)}
                 >
                   <SelectTrigger
                     size="sm"

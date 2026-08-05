@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import type { DepartmentPayload } from "@/modules/departments";
+import type { CreateDepartmentDto } from "@/modules/departments";
 
 /**
  * Title/description fields shared by the create and edit dialogs. Owns field
@@ -29,11 +29,11 @@ export function DepartmentForm({
   onSubmit,
   onCancel,
 }: {
-  initialValues?: DepartmentPayload;
+  initialValues?: CreateDepartmentDto;
   submitLabel: string;
   submitting: boolean;
   error: string | null;
-  onSubmit: (values: DepartmentPayload) => void;
+  onSubmit: (values: CreateDepartmentDto) => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = React.useState(initialValues?.title ?? "");

@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
 import {
+  type CreatePaymentTermDto,
   createPaymentTerm,
   type PaymentTerm,
-  type PaymentTermPayload,
   paymentTermKeys,
   updatePaymentTerm,
 } from "@/modules/payment-terms";
@@ -43,9 +43,9 @@ export function PaymentTermFormDialog({
     error,
     reset,
   } = useMutation({
-    mutationFn: (values: PaymentTermPayload) =>
+    mutationFn: (values: CreatePaymentTermDto) =>
       isEdit && paymentTerm
-        ? updatePaymentTerm(paymentTerm.id, values)
+        ? updatePaymentTerm(paymentTerm._id, values)
         : createPaymentTerm(values),
     onSuccess: (_saved, values) => {
       toast.add({
@@ -82,7 +82,7 @@ export function PaymentTermFormDialog({
         </DialogHeader>
 
         <PaymentTermForm
-          key={paymentTerm?.id ?? "create"}
+          key={paymentTerm?._id ?? "create"}
           initialValues={
             paymentTerm
               ? {

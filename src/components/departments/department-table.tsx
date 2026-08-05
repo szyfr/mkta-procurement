@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PageInfo } from "@/lib/api/pagination";
+import type { Pagination } from "@/lib/api/pagination";
+import { formatDate } from "@/lib/date";
 import type { Department } from "@/modules/departments";
 
 export function DepartmentTable({
@@ -23,7 +24,7 @@ export function DepartmentTable({
   onEdit,
 }: {
   departments: Department[];
-  page: PageInfo;
+  page: Pagination;
   buildPageHref: (page: number) => string;
   onEdit: (department: Department) => void;
 }) {
@@ -44,7 +45,7 @@ export function DepartmentTable({
           </TableHeader>
           <TableBody>
             {departments.map((department) => (
-              <TableRow key={department.id}>
+              <TableRow key={department._id}>
                 <TableCell className="font-medium">
                   {department.title}
                 </TableCell>
@@ -54,10 +55,10 @@ export function DepartmentTable({
                   )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {department.createdAt ?? "—"}
+                  {formatDate(department.created_at) ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {department.updatedAt ?? "—"}
+                  {formatDate(department.updated_at) ?? "—"}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">

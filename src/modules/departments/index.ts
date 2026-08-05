@@ -10,12 +10,14 @@
 export {
   createDepartment,
   deleteDepartment,
+  fetchDepartments,
   updateDepartment,
 } from "@/modules/departments/api/client";
 export type {
-  Department,
-  DepartmentPayload,
-} from "@/modules/departments/models/department";
+  CreateDepartmentDto,
+  UpdateDepartmentDto,
+} from "@/modules/departments/dto";
+export type { Department } from "@/modules/departments/models/department";
 export {
   departmentKeys,
   departmentListQuery,

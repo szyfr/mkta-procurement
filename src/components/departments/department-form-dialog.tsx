@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toast";
 import {
+  type CreateDepartmentDto,
   createDepartment,
   type Department,
-  type DepartmentPayload,
   departmentKeys,
   updateDepartment,
 } from "@/modules/departments";
@@ -43,9 +43,9 @@ export function DepartmentFormDialog({
     error,
     reset,
   } = useMutation({
-    mutationFn: (values: DepartmentPayload) =>
+    mutationFn: (values: CreateDepartmentDto) =>
       isEdit && department
-        ? updateDepartment(department.id, values)
+        ? updateDepartment(department._id, values)
         : createDepartment(values),
     onSuccess: (_saved, values) => {
       toast.add({
@@ -82,7 +82,7 @@ export function DepartmentFormDialog({
         </DialogHeader>
 
         <DepartmentForm
-          key={department?.id ?? "create"}
+          key={department?._id ?? "create"}
           initialValues={
             department
               ? { title: department.title, description: department.description }

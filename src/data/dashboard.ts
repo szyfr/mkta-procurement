@@ -21,7 +21,7 @@ export const actionableRequests: ActionableRequest[] = [
     amount: 84200,
     step: "PO Created — proof needed",
     stepTone: "ordered",
-    priority: "High",
+    priority: "high",
   },
   {
     id: "PR-2026-0115",
@@ -30,7 +30,7 @@ export const actionableRequests: ActionableRequest[] = [
     amount: 212000,
     step: "Canvassing — Batch 1",
     stepTone: "info",
-    priority: "Normal",
+    priority: "normal",
   },
   {
     id: "PR-2026-0116",
@@ -39,7 +39,7 @@ export const actionableRequests: ActionableRequest[] = [
     amount: 15750,
     step: "Comparison Ready — needs vendor selection",
     stepTone: "neutral",
-    priority: "Low",
+    priority: "low",
   },
   {
     id: "PR-2026-0117",
@@ -48,7 +48,7 @@ export const actionableRequests: ActionableRequest[] = [
     amount: 6300,
     step: "PO Created — proof needed",
     stepTone: "ordered",
-    priority: "Normal",
+    priority: "normal",
   },
   {
     id: "PR-2026-0113",
@@ -57,7 +57,7 @@ export const actionableRequests: ActionableRequest[] = [
     amount: 27800,
     step: "Comparison Ready — Batch 1",
     stepTone: "neutral",
-    priority: "Normal",
+    priority: "normal",
   },
   {
     id: "PR-2026-0112",
@@ -66,7 +66,7 @@ export const actionableRequests: ActionableRequest[] = [
     amount: 11400,
     step: "Exemption Approval Needed",
     stepTone: "warning",
-    priority: "High",
+    priority: "high",
   },
 ];
 

@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PageInfo } from "@/lib/api/pagination";
+import type { Pagination } from "@/lib/api/pagination";
+import { formatDate } from "@/lib/date";
 import type { PaymentTerm } from "@/modules/payment-terms";
 
 export function PaymentTermTable({
@@ -23,7 +24,7 @@ export function PaymentTermTable({
   onEdit,
 }: {
   paymentTerms: PaymentTerm[];
-  page: PageInfo;
+  page: Pagination;
   buildPageHref: (page: number) => string;
   onEdit: (paymentTerm: PaymentTerm) => void;
 }) {
@@ -44,7 +45,7 @@ export function PaymentTermTable({
           </TableHeader>
           <TableBody>
             {paymentTerms.map((paymentTerm) => (
-              <TableRow key={paymentTerm.id}>
+              <TableRow key={paymentTerm._id}>
                 <TableCell className="font-medium">
                   {paymentTerm.title}
                 </TableCell>
@@ -54,10 +55,10 @@ export function PaymentTermTable({
                   )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {paymentTerm.createdAt ?? "—"}
+                  {formatDate(paymentTerm.created_at) ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {paymentTerm.updatedAt ?? "—"}
+                  {formatDate(paymentTerm.updated_at) ?? "—"}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">

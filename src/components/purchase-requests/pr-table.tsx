@@ -17,10 +17,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PageInfo } from "@/lib/api/pagination";
-import { formatCurrency } from "@/lib/utils";
+import type { Pagination } from "@/lib/api/pagination";
+import { formatShortDate } from "@/lib/date";
 import {
   type PurchaseRequest,
+  purchaseRequestStatusLabels,
   purchaseRequestTone,
 } from "@/modules/purchase-requests";
 
@@ -30,7 +31,7 @@ export function PurchaseRequestTable({
   buildPageHref,
 }: {
   requests: PurchaseRequest[];
-  page: PageInfo;
+  page: Pagination;
   /** Keeps the current view (cards/table) intact while changing pages. */
   buildPageHref: (page: number) => string;
 }) {
@@ -57,49 +58,47 @@ export function PurchaseRequestTable({
           </TableHeader>
           <TableBody>
             {requests.map((request) => {
-              const href = `/purchase-requests/${request.id}`;
+              const href = `/purchase-requests/${request._id}`;
               const needsProof =
                 request.status === "po-created" ||
                 request.status === "partially-completed";
 
               return (
-                <TableRow key={request.id}>
+                <TableRow key={request._id}>
                   <TableCell className={cellIdClass}>{request.no}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {request.title ?? <span className="italic">Untitled</span>}
+                    {request.title || <span className="italic">Untitled</span>}
                   </TableCell>
                   <TableCell>
-                    {request.requester ?? (
+                    {request.requester_name || (
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
                   <TableCell>
-                    {request.department ?? (
+                    {request.department_name || (
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
+                  {/* No amount is stored on a request and materials sync
+                      without a cost, so there is nothing to total. */}
                   <TableCell className={numericCellClass}>
-                    {request.amount === null ? (
-                      <span
-                        className="text-muted-foreground"
-                        title="No estimated amount on file"
-                      >
-                        —
-                      </span>
-                    ) : (
-                      formatCurrency(request.amount)
-                    )}
+                    <span
+                      className="text-muted-foreground"
+                      title="No estimated amount on file"
+                    >
+                      —
+                    </span>
                   </TableCell>
                   <TableCell>
                     <PriorityBadge priority={request.priority} />
                   </TableCell>
                   <TableCell>
                     <StatusBadge tone={purchaseRequestTone[request.status]}>
-                      {request.statusLabel}
+                      {purchaseRequestStatusLabels[request.status]}
                     </StatusBadge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {request.createdAt ?? "Not submitted"}
+                    {formatShortDate(request.created_at) ?? "Not submitted"}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col items-start gap-1 text-xs">
