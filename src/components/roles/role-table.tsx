@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  CopyIcon,
   EyeIcon,
   MoreVerticalIcon,
   PencilIcon,
@@ -9,15 +8,13 @@ import {
   Trash2Icon,
 } from "lucide-react";
 
-import {
-  AssigneeStack,
-  RoleStatusBadge,
-} from "@/components/roles/role-primitives";
+import { GrantChip } from "@/components/roles/role-primitives";
 import {
   dropdownContentClass,
   dropdownItemClass,
 } from "@/components/shared/menu-classes";
 import { dataTableClass } from "@/components/shared/table-classes";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,7 +24,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -36,52 +32,61 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { totalPermissionCount } from "@/data/roles";
-import type { Role } from "@/lib/types";
+import type { Pagination } from "@/lib/api/pagination";
+import { formatDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import type { Role } from "@/modules/roles";
 
 /**
  * The roles list. The whole row opens the read-only sheet; the actions menu
  * stops the click from reaching it so a menu item never opens both.
+ *
+ * `total_permissions` comes from `GET /permissions`, not from the role
+ * itself — the backend has no role type, status or assignee data, so those
+ * columns render a literal em-dash.
  */
 export function RoleTable({
   roles,
+  page,
+  buildPageHref,
+  totalPermissions,
   openRoleId,
   onView,
   onEdit,
-  onDuplicate,
   onDelete,
 }: {
   roles: Role[];
+  page: Pagination;
+  buildPageHref: (page: number) => string;
+  totalPermissions: number;
   /** Row left tinted while its sheet is open. */
   openRoleId?: string | null;
   onView: (role: Role) => void;
   onEdit: (role: Role) => void;
-  onDuplicate: (role: Role) => void;
   onDelete: (role: Role) => void;
 }) {
   return (
     <Card>
       <CardContent className="px-0">
-        <Table className={cn("min-w-[1080px]", dataTableClass)}>
+        <Table className={cn("min-w-[960px]", dataTableClass)}>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead scope="col" className="w-[24%]">
                 Role
               </TableHead>
-              <TableHead scope="col" className="w-[28%]">
+              <TableHead scope="col" className="w-[30%]">
                 Description
               </TableHead>
-              <TableHead scope="col" className="w-[150px]">
+              <TableHead scope="col" className="w-[130px]">
                 Assigned users
               </TableHead>
               <TableHead scope="col" className="w-[170px]">
                 Permissions
               </TableHead>
-              <TableHead scope="col" className="w-[110px]">
+              <TableHead scope="col" className="w-[100px]">
                 Status
               </TableHead>
-              <TableHead scope="col" className="w-[150px]">
+              <TableHead scope="col" className="w-[140px]">
                 Last updated
               </TableHead>
               <TableHead scope="col" className="w-[56px]">
@@ -91,13 +96,13 @@ export function RoleTable({
           </TableHeader>
           <TableBody>
             {roles.map((role) => {
-              const granted = role.permissions.length;
+              const granted = role.permission_ids.length;
 
               return (
                 <TableRow
-                  key={role.id}
+                  key={role._id}
                   className="cursor-pointer hover:bg-accent aria-selected:bg-accent"
-                  aria-selected={openRoleId === role.id}
+                  aria-selected={openRoleId === role._id}
                   onClick={() => onView(role)}
                 >
                   <TableCell className="align-middle">
@@ -109,18 +114,11 @@ export function RoleTable({
                         <ShieldIcon className="size-3.5" />
                       </span>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="truncate font-semibold">
-                            {role.name}
-                          </span>
-                          {role.isSystem ? (
-                            <span className="inline-flex h-[18px] shrink-0 items-center rounded-md border border-border bg-muted px-1.5 text-[10px] font-semibold text-muted-foreground">
-                              System
-                            </span>
-                          ) : null}
-                        </div>
+                        <span className="truncate font-semibold">
+                          {role.title}
+                        </span>
                         <p className="truncate font-mono text-xs text-muted-foreground">
-                          {role.key}
+                          —
                         </p>
                       </div>
                     </div>
@@ -130,8 +128,8 @@ export function RoleTable({
                       {role.description}
                     </p>
                   </TableCell>
-                  <TableCell className="align-middle">
-                    <AssigneeStack assignees={role.assignees} />
+                  <TableCell className="align-middle text-xs text-muted-foreground">
+                    —
                   </TableCell>
                   <TableCell className="align-middle">
                     <div className="flex flex-col gap-1.5">
@@ -140,23 +138,18 @@ export function RoleTable({
                           {granted}
                         </span>{" "}
                         <span className="text-muted-foreground">
-                          of {totalPermissionCount}
+                          of {totalPermissions}
                         </span>
                       </p>
-                      <Progress
-                        value={(granted / totalPermissionCount) * 100}
-                        aria-label={`${granted} of ${totalPermissionCount} permissions granted`}
-                        className="w-[110px] gap-0"
-                      />
+                      <GrantChip granted={granted} total={totalPermissions} />
                     </div>
                   </TableCell>
-                  <TableCell className="align-middle">
-                    <RoleStatusBadge status={role.status} />
+                  <TableCell className="align-middle text-xs text-muted-foreground">
+                    —
                   </TableCell>
                   <TableCell className="align-middle">
-                    <p className="text-xs">{role.updatedAt}</p>
-                    <p className="text-xs text-muted-foreground">
-                      by {role.updatedBy}
+                    <p className="text-xs">
+                      {formatDate(role.updated_at) ?? "—"}
                     </p>
                   </TableCell>
                   <TableCell className="align-middle">
@@ -170,7 +163,7 @@ export function RoleTable({
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              aria-label={`Actions for ${role.name}`}
+                              aria-label={`Actions for ${role.title}`}
                             />
                           }
                         >
@@ -194,13 +187,6 @@ export function RoleTable({
                             <PencilIcon />
                             Edit role
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className={dropdownItemClass}
-                            onClick={() => onDuplicate(role)}
-                          >
-                            <CopyIcon />
-                            Duplicate
-                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             variant="destructive"
@@ -220,6 +206,11 @@ export function RoleTable({
           </TableBody>
         </Table>
       </CardContent>
+      <TablePagination
+        shown={roles.length}
+        page={page}
+        buildPageHref={buildPageHref}
+      />
     </Card>
   );
 }
