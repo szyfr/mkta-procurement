@@ -56,9 +56,9 @@ export interface Deadline {
 }
 
 /**
- * Canvassing's wireframe types are gone: batches, quote minimums and exemption
- * flags described a model the backend never grew, and the screens that used
- * them now read `modules/canvassing` instead.
+ * Canvassing's wireframe types are gone — batches, quote minimums and
+ * exemption flags described a model the backend never grew; those screens now
+ * read `modules/canvassing` instead.
  */
 
 export type NotificationGroup = "today" | "earlier";
