@@ -34,7 +34,7 @@ export function PaymentTermListView({
     return <TableSkeleton />;
   }
 
-  const { paymentTerms, page: pageInfo } = data;
+  const { data: paymentTerms, pagination } = data;
 
   if (paymentTerms.length === 0) {
     return (
@@ -49,7 +49,7 @@ export function PaymentTermListView({
   return (
     <PaymentTermTable
       paymentTerms={paymentTerms}
-      page={pageInfo}
+      page={pagination}
       buildPageHref={(next) => buildPageHref("/payment-terms", next)}
       onEdit={onEdit}
     />

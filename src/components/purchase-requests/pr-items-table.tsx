@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import {
-  type PurchaseRequest,
+  type PurchaseRequestDetail,
   purchaseRequestItemStatusLabels,
   purchaseRequestItemTone,
 } from "@/modules/purchase-requests";
@@ -25,7 +25,7 @@ import {
 export function PurchaseRequestItemsTable({
   request,
 }: {
-  request: PurchaseRequest;
+  request: PurchaseRequestDetail;
 }) {
   return (
     <Table className={dataTableClass}>
@@ -45,19 +45,22 @@ export function PurchaseRequestItemsTable({
       <TableBody>
         {request.items.map((item) => (
           <TableRow
-            key={item.id}
+            key={item._id}
             className={cn(
               item.status === "completed" && "bg-status-success-subtle",
             )}
           >
-            <TableCell>{item.name}</TableCell>
+            {/* The detail pipeline joins the material; the raw id stands in
+                if the lookup missed. */}
+            <TableCell>
+              {item.material?.description || item.material_id}
+            </TableCell>
             <TableCell className={numericCellClass}>{item.quantity}</TableCell>
             <TableCell>
-              {item.vendor ?? (
+              {/* The backend joins no vendor, so the id is the only label. */}
+              {item.vendor_id || (
                 <span className="text-muted-foreground italic">
-                  {item.sourcing === "canvassing"
-                    ? "Empty — in canvassing"
-                    : "Not set"}
+                  {item.is_needs_canvass ? "Empty — in canvassing" : "Not set"}
                 </span>
               )}
             </TableCell>
@@ -77,7 +80,7 @@ export function PurchaseRequestItemsTable({
                 </span>
               ) : item.status === "canvassing" ? (
                 <Link
-                  href={`/purchase-requests/${request.id}/canvassing`}
+                  href={`/purchase-requests/${request._id}/canvassing`}
                   className="text-xs text-muted-foreground hover:underline"
                 >
                   View Canvassing

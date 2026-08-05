@@ -1,6 +1,7 @@
 "use client";
 
-import { DownloadIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { PlusIcon, SearchIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
@@ -14,7 +15,6 @@ import {
   RolesNoResults,
 } from "@/components/roles/role-list-states";
 import { RoleTable } from "@/components/roles/role-table";
-import { FilterSelect } from "@/components/shared/filter-select";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,36 +22,20 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { permissionModules, roles, totalPermissionCount } from "@/data/roles";
-import type { Role } from "@/lib/types";
+import { buildPageHref } from "@/lib/page-href";
+import { permissionListQuery } from "@/modules/permissions";
+import type { Role } from "@/modules/roles";
+import { roleListQuery } from "@/modules/roles";
 
 /**
- * Administration → Roles & Permissions.
+ * Administration → Roles & Permissions, wired to the BFF.
  *
- * Static throughout: `src/data/roles.ts` is the only source, because FastAPI
- * has no roles endpoint yet. Filtering runs over that array, and saving or
- * deleting confirms with a toast without changing anything. The five list
- * states are selectable with `?state=` so each can be reviewed on its own.
+ * Create, edit and delete stay UI-only: FastAPI has no write endpoints for
+ * roles yet, so those dialogs still open but only confirm with a toast (edit)
+ * or disable the destructive action outright (delete).
  */
 
-export type RolesListState =
-  | "default"
-  | "loading"
-  | "empty"
-  | "no-results"
-  | "error";
-
 const SEARCH_DEBOUNCE_MS = 300;
-
-const statusOptions = [
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
-];
-
-const typeOptions = [
-  { label: "System roles", value: "system" },
-  { label: "Custom roles", value: "custom" },
-];
 
 /** Overlay currently on top of the list; only one is ever open. */
 type Overlay =
@@ -61,15 +45,11 @@ type Overlay =
   | null;
 
 export function RolesPageContent({
-  state,
+  page,
   search,
-  status,
-  type,
 }: {
-  state: RolesListState;
+  page: number;
   search: string;
-  status: string;
-  type: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -79,7 +59,7 @@ export function RolesPageContent({
   const [searchInput, setSearchInput] = React.useState(search);
 
   // Keeps the field in sync when the URL changes from elsewhere, e.g. back
-  // navigation or the no-results card clearing the filters.
+  // navigation.
   React.useEffect(() => {
     setSearchInput(search);
   }, [search]);
@@ -106,21 +86,27 @@ export function RolesPageContent({
     if (searchInput === search) return;
 
     const timeout = setTimeout(() => {
-      updateParams({ q: searchInput || null });
+      updateParams({ q: searchInput || null, page: null });
     }, SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);
   }, [searchInput]);
 
-  const query = search.trim().toLowerCase();
-  const visibleRoles = roles.filter((role) => {
-    if (query && !`${role.name} ${role.key}`.toLowerCase().includes(query)) {
-      return false;
-    }
-    if (status && role.status !== status) return false;
-    if (type === "system" && !role.isSystem) return false;
-    if (type === "custom" && role.isSystem) return false;
-    return true;
+  const {
+    data,
+    isPending,
+    isError,
+    refetch: refetchRoles,
+  } = useQuery(roleListQuery(page, search));
+
+  // Cheap, page-size-1 calls: only the `pagination.total_items` count is
+  // needed, not the rows themselves.
+  const { data: permissionsTotal } = useQuery(permissionListQuery(1, 1));
+  const totalPermissions = permissionsTotal?.pagination.total_items ?? 0;
+
+  const { data: unfilteredRoles } = useQuery({
+    ...roleListQuery(1, ""),
+    enabled: Boolean(search),
   });
 
   function openCreate() {
@@ -131,42 +117,31 @@ export function RolesPageContent({
     setOverlay({ kind: "form", mode: "edit", role });
   }
 
-  /** A duplicate starts as a custom role with a distinct name to type over. */
-  function openDuplicate(role: Role) {
-    setOverlay({
-      kind: "form",
-      mode: "create",
-      role: {
-        ...role,
-        id: `${role.id}-copy`,
-        name: `${role.name} (copy)`,
-        isSystem: false,
-        assignees: [],
-      },
-    });
-  }
-
   function clearFilters() {
     setSearchInput("");
-    updateParams({ q: null, status: null, type: null });
+    updateParams({ q: null, page: null });
+  }
+
+  function pageHref(next: number) {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    return buildPageHref(pathname, next, params);
   }
 
   return (
     <>
       <PageHeader
         title="Roles & Permissions"
-        description={`${roles.length} roles · ${totalPermissionCount} permissions across ${permissionModules.length} modules`}
+        description={
+          data
+            ? `${data.pagination.total_items} roles · ${totalPermissions} permissions`
+            : undefined
+        }
         actions={
-          <>
-            <Button variant="outline">
-              <DownloadIcon data-icon="inline-start" />
-              Export
-            </Button>
-            <Button onClick={openCreate}>
-              <PlusIcon data-icon="inline-start" />
-              New role
-            </Button>
-          </>
+          <Button onClick={openCreate}>
+            <PlusIcon data-icon="inline-start" />
+            New role
+          </Button>
         }
       />
 
@@ -183,49 +158,34 @@ export function RolesPageContent({
             <SearchIcon />
           </InputGroupAddon>
         </InputGroup>
-        <FilterSelect
-          label="All statuses"
-          options={statusOptions}
-          value={status || null}
-          onValueChange={(value) => updateParams({ status: value })}
-          className="w-[148px]"
-        />
-        <FilterSelect
-          label="All role types"
-          options={typeOptions}
-          value={type || null}
-          onValueChange={(value) => updateParams({ type: value })}
-          className="w-[168px]"
-        />
-        <p className="ml-auto text-xs text-muted-foreground tabular-nums">
-          Showing {visibleRoles.length} of {roles.length} roles
-        </p>
       </div>
 
-      {state === "loading" ? <RolesLoading /> : null}
-      {state === "error" ? (
-        <RolesError onRetry={() => updateParams({ state: null })} />
-      ) : null}
-      {state === "empty" ? <RolesEmpty onCreate={openCreate} /> : null}
-      {/* `?state=no-results` carries no query of its own, so it borrows one. */}
-      {state === "no-results" ||
-      (state === "default" && visibleRoles.length === 0) ? (
-        <RolesNoResults
-          query={state === "no-results" ? search || "canvas" : search}
-          totalRoles={roles.length}
-          onClear={clearFilters}
-        />
-      ) : null}
-      {state === "default" && visibleRoles.length > 0 ? (
+      {isError ? (
+        <RolesError onRetry={() => refetchRoles()} />
+      ) : isPending ? (
+        <RolesLoading />
+      ) : data.data.length === 0 ? (
+        search ? (
+          <RolesNoResults
+            query={search}
+            totalRoles={unfilteredRoles?.pagination.total_items ?? 0}
+            onClear={clearFilters}
+          />
+        ) : (
+          <RolesEmpty onCreate={openCreate} />
+        )
+      ) : (
         <RoleTable
-          roles={visibleRoles}
-          openRoleId={overlay?.kind === "view" ? overlay.role.id : null}
+          roles={data.data}
+          page={data.pagination}
+          buildPageHref={pageHref}
+          totalPermissions={totalPermissions}
+          openRoleId={overlay?.kind === "view" ? overlay.role._id : null}
           onView={(role) => setOverlay({ kind: "view", role })}
           onEdit={openEdit}
-          onDuplicate={openDuplicate}
           onDelete={(role) => setOverlay({ kind: "delete", role })}
         />
-      ) : null}
+      )}
 
       <RoleDetailSheet
         role={overlay?.kind === "view" ? overlay.role : null}
@@ -234,8 +194,8 @@ export function RolesPageContent({
           if (!open) setOverlay(null);
         }}
         onEdit={openEdit}
-        onDuplicate={openDuplicate}
         onDelete={(role) => setOverlay({ kind: "delete", role })}
+        totalPermissions={totalPermissions}
       />
 
       <RoleFormDialog

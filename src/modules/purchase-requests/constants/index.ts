@@ -1,10 +1,8 @@
+import type { StatusTone } from "@/lib/types";
 import type {
-  Priority,
   PurchaseRequestItemStatus,
   PurchaseRequestStatus,
-  StatusTone,
-} from "@/lib/types";
-import type { PriorityDto } from "@/modules/purchase-requests/dto";
+} from "@/modules/purchase-requests/models/purchase-request";
 
 /** Default page size for the request list. */
 export const DEFAULT_PAGE_SIZE = 10;
@@ -12,22 +10,10 @@ export const DEFAULT_PAGE_SIZE = 10;
 /** Shared with Canvassing's pickers, so it lives in `@/lib/lookup` now. */
 export { LOOKUP_PAGE_SIZE } from "@/lib/lookup";
 
-export const priorityFromDto: Record<PriorityDto, Priority> = {
-  low: "Low",
-  normal: "Normal",
-  high: "High",
-};
-
-export const priorityToDto: Record<Priority, PriorityDto> = {
-  Low: "low",
-  Normal: "normal",
-  High: "high",
-};
-
 /**
- * Status pill copy. The backend stores no richer label (no PO number, no item
- * counts), so these are the plain names. Declaration order is the order the
- * legend lists them in.
+ * Status pill copy. Presentation only — the backend stores the slug and no
+ * richer label (no PO number, no item counts), so these are the plain names.
+ * Declaration order is the order the legend lists them in.
  */
 export const purchaseRequestStatusLabels: Record<
   PurchaseRequestStatus,

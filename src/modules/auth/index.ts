@@ -26,5 +26,6 @@ export type {
   Credentials,
   SignedInUser,
 } from "@/modules/auth/models/session";
+export { userId, userName } from "@/modules/auth/models/session";
 export { authKeys, sessionQuery } from "@/modules/auth/queries/auth.queries";
 export { safeRedirectPath } from "@/modules/auth/validation/redirect.validation";

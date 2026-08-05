@@ -9,7 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PageInfo } from "@/lib/api/pagination";
+import type { Pagination } from "@/lib/api/pagination";
+import { formatDate } from "@/lib/date";
 import type { Vendor } from "@/modules/vendors";
 
 export function VendorTable({
@@ -18,7 +19,7 @@ export function VendorTable({
   buildPageHref,
 }: {
   vendors: Vendor[];
-  page: PageInfo;
+  page: Pagination;
   buildPageHref: (page: number) => string;
 }) {
   return (
@@ -36,19 +37,19 @@ export function VendorTable({
           </TableHeader>
           <TableBody>
             {vendors.map((vendor) => (
-              <TableRow key={vendor.id}>
+              <TableRow key={vendor._id}>
                 <TableCell className="font-medium">
                   {vendor.no || "—"}
                 </TableCell>
-                <TableCell>{vendor.name || "—"}</TableCell>
+                <TableCell>{vendor.name?.trim() || vendor.no || "—"}</TableCell>
                 <TableCell className="font-mono text-xs text-muted-foreground">
-                  {vendor.vendorId || "—"}
+                  {vendor.vendor_id || "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {vendor.createdAt ?? "—"}
+                  {formatDate(vendor.created_at) ?? "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {vendor.updatedAt ?? "—"}
+                  {formatDate(vendor.updated_at) ?? "—"}
                 </TableCell>
               </TableRow>
             ))}

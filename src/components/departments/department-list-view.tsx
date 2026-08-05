@@ -31,7 +31,7 @@ export function DepartmentListView({
     return <TableSkeleton />;
   }
 
-  const { departments, page: pageInfo } = data;
+  const { data: departments, pagination } = data;
 
   if (departments.length === 0) {
     return (
@@ -46,7 +46,7 @@ export function DepartmentListView({
   return (
     <DepartmentTable
       departments={departments}
-      page={pageInfo}
+      page={pagination}
       buildPageHref={(next) => buildPageHref("/departments", next)}
       onEdit={onEdit}
     />

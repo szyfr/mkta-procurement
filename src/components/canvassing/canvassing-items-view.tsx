@@ -104,7 +104,7 @@ export function CanvassingItemsView({ id }: { id: string }) {
    * the comparison below reads the same `sourcing` filter.
    */
   const quotableCount = request.items.filter(
-    (item) => item.sourcing === "canvassing",
+    (item) => item.is_needs_canvass,
   ).length;
 
   const quoteParams = new URLSearchParams();
@@ -119,9 +119,13 @@ export function CanvassingItemsView({ id }: { id: string }) {
             <span className="font-mono text-base">{request.no}</span>
           </span>
         }
-        description={`${request.department} · ${itemCount} ${
-          itemCount === 1 ? "item" : "items"
-        } · not all items need to go to the same vendor`}
+        description={[
+          request.department?.title,
+          `${itemCount} ${itemCount === 1 ? "item" : "items"}`,
+          "not all items need to go to the same vendor",
+        ]
+          .filter(Boolean)
+          .join(" · ")}
       />
 
       <Card>
@@ -166,12 +170,15 @@ export function CanvassingItemsView({ id }: { id: string }) {
                 </TableHeader>
                 <TableBody>
                   {request.items.map((item) => {
-                    const isSelected = selected.includes(item.id);
-                    const quotable = item.sourcing === "canvassing";
+                    const isSelected = selected.includes(item._id);
+                    const quotable = Boolean(item.is_needs_canvass);
+                    // The detail pipeline joins the material; the raw id
+                    // stands in if the lookup missed.
+                    const name = item.material?.description || item.material_id;
 
                     return (
                       <TableRow
-                        key={item.id}
+                        key={item._id}
                         className={cn(isSelected && "bg-status-info-subtle")}
                       >
                         <TableCell>
@@ -180,11 +187,11 @@ export function CanvassingItemsView({ id }: { id: string }) {
                             disabled={!quotable}
                             aria-label={
                               quotable
-                                ? `Select ${item.name}`
-                                : `${item.name} is sourced directly and can't be quoted`
+                                ? `Select ${name}`
+                                : `${name} is sourced directly and can't be quoted`
                             }
                             onCheckedChange={(checked) =>
-                              toggle(item.id, checked === true)
+                              toggle(item._id, checked === true)
                             }
                           />
                         </TableCell>
@@ -194,7 +201,7 @@ export function CanvassingItemsView({ id }: { id: string }) {
                             !quotable && "text-muted-foreground",
                           )}
                         >
-                          {item.name}
+                          {name}
                         </TableCell>
                         <TableCell className={numericCellClass}>
                           {item.quantity}
@@ -226,7 +233,7 @@ export function CanvassingItemsView({ id }: { id: string }) {
                 disabled={selected.length === 0}
                 render={
                   <Link
-                    href={`/purchase-requests/${request.id}/canvassing/quotes/new?${quoteParams}`}
+                    href={`/purchase-requests/${request._id}/canvassing/quotes/new?${quoteParams}`}
                   />
                 }
                 nativeButton={false}

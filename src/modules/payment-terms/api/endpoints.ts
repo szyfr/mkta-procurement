@@ -9,7 +9,4 @@ export const paymentTermEndpoints = {
   list: BASE,
   create: BASE,
   detail: (id: string) => `${BASE}/${encodeURIComponent(id)}`,
-  // Same path as `list` — the quotation picker's lookup adapts the full list
-  // response into `LookupPage` client-side, see `fetchPaymentTermOptions`.
-  options: BASE,
 } as const;

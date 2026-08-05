@@ -1,25 +1,16 @@
 import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
+import type { CreateQuotationDto } from "@/modules/canvassing/dto";
 import type {
-  ItemQuotationsDto,
-  QuotationDetailDto,
-  QuotationDto,
-} from "@/modules/canvassing/dto";
-import {
-  toCreatedQuotation,
-  toItemQuotations,
-  toQuotationDetail,
-} from "@/modules/canvassing/mappers/quotation.mapper";
-import type {
-  CreatedQuotation,
-  CreateQuotationPayload,
   ItemQuotations,
+  Quotation,
   QuotationDetail,
 } from "@/modules/canvassing/models/quotation";
 
 /**
  * Quote reads and writes against FastAPI. Server-side only, called from Route
- * Handlers — never from a component.
+ * Handlers — never from a component. The upstream response is handed back as
+ * it arrived.
  *
  * The read hangs off `/canvassing`, but quotations are their own top-level
  * router upstream, so the write posts to `/quotations` instead.
@@ -35,35 +26,28 @@ const QUOTATION_NOT_FOUND = "We couldn't find that quotation.";
  * paginated envelope the other lists use, and it comes back in whatever order
  * the aggregation produced — callers that care about order should sort.
  */
-export async function listItemQuotations(
+export function listItemQuotations(
   itemIds: string[],
 ): Promise<ItemQuotations[]> {
   // Asking for nothing is a legitimate state: a request whose items all source
   // directly has no ids to send.
-  if (itemIds.length === 0) return [];
+  if (itemIds.length === 0) return Promise.resolve([]);
 
   for (const itemId of itemIds) assertObjectId(itemId, NOT_FOUND);
 
-  const dtos = await serverFetch<ItemQuotationsDto[]>(
-    "/canvassing/quotations",
-    {
-      query: { items: itemIds },
-    },
-  );
-
-  return dtos.map(toItemQuotations);
+  return serverFetch<ItemQuotations[]>("/canvassing/quotations", {
+    query: { items: itemIds },
+  });
 }
 
 /**
  * One quotation in full, including its attachments. `GET /canvassing/quotations`
  * carries no documents, so the "view quotation" dialog reads this instead.
  */
-export async function getQuotation(id: string): Promise<QuotationDetail> {
+export function getQuotation(id: string): Promise<QuotationDetail> {
   assertObjectId(id, QUOTATION_NOT_FOUND);
 
-  const dto = await serverFetch<QuotationDetailDto>(`/quotations/${id}`);
-
-  return toQuotationDetail(dto);
+  return serverFetch<QuotationDetail>(`/quotations/${id}`);
 }
 
 /**
@@ -78,26 +62,18 @@ export async function getQuotation(id: string): Promise<QuotationDetail> {
  * The form is rebuilt from the validated payload rather than forwarded from
  * the Route Handler, so nothing reaches FastAPI that hasn't been checked.
  */
-export async function createQuotation(
-  payload: CreateQuotationPayload,
+export function createQuotation(
+  payload: CreateQuotationDto,
   attachments: File[] = [],
-): Promise<CreatedQuotation> {
+): Promise<Quotation> {
   const form = new FormData();
 
-  form.set("reference_no", payload.referenceNo);
+  form.set("reference_no", payload.reference_no);
   form.set("date", payload.date);
-  form.set("delivery_date", payload.deliveryDate);
-  form.set("vendor_id", payload.vendorId);
-  form.set("payment_term_id", payload.paymentTermId);
-  form.set(
-    "item_pricing",
-    JSON.stringify(
-      payload.itemPricing.map((price) => ({
-        item_id: price.itemId,
-        unit_price: price.unitPrice,
-      })),
-    ),
-  );
+  form.set("delivery_date", payload.delivery_date);
+  form.set("vendor_id", payload.vendor_id);
+  form.set("payment_term_id", payload.payment_term_id);
+  form.set("item_pricing", JSON.stringify(payload.item_pricing));
 
   for (const attachment of attachments) {
     form.append("attachments", attachment, attachment.name);
@@ -105,10 +81,8 @@ export async function createQuotation(
 
   // Answers 200 with the bare inserted document — no `{ data }` envelope and
   // no uploaded-document list, so there is nothing else to read back.
-  const dto = await serverFetch<QuotationDto>("/quotations", {
+  return serverFetch<Quotation>("/quotations", {
     method: "POST",
     body: form,
   });
-
-  return toCreatedQuotation(dto);
 }

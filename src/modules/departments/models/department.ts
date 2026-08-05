@@ -1,25 +1,15 @@
-import type { PageInfo } from "@/lib/api/pagination";
-
-/** Domain object used throughout the Departments UI. */
-export interface Department {
-  id: string;
-  title: string;
-  description: string;
-  createdAt: string | null;
-  updatedAt: string | null;
-}
-
-export interface DepartmentList {
-  departments: Department[];
-  page: PageInfo;
-}
-
 /**
- * What the UI submits to create or update a department. The BFF validates this
- * shape before it becomes a DTO, so it is shared by the API client and the
- * Route Handlers rather than owned by either.
+ * The `/departments` response, verbatim — snake_case, `_id` keys, exactly what
+ * FastAPI sends. Nothing reshapes it on the way to a component, so a field
+ * that appears here is a field the backend has.
+ *
+ * List responses arrive inside the shared pagination envelope, see
+ * `lib/api/pagination`.
  */
-export interface DepartmentPayload {
+export interface Department {
+  _id: string;
   title: string;
   description: string;
+  created_at: string;
+  updated_at: string;
 }

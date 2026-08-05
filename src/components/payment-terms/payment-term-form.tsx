@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import type { PaymentTermPayload } from "@/modules/payment-terms";
+import type { CreatePaymentTermDto } from "@/modules/payment-terms";
 
 /**
  * Title/description fields shared by the create and edit dialogs. Owns field
@@ -29,11 +29,11 @@ export function PaymentTermForm({
   onSubmit,
   onCancel,
 }: {
-  initialValues?: PaymentTermPayload;
+  initialValues?: CreatePaymentTermDto;
   submitLabel: string;
   submitting: boolean;
   error: string | null;
-  onSubmit: (values: PaymentTermPayload) => void;
+  onSubmit: (values: CreatePaymentTermDto) => void;
   onCancel: () => void;
 }) {
   const [title, setTitle] = React.useState(initialValues?.title ?? "");

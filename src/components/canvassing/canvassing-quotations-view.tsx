@@ -26,13 +26,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PurchaseRequestItem } from "@/lib/types";
+import { formatShortDate } from "@/lib/date";
 import { cn, formatCurrency } from "@/lib/utils";
 import {
   canvassingQuotationsQuery,
-  type ItemQuotations,
+  type Quotation,
 } from "@/modules/canvassing";
-import { purchaseRequestDetailQuery } from "@/modules/purchase-requests";
+import {
+  type PurchaseRequestItem,
+  purchaseRequestDetailQuery,
+} from "@/modules/purchase-requests";
+
+/** The price this quote puts on the item it was grouped under. */
+function unitPriceFor(quotation: Quotation, itemId: string) {
+  // The join attaches a quotation to an item only when it prices it, so this
+  // should always hit; a missing price renders as unquoted rather than zero.
+  return (
+    quotation.item_pricing.find((pricing) => pricing.item_id === itemId)
+      ?.unit_price ?? null
+  );
+}
 
 /**
  * The quote comparison: one section per item out for canvassing, listing the
@@ -57,8 +70,8 @@ export function CanvassingQuotationsView({ id }: { id: string }) {
   // Only items routed to canvassing can be quoted; a direct-sourced item always
   // comes back with an empty list.
   const canvassingItems =
-    request?.items.filter((item) => item.sourcing === "canvassing") ?? [];
-  const itemIds = canvassingItems.map((item) => item.id);
+    request?.items.filter((item) => item.is_needs_canvass) ?? [];
+  const itemIds = canvassingItems.map((item) => item._id);
 
   const {
     data: quoted,
@@ -86,23 +99,22 @@ export function CanvassingQuotationsView({ id }: { id: string }) {
     );
   }
 
-  const byItemId = new Map(quoted.map((entry) => [entry.itemId, entry]));
+  const byItemId = new Map(quoted.map((entry) => [entry._id, entry]));
 
   return (
     <>
       {canvassingItems.map((item) => (
         <QuoteComparison
-          key={item.id}
+          key={item._id}
           purchaseRequestId={id}
           item={item}
           // An item the aggregation didn't return has simply never been quoted.
-          quotations={byItemId.get(item.id)?.quotations ?? []}
-          selected={selected[item.id] ?? null}
+          quotations={byItemId.get(item._id)?.quotations ?? []}
+          selected={selected[item._id] ?? null}
           onSelect={(quotationId) =>
-            setSelected((current) => ({ ...current, [item.id]: quotationId }))
+            setSelected((current) => ({ ...current, [item._id]: quotationId }))
           }
-          awardedQuotationId={byItemId.get(item.id)?.awardedQuotationId ?? null}
-          awardedOn={byItemId.get(item.id)?.awardedOn ?? null}
+          awardedQuotationId={byItemId.get(item._id)?.quotation_id ?? null}
         />
       ))}
     </>
@@ -116,34 +128,36 @@ function QuoteComparison({
   selected,
   onSelect,
   awardedQuotationId,
-  awardedOn,
 }: {
   purchaseRequestId: string;
   item: PurchaseRequestItem;
-  quotations: ItemQuotations["quotations"];
+  quotations: Quotation[];
   selected: string | null;
   onSelect: (quotationId: string) => void;
   awardedQuotationId: string | null;
-  awardedOn: string | null;
 }) {
-  const quantity = `${item.quantity}${item.unit ? ` ${item.unit}` : ""}`;
+  // The detail pipeline joins the material; the raw id stands in if it missed.
+  const name = item.material?.description || item.material_id;
+  const unit = item.material?.uom || null;
+  const quantity = `${item.quantity}${unit ? ` ${unit}` : ""}`;
 
   if (awardedQuotationId) {
     const winner =
-      quotations.find((quotation) => quotation.id === awardedQuotationId) ??
+      quotations.find((quotation) => quotation._id === awardedQuotationId) ??
       null;
+    const winningPrice = winner ? unitPriceFor(winner, item._id) : null;
 
     return (
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex flex-col gap-0.5">
-            <h2 className="font-medium">{item.name}</h2>
+            <h2 className="font-medium">{name}</h2>
             <p className="text-xs text-muted-foreground">
               Vendor already selected for this item
             </p>
           </div>
           <StatusBadge tone="success">
-            Vendor Selected{winner ? ` — ${winner.vendorId}` : ""}
+            Vendor Selected{winner ? ` — ${winner.vendor_id}` : ""}
           </StatusBadge>
         </div>
 
@@ -152,15 +166,15 @@ function QuoteComparison({
             <div>
               <p className="text-muted-foreground">Winning Price</p>
               <p>
-                {winner?.unitPrice == null
+                {winningPrice === null
                   ? "—"
-                  : formatCurrency(winner.unitPrice, true)}
-                {winner ? ` · ${winner.vendorId}` : ""}
+                  : formatCurrency(winningPrice, true)}
+                {winner ? ` · ${winner.vendor_id}` : ""}
               </p>
             </div>
             <div>
               <p className="text-muted-foreground">Delivery Estimate</p>
-              <p>{winner?.deliveryDate ?? "—"}</p>
+              <p>{formatShortDate(winner?.delivery_date) ?? "—"}</p>
             </div>
             <div>
               <p className="text-muted-foreground">Quotes Received</p>
@@ -169,9 +183,11 @@ function QuoteComparison({
                 {quotations.length === 1 ? "quote" : "quotes"}
               </p>
             </div>
+            {/* The backend has no award timestamp — only the item's ordinary
+                `updated_at`, which nothing distinguishes from any other write. */}
             <div>
               <p className="text-muted-foreground">Selected On</p>
-              <p>{awardedOn ?? "—"}</p>
+              <p>—</p>
             </div>
           </CardContent>
         </Card>
@@ -180,24 +196,23 @@ function QuoteComparison({
   }
 
   const selectedQuotation =
-    quotations.find((quotation) => quotation.id === selected) ?? null;
+    quotations.find((quotation) => quotation._id === selected) ?? null;
 
   // The cheapest quote is the one the comparison exists to surface. Ties keep
   // the first row, which is the order the backend returned.
-  const lowestPrice = quotations.reduce<number | null>(
-    (lowest, quotation) =>
-      quotation.unitPrice !== null &&
-      (lowest === null || quotation.unitPrice < lowest)
-        ? quotation.unitPrice
-        : lowest,
-    null,
-  );
+  const lowestPrice = quotations.reduce<number | null>((lowest, quotation) => {
+    const price = unitPriceFor(quotation, item._id);
+
+    return price !== null && (lowest === null || price < lowest)
+      ? price
+      : lowest;
+  }, null);
 
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-0.5">
-          <h2 className="font-medium">{item.name}</h2>
+          <h2 className="font-medium">{name}</h2>
           <p className="text-xs text-muted-foreground">
             {quantity} out for quotation
           </p>
@@ -214,7 +229,7 @@ function QuoteComparison({
             nativeButton={false}
             render={
               <Link
-                href={`/purchase-requests/${purchaseRequestId}/canvassing/quotes/new?items=${item.id}`}
+                href={`/purchase-requests/${purchaseRequestId}/canvassing/quotes/new?items=${item._id}`}
               />
             }
           >
@@ -240,7 +255,7 @@ function QuoteComparison({
               nativeButton={false}
               render={
                 <Link
-                  href={`/purchase-requests/${purchaseRequestId}/canvassing/quotes/new?items=${item.id}`}
+                  href={`/purchase-requests/${purchaseRequestId}/canvassing/quotes/new?items=${item._id}`}
                 />
               }
             >
@@ -255,7 +270,7 @@ function QuoteComparison({
             <RadioGroup
               value={selected}
               onValueChange={(value) => onSelect(String(value))}
-              aria-label={`Select winning vendor for ${item.name}`}
+              aria-label={`Select winning vendor for ${name}`}
               className="block"
             >
               <Table className={dataTableClass}>
@@ -281,19 +296,19 @@ function QuoteComparison({
                 </TableHeader>
                 <TableBody>
                   {quotations.map((quotation) => {
+                    const unitPrice = unitPriceFor(quotation, item._id);
                     const isLowest =
-                      quotation.unitPrice !== null &&
-                      quotation.unitPrice === lowestPrice;
+                      unitPrice !== null && unitPrice === lowestPrice;
 
                     return (
                       <TableRow
-                        key={quotation.id}
+                        key={quotation._id}
                         className={cn(isLowest && "bg-status-success-subtle")}
                       >
                         <TableCell>
                           <RadioGroupItem
-                            value={quotation.id}
-                            aria-label={`Select vendor ${quotation.vendorId}`}
+                            value={quotation._id}
+                            aria-label={`Select vendor ${quotation.vendor_id}`}
                           />
                         </TableCell>
                         {/* No vendor join upstream — the id stands in for the name. */}
@@ -303,10 +318,10 @@ function QuoteComparison({
                             isLowest && "font-semibold text-status-success-fg",
                           )}
                         >
-                          {quotation.vendorId}
+                          {quotation.vendor_id}
                         </TableCell>
                         <TableCell className={cellIdClass}>
-                          {quotation.referenceNo}
+                          {quotation.reference_no}
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -314,9 +329,9 @@ function QuoteComparison({
                             isLowest && "font-semibold text-status-success-fg",
                           )}
                         >
-                          {quotation.unitPrice === null
+                          {unitPrice === null
                             ? "—"
-                            : formatCurrency(quotation.unitPrice, true)}
+                            : formatCurrency(unitPrice, true)}
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -324,22 +339,21 @@ function QuoteComparison({
                             isLowest && "font-semibold text-status-success-fg",
                           )}
                         >
-                          {quotation.unitPrice === null
+                          {unitPrice === null
                             ? "—"
-                            : formatCurrency(
-                                quotation.unitPrice * item.quantity,
-                                true,
-                              )}
+                            : formatCurrency(unitPrice * item.quantity, true)}
                         </TableCell>
-                        <TableCell>{quotation.deliveryDate ?? "—"}</TableCell>
+                        <TableCell>
+                          {formatShortDate(quotation.delivery_date) ?? "—"}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {quotation.quotedOn ?? "—"}
+                          {formatShortDate(quotation.date) ?? "—"}
                         </TableCell>
                         <TableCell>
                           <QuotationDetailDialog
-                            quotationId={quotation.id}
-                            itemId={item.id}
-                            itemName={item.name}
+                            quotationId={quotation._id}
+                            itemId={item._id}
+                            itemName={name}
                           />
                         </TableCell>
                       </TableRow>
@@ -355,10 +369,14 @@ function QuoteComparison({
             </span>
             <AwardVendorDialog
               quotationId={selected}
-              itemId={item.id}
-              itemName={item.name}
-              vendorId={selectedQuotation?.vendorId ?? null}
-              unitPrice={selectedQuotation?.unitPrice ?? null}
+              itemId={item._id}
+              itemName={name}
+              vendorId={selectedQuotation?.vendor_id ?? null}
+              unitPrice={
+                selectedQuotation
+                  ? unitPriceFor(selectedQuotation, item._id)
+                  : null
+              }
               quantity={quantity}
             />
           </CardFooter>

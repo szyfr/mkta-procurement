@@ -12,9 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { PageInfo } from "@/lib/api/pagination";
+import type { Pagination } from "@/lib/api/pagination";
+import { formatShortDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
-import type { CanvassingEntry } from "@/modules/canvassing";
+import {
+  type CanvassingEntry,
+  canvassingStatusTone,
+} from "@/modules/canvassing";
 
 /** Columns the endpoint has no source for, so every row shows them empty. */
 const NO_BACKEND_SOURCE = "—";
@@ -31,7 +35,10 @@ function tintedRows(entries: CanvassingEntry[]) {
   return entries.map((entry, index) => {
     const previous = entries[index - 1];
 
-    if (previous && previous.purchaseRequestId !== entry.purchaseRequestId) {
+    if (
+      previous &&
+      previous.purchase_request_id !== entry.purchase_request_id
+    ) {
       group += 1;
     }
 
@@ -45,7 +52,7 @@ export function CanvassingTable({
   buildPageHref,
 }: {
   entries: CanvassingEntry[];
-  page: PageInfo;
+  page: Pagination;
   buildPageHref: (page: number) => string;
 }) {
   const tinted = tintedRows(entries);
@@ -70,18 +77,24 @@ export function CanvassingTable({
           <TableBody>
             {entries.map((entry, index) => (
               <TableRow
-                key={entry.id}
+                key={entry._id}
                 className={cn(tinted[index] && "bg-accent")}
               >
                 <TableCell>
                   <Link
-                    href={`/purchase-requests/${entry.purchaseRequestId}`}
+                    href={`/purchase-requests/${entry.purchase_request_id}`}
                     className="font-mono text-xs hover:underline"
                   >
-                    {entry.purchaseRequestNo}
+                    {/* The pipeline preserves rows whose request lookup found
+                        nothing — the raw id still identifies such a row. */}
+                    {entry.purchase_request?.no?.trim() ||
+                      entry.purchase_request_id}
                   </Link>
                 </TableCell>
-                <TableCell>{entry.item}</TableCell>
+                {/* Same for the material join. */}
+                <TableCell>
+                  {entry.material?.description?.trim() || entry.material_id}
+                </TableCell>
                 {/* Department and quote counts: the list pipeline projects
                     awards and quotations away and joins neither the request
                     nor its department, so there is nothing to show. */}
@@ -92,16 +105,22 @@ export function CanvassingTable({
                   {NO_BACKEND_SOURCE}
                 </TableCell>
                 <TableCell>
-                  <StatusBadge tone={entry.statusTone}>
+                  {/* The status set is derived in a Mongo pipeline rather than
+                      declared as an enum, so a new stage can appear without a
+                      schema change; an unrecognized one still renders as a
+                      legible neutral pill. */}
+                  <StatusBadge
+                    tone={canvassingStatusTone[entry.status] ?? "neutral"}
+                  >
                     {entry.status}
                   </StatusBadge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {entry.initiatedOn ?? NO_BACKEND_SOURCE}
+                  {formatShortDate(entry.created_at) ?? NO_BACKEND_SOURCE}
                 </TableCell>
                 <TableCell>
                   <Link
-                    href={`/purchase-requests/${entry.purchaseRequestId}/canvassing`}
+                    href={`/purchase-requests/${entry.purchase_request_id}/canvassing`}
                     className="text-xs text-muted-foreground hover:underline"
                   >
                     Open

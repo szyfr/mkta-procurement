@@ -25,9 +25,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { initials } from "@/lib/utils";
-import { type AuthenticatedUser, useLogout } from "@/modules/auth";
+import { type AuthenticatedUser, useLogout, userName } from "@/modules/auth";
 
 export function NavUser({ user }: { user: AuthenticatedUser }) {
+  const name = userName(user);
   const { isMobile } = useSidebar();
   const logout = useLogout();
 
@@ -47,13 +48,11 @@ export function NavUser({ user }: { user: AuthenticatedUser }) {
                 the whole identity mark. */}
             <Avatar className="size-[30px]">
               <AvatarFallback className="text-[11px] font-semibold">
-                {initials(user.name)}
+                {initials(name)}
               </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left leading-tight">
-              <span className="truncate text-[13px] font-medium">
-                {user.name}
-              </span>
+              <span className="truncate text-[13px] font-medium">{name}</span>
               {/* The backend has no role on the user record yet, only a
                   permission list — the email identifies the account instead. */}
               <span className="truncate text-[11px] text-muted-foreground">
@@ -72,10 +71,10 @@ export function NavUser({ user }: { user: AuthenticatedUser }) {
               <DropdownMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <Avatar>
-                    <AvatarFallback>{initials(user.name)}</AvatarFallback>
+                    <AvatarFallback>{initials(name)}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
+                    <span className="truncate font-medium">{name}</span>
                     <span className="truncate text-xs text-muted-foreground">
                       {user.email}
                     </span>

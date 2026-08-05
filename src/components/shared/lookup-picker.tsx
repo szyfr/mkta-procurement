@@ -16,7 +16,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
-import { LOOKUP_PAGE_SIZE, type LookupOption } from "@/lib/lookup";
+import type { Paginated } from "@/lib/api/pagination";
+import { LOOKUP_PAGE_SIZE, type SelectedOption } from "@/lib/lookup";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,11 +27,24 @@ import { cn } from "@/lib/utils";
  * Results are pulled a page at a time from the BFF and appended as the list is
  * scrolled, with a debounced search box to narrow them. Paging, caching and
  * request cancellation are TanStack Query's `useInfiniteQuery`.
+ *
+ * It is generic over the record the lookup returns, and the caller says which
+ * fields read as the label and the hint. That is what lets a department, a
+ * material and a payment term go through the same picker without any of them
+ * being reshaped into a shared option type first.
  */
 
-export interface LookupPickerProps {
-  value: { id: string; label: string } | null;
-  onSelect: (option: LookupOption) => void;
+/** How one backend record reads in the list. */
+export interface OptionView {
+  id: string;
+  label: string;
+  /** Secondary line, e.g. a material or vendor number. */
+  hint?: string;
+}
+
+export interface LookupPickerProps<T> {
+  value: SelectedOption | null;
+  onSelect: (record: T) => void;
   /**
    * Cache key for this picker's collection, e.g. the materials lookup. The
    * search term is appended to it, so each term caches separately.
@@ -42,7 +56,9 @@ export interface LookupPickerProps {
     pageSize: number;
     search: string;
     signal: AbortSignal;
-  }) => Promise<{ options: LookupOption[]; page: { totalPages: number } }>;
+  }) => Promise<Paginated<T>>;
+  /** Reads a record's id, label and optional hint straight off the response. */
+  toOption: (record: T) => OptionView;
   placeholder: string;
   searchPlaceholder: string;
   ariaLabel: string;
@@ -53,31 +69,19 @@ export interface LookupPickerProps {
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-/**
- * Adapts a lookup that returns its whole collection at once — departments, for
- * instance — to the paged shape the picker expects.
- */
-export function singlePageLoader(
-  load: (signal: AbortSignal) => Promise<{ options: LookupOption[] }>,
-) {
-  return async ({ signal }: { signal: AbortSignal }) => ({
-    options: (await load(signal)).options,
-    page: { totalPages: 1 },
-  });
-}
-
-export function LookupPicker({
+export function LookupPicker<T>({
   value,
   onSelect,
   queryKey,
   loadPage,
+  toOption,
   placeholder,
   searchPlaceholder,
   ariaLabel,
   disabled,
   className,
   "aria-invalid": ariaInvalid,
-}: LookupPickerProps) {
+}: LookupPickerProps<T>) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
@@ -114,13 +118,13 @@ export function LookupPicker({
           signal,
         }),
       getNextPageParam: (lastPage, allPages) =>
-        allPages.length < lastPage.page.totalPages
+        allPages.length < lastPage.pagination.total_pages
           ? allPages.length + 1
           : undefined,
     });
 
-  const options = React.useMemo(
-    () => data?.pages.flatMap((page) => page.options) ?? [],
+  const records = React.useMemo(
+    () => data?.pages.flatMap((page) => page.data) ?? [],
     [data],
   );
 
@@ -187,12 +191,13 @@ export function LookupPicker({
                 ? error.message
                 : "Couldn't load options."}
             </p>
-          ) : options.length === 0 && !isFetching ? (
+          ) : records.length === 0 && !isFetching ? (
             <p className="px-2 py-6 text-center text-xs text-muted-foreground">
               No matches.
             </p>
           ) : (
-            options.map((option) => {
+            records.map((record) => {
+              const option = toOption(record);
               const selected = option.id === value?.id;
 
               return (
@@ -203,7 +208,7 @@ export function LookupPicker({
                   aria-selected={selected}
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-muted"
                   onClick={() => {
-                    onSelect(option);
+                    onSelect(record);
                     setOpen(false);
                   }}
                 >

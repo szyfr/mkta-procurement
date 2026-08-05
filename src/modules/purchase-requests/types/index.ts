@@ -1,8 +1,8 @@
 /**
- * Cross-layer types that belong to neither the DTO nor the model layer.
+ * Types that belong to the UI rather than to the API contract.
  */
 
-/** A line being edited in the create form, before it becomes a DTO. */
+/** A line being edited in the create form, before it becomes a request DTO. */
 export interface DraftLineItem {
   key: string;
   materialId: string | null;

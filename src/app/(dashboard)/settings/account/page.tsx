@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { initials } from "@/lib/utils";
 import { getCurrentUser } from "@/modules/auth/dal/auth.dal";
+import { userName } from "@/modules/auth/models/session";
 
 export const metadata: Metadata = {
   title: "My Account",
@@ -30,6 +31,7 @@ export default async function AccountSettingsPage() {
   // The dashboard layout has already turned away anyone unauthenticated, so
   // this can read the session outright.
   const user = await getCurrentUser();
+  const name = userName(user);
 
   return (
     <Card>
@@ -43,7 +45,7 @@ export default async function AccountSettingsPage() {
 
       <CardContent className="flex items-center gap-4">
         <Avatar className="size-14">
-          <AvatarFallback>{initials(user.name)}</AvatarFallback>
+          <AvatarFallback>{initials(name)}</AvatarFallback>
         </Avatar>
         <Button variant="outline" size="sm">
           Change Photo
@@ -56,7 +58,7 @@ export default async function AccountSettingsPage() {
         <FieldGroup className="sm:grid sm:grid-cols-2 sm:gap-4">
           <Field>
             <FieldLabel htmlFor="full-name">Full Name</FieldLabel>
-            <Input id="full-name" name="fullName" defaultValue={user.name} />
+            <Input id="full-name" name="fullName" defaultValue={name} />
           </Field>
 
           {/* Role and department have no source on `/auth/me` — it carries a

@@ -6,9 +6,8 @@ import { fetchPaymentTerms } from "@/modules/payment-terms/api/client";
  * Query definitions for the Payment Terms UI.
  *
  * `options()` is the cache key the shared `LookupPicker` builds its own
- * `useInfiniteQuery` from (page loader is `fetchPaymentTermOptions`, passed
- * directly by the consumer). `list()`/`listQuery()` back the management
- * table below.
+ * `useInfiniteQuery` from; its page loader is `fetchPaymentTerms`, passed
+ * directly by the consumer. `list()`/`listQuery()` back the management table.
  */
 
 export const paymentTermKeys = {

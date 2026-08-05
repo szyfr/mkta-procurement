@@ -1,67 +1,102 @@
-import type { PageInfo } from "@/lib/api/pagination";
-import type {
-  Priority,
-  PurchaseRequest,
-  PurchaseRequestItem,
-  PurchaseRequestItemStatus,
-  PurchaseRequestStatus,
-  SourcingMode,
-} from "@/lib/types";
+import type { Priority } from "@/lib/types";
+import type { Department } from "@/modules/departments";
+import type { Material } from "@/modules/purchase-requests/models/material";
 
 /**
- * Domain objects used throughout the Purchase Requests UI.
+ * The `/purchase-requests` responses, verbatim — snake_case, `_id` keys, and
+ * the backend's own enum values. Nothing reshapes them on the way to a
+ * component: what the detail page renders is what FastAPI sent, and a field
+ * that isn't declared here is a field the backend does not have.
  *
- * The shapes already live in `@/lib/types` because the wireframe components
- * were built against them; this module re-exports rather than duplicating, and
- * adds only the types that describe list results and reference data.
+ * Notably absent, because there is no source for them: a stored amount, a
+ * status label richer than the enum, submitted/completed/rejected dates,
+ * rejection reasons, documents, comments and activity history. The panels that
+ * would show those stay hidden.
  */
 
-export type {
-  Priority,
-  PurchaseRequest,
-  PurchaseRequestItem,
-  PurchaseRequestItemStatus,
-  PurchaseRequestStatus,
-  SourcingMode,
-};
+/** Shared with `PriorityBadge`, which is why the type itself lives in `lib/types`. */
+export type { Priority };
 
-export interface PurchaseRequestList {
-  requests: PurchaseRequest[];
-  page: PageInfo;
-}
+/** `app/schemas/purchase_request_schema.py:Status`. */
+export type PurchaseRequestStatus =
+  | "draft"
+  | "pending"
+  | "canvassing"
+  | "po-created"
+  | "partially-completed"
+  | "completed"
+  | "rejected"
+  | "canceled";
 
 /**
- * Reference data is shared with Canvassing, so its shapes moved to
- * `@/lib/lookup`. Re-exported here to keep this module's surface intact.
+ * `app/schemas/purchase_request_item_schema.py:Status` — a wider set than the
+ * request's, because a single item can be rejected or completed while the rest
+ * of the request moves on.
  */
-export type { LookupOption, LookupPage } from "@/lib/lookup";
+export type PurchaseRequestItemStatus =
+  | "pending"
+  | "draft"
+  | "canvassing"
+  | "quotation-awarded"
+  | "po-created"
+  | "partially-completed"
+  | "completed"
+  | "rejected"
+  | "canceled";
 
-/**
- * What the UI submits to create a request. The BFF validates this shape before
- * it becomes a DTO, so it is shared by the API client and the Route Handlers
- * rather than owned by either.
- */
-export interface CreatePurchaseRequestPayload {
-  title: string;
-  departmentId: string;
-  dateNeeded: string;
-  priority: "low" | "normal" | "high";
-  justification: string;
-  items: { materialId: string; quantity: number; vendorId?: string | null }[];
+export interface PurchaseRequestItem {
+  _id: string;
+  quantity: number;
+  status: PurchaseRequestItemStatus;
   /**
-   * Only the create form sets this — "Save as Draft" omits it (the backend
-   * defaults to draft) and "Submit for Approval" sends `"pending"`. The edit
-   * form never touches it; status changes there go through the dedicated
-   * transition endpoint instead.
+   * How the item is sourced: canvassing when set, direct otherwise. Copied
+   * from the material, not chosen by the requester.
    */
-  status?: "draft" | "pending";
+  is_needs_canvass: boolean | null;
+  purchase_request_id: string;
+  material_id: string;
+  vendor_id: string | null;
+  created_at: string;
+  updated_at: string;
+  /**
+   * Joined by the detail pipeline only — the create response carries no
+   * material, so callers fall back to `material_id` for a row's name.
+   */
+  material?: Material | null;
 }
 
-/**
- * An update carries edits only. Status changes are a separate call — see
- * `setPurchaseRequestStatus` in the module's API client.
- */
-export type UpdatePurchaseRequestPayload = CreatePurchaseRequestPayload;
+export interface PurchaseRequest {
+  _id: string;
+  /** Human-readable request number, e.g. "PR-2026-0803133440". */
+  no: string;
+  title: string;
+  date_needed: string;
+  priority: Priority;
+  justification: string;
+  status: PurchaseRequestStatus;
+  requester_id: string;
+  department_id: string;
+  created_at: string;
+  updated_at: string;
+  /**
+   * Joined by the list pipeline only, and left null when the lookup misses —
+   * both stages unwind with `preserveNullAndEmptyArrays`. The create, update
+   * and detail responses carry neither.
+   */
+  department_name?: string | null;
+  requester_name?: string | null;
+}
+
+/** `GET /purchase-requests/{id}` — the list endpoint returns no items. */
+export interface PurchaseRequestDetail extends PurchaseRequest {
+  items: PurchaseRequestItem[];
+  /**
+   * The detail pipeline joins the whole department document rather than
+   * flattening a name onto the request the way the list does. It joins no
+   * requester at all, so the detail page has no name to show for one.
+   */
+  department?: Department | null;
+}
 
 /**
  * The transitions the UI drives. The backend's enum is wider, but every other

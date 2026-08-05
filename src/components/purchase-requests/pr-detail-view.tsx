@@ -18,11 +18,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency } from "@/lib/utils";
+import { formatShortDate } from "@/lib/date";
 import {
-  type PurchaseRequest,
+  type PurchaseRequestDetail,
   purchaseRequestDetailQuery,
   purchaseRequestKeys,
+  purchaseRequestStatusLabels,
   purchaseRequestTone,
   setPurchaseRequestStatus,
 } from "@/modules/purchase-requests";
@@ -38,21 +39,23 @@ import {
  */
 
 /** Summary line under the title, assembled from whatever the backend gave us. */
-function metaLine(request: PurchaseRequest) {
-  const parts = [request.requester, request.department];
+function metaLine(request: PurchaseRequestDetail) {
+  // The detail response joins no requester, so that part is always absent
+  // here; the department arrives as a whole document rather than a name.
+  const parts = [request.requester_name, request.department?.title].filter(
+    (part): part is string => Boolean(part),
+  );
 
   // No submitted/completed/rejected timestamps are stored, so the created date
   // is the only point in the request's history we can show.
-  if (request.createdAt) parts.push(`Created ${request.createdAt}`);
+  const created = formatShortDate(request.created_at);
+  if (created) parts.push(`Created ${created}`);
 
-  const itemCount = `${request.items.length} ${
-    request.items.length === 1 ? "item" : "items"
-  }`;
-
+  // No amount is stored and no item cost is available to derive one.
   parts.push(
-    request.amount === null
-      ? `Amount unavailable (${itemCount})`
-      : `${formatCurrency(request.amount)} total (${itemCount})`,
+    `Amount unavailable (${request.items.length} ${
+      request.items.length === 1 ? "item" : "items"
+    })`,
   );
 
   return parts.join(" · ");
@@ -186,7 +189,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
           <span className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-base">{request.no}</span>
             <StatusBadge tone={purchaseRequestTone[request.status]}>
-              {request.statusLabel}
+              {purchaseRequestStatusLabels[request.status]}
             </StatusBadge>
             <PriorityBadge priority={request.priority} />
           </span>
@@ -194,7 +197,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
         description={
           <>
             <span className="block text-sm text-foreground">
-              {request.title ?? (
+              {request.title || (
                 <span className="italic text-muted-foreground">
                   Untitled — add a title while editing
                 </span>
@@ -206,10 +209,12 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
         actions={
           isDraft ? (
             <>
-              <CancelPurchaseRequestDialog id={request.id} no={request.no} />
+              <CancelPurchaseRequestDialog id={request._id} no={request.no} />
               <Button
                 variant="outline"
-                render={<Link href={`/purchase-requests/${request.id}/edit`} />}
+                render={
+                  <Link href={`/purchase-requests/${request._id}/edit`} />
+                }
                 nativeButton={false}
               >
                 Continue Editing
@@ -232,7 +237,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
                 Download PDF
               </Button>
               {isClosed ? null : (
-                <CancelPurchaseRequestDialog id={request.id} no={request.no} />
+                <CancelPurchaseRequestDialog id={request._id} no={request.no} />
               )}
             </>
           )
@@ -290,7 +295,11 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
           </Card>
 
           {awaitingProof ? (
-            <ProofOfOrderForm itemName={awaitingProof.name} />
+            <ProofOfOrderForm
+              itemName={
+                awaitingProof.material?.description || awaitingProof.material_id
+              }
+            />
           ) : null}
 
           <Card>
@@ -342,7 +351,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
                   className="w-full"
                   render={
                     <Link
-                      href={`/purchase-requests/${request.id}/canvassing`}
+                      href={`/purchase-requests/${request._id}/canvassing`}
                     />
                   }
                   nativeButton={false}
@@ -361,19 +370,19 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
               <dl className="divide-y text-xs">
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <dt className="text-muted-foreground">Requester</dt>
-                  <dd>{request.requester}</dd>
+                  <dd>{request.requester_name || "—"}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <dt className="text-muted-foreground">Department</dt>
-                  <dd>{request.department}</dd>
+                  <dd>{request.department?.title || "—"}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <dt className="text-muted-foreground">Date needed</dt>
-                  <dd>{request.dateNeeded ?? "—"}</dd>
+                  <dd>{formatShortDate(request.date_needed) ?? "—"}</dd>
                 </div>
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5">
                   <dt className="text-muted-foreground">Created</dt>
-                  <dd>{request.createdAt ?? "—"}</dd>
+                  <dd>{formatShortDate(request.created_at) ?? "—"}</dd>
                 </div>
               </dl>
             </CardContent>

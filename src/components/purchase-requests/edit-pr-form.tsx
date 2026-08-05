@@ -16,7 +16,7 @@ import {
   purchaseRequestDetailQuery,
   purchaseRequestKeys,
   setPurchaseRequestStatus,
-  type UpdatePurchaseRequestPayload,
+  type UpdatePurchaseRequestDto,
   updatePurchaseRequest,
 } from "@/modules/purchase-requests";
 
@@ -38,7 +38,7 @@ const routingNote =
 
 /** `submit` distinguishes "Save Changes" from "Submit for Approval". */
 interface SaveInput {
-  payload: UpdatePurchaseRequestPayload;
+  payload: UpdatePurchaseRequestDto;
   submit: boolean;
 }
 
@@ -99,7 +99,7 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
       }
 
       queryClient.invalidateQueries({ queryKey: purchaseRequestKeys.lists() });
-      router.push(`/purchase-requests/${updated.id}`);
+      router.push(`/purchase-requests/${updated._id}`);
     },
   });
 
@@ -117,8 +117,8 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
   const { seedFrom } = form;
 
   React.useEffect(() => {
-    if (!request || seededRef.current === request.id) return;
-    seededRef.current = request.id;
+    if (!request || seededRef.current === request._id) return;
+    seededRef.current = request._id;
 
     seedFrom(request);
   }, [request, seedFrom]);

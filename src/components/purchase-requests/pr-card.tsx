@@ -4,9 +4,11 @@ import { PriorityBadge } from "@/components/shared/priority-badge";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn, formatCurrency } from "@/lib/utils";
+import { formatShortDate } from "@/lib/date";
+import { cn } from "@/lib/utils";
 import {
   type PurchaseRequest,
+  purchaseRequestStatusLabels,
   purchaseRequestTone,
 } from "@/modules/purchase-requests";
 
@@ -32,13 +34,13 @@ function nextAction(request: PurchaseRequest) {
   ) {
     return {
       label: "Add Proof of Order & Confirm Delivery",
-      href: `/purchase-requests/${request.id}`,
+      href: `/purchase-requests/${request._id}`,
     };
   }
   if (request.status === "canvassing") {
     return {
       label: "Manage Canvassing",
-      href: `/purchase-requests/${request.id}/canvassing`,
+      href: `/purchase-requests/${request._id}/canvassing`,
     };
   }
   return null;
@@ -47,7 +49,11 @@ function nextAction(request: PurchaseRequest) {
 export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
   const tone = purchaseRequestTone[request.status];
   const action = nextAction(request);
-  const href = `/purchase-requests/${request.id}`;
+  const href = `/purchase-requests/${request._id}`;
+  // Either join can miss; the line collapses rather than showing a gap.
+  const meta = [request.requester_name, request.department_name].filter(
+    Boolean,
+  );
 
   return (
     <Card
@@ -75,26 +81,28 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
           </p>
         )}
 
-        <p className="text-[12.5px] text-muted-foreground">
-          {request.requester} · {request.department}
-        </p>
+        {meta.length > 0 ? (
+          <p className="text-[12.5px] text-muted-foreground">
+            {meta.join(" · ")}
+          </p>
+        ) : null}
+        {/* No amount is stored on a request and materials sync without a
+            cost, so there is nothing to total. */}
         <p className="font-semibold tabular-nums">
-          {request.amount === null ? (
-            <span
-              className="text-muted-foreground"
-              title="No estimated amount on file"
-            >
-              —
-            </span>
-          ) : (
-            formatCurrency(request.amount)
-          )}
+          <span
+            className="text-muted-foreground"
+            title="No estimated amount on file"
+          >
+            —
+          </span>
         </p>
 
         <div className="flex items-center justify-between gap-2">
-          <StatusBadge tone={tone}>{request.statusLabel}</StatusBadge>
+          <StatusBadge tone={tone}>
+            {purchaseRequestStatusLabels[request.status]}
+          </StatusBadge>
           <span className="shrink-0 text-xs text-muted-foreground">
-            {request.createdAt ?? "Not submitted"}
+            {formatShortDate(request.created_at) ?? "Not submitted"}
           </span>
         </div>
 

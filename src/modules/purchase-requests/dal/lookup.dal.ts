@@ -2,21 +2,12 @@ import { serverFetch } from "@/lib/api/fetcher";
 import {
   clampPageSize,
   MAX_PAGE_SIZE,
-  type PaginatedDto,
-  toPageInfo,
+  type Paginated,
 } from "@/lib/api/pagination";
+import type { Department } from "@/modules/departments";
 import { LOOKUP_PAGE_SIZE } from "@/modules/purchase-requests/constants";
-import type {
-  DepartmentDto,
-  MaterialDto,
-  VendorDto,
-} from "@/modules/purchase-requests/dto";
-import {
-  toDepartmentOption,
-  toMaterialOption,
-  toVendorOption,
-} from "@/modules/purchase-requests/mappers/purchase-request.mapper";
-import type { LookupPage } from "@/modules/purchase-requests/models/purchase-request";
+import type { Material } from "@/modules/purchase-requests/models/material";
+import type { Vendor } from "@/modules/vendors";
 
 /**
  * Reference data reads for the create and edit form pickers. Server-side only —
@@ -25,6 +16,9 @@ import type { LookupPage } from "@/modules/purchase-requests/models/purchase-req
  * These are searchable, paginated lists, not name resolution. Purchase requests
  * store `department_id` and `vendor_id` and the backend joins neither, so those
  * ids render as-is until it does.
+ *
+ * The collections belong to other modules, so their shapes are imported rather
+ * than restated — the picker reads the records exactly as they arrive.
  */
 
 export interface LookupQuery {
@@ -33,48 +27,41 @@ export interface LookupQuery {
   search?: string | null;
 }
 
-export async function listDepartments(): Promise<LookupPage> {
-  const response = await serverFetch<PaginatedDto<DepartmentDto>>(
-    "/departments",
-    { query: { page: 1, page_size: MAX_PAGE_SIZE } },
-  );
-
-  return {
-    options: response.data.map(toDepartmentOption),
-    page: toPageInfo(response.pagination),
-  };
+/**
+ * Departments are a short list, so the default page holds the whole
+ * collection; the picker still pages if one day it doesn't.
+ */
+export function listDepartments(
+  query: LookupQuery = {},
+): Promise<Paginated<Department>> {
+  return serverFetch<Paginated<Department>>("/departments", {
+    query: {
+      page: query.page ?? 1,
+      page_size: clampPageSize(query.pageSize, MAX_PAGE_SIZE),
+    },
+  });
 }
 
-export async function listMaterials(
+export function listMaterials(
   query: LookupQuery = {},
-): Promise<LookupPage> {
-  const response = await serverFetch<PaginatedDto<MaterialDto>>("/materials", {
+): Promise<Paginated<Material>> {
+  return serverFetch<Paginated<Material>>("/materials", {
     query: {
       page: query.page ?? 1,
       page_size: clampPageSize(query.pageSize, LOOKUP_PAGE_SIZE),
       search: query.search || undefined,
     },
   });
-
-  return {
-    options: response.data.map(toMaterialOption),
-    page: toPageInfo(response.pagination),
-  };
 }
 
-export async function listVendors(
+export function listVendors(
   query: LookupQuery = {},
-): Promise<LookupPage> {
-  const response = await serverFetch<PaginatedDto<VendorDto>>("/vendors", {
+): Promise<Paginated<Vendor>> {
+  return serverFetch<Paginated<Vendor>>("/vendors", {
     query: {
       page: query.page ?? 1,
       page_size: clampPageSize(query.pageSize, LOOKUP_PAGE_SIZE),
       search: query.search || undefined,
     },
   });
-
-  return {
-    options: response.data.map(toVendorOption),
-    page: toPageInfo(response.pagination),
-  };
 }

@@ -23,13 +23,13 @@ import { deletePaymentTerm, paymentTermKeys } from "@/modules/payment-terms";
 export function DeletePaymentTermDialog({
   paymentTerm,
 }: {
-  paymentTerm: { id: string; title: string };
+  paymentTerm: { _id: string; title: string };
 }) {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
   const { mutate: remove, isPending: deleting } = useMutation({
-    mutationFn: () => deletePaymentTerm(paymentTerm.id),
+    mutationFn: () => deletePaymentTerm(paymentTerm._id),
     onSuccess: () => {
       toast.add({
         title: "Payment term deleted",

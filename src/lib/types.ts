@@ -1,11 +1,11 @@
 /**
- * Domain types for the procurement module.
+ * Types for the screens that are still mock-driven — dashboard, reports,
+ * roles, users, notifications and global search — plus the one presentation
+ * vocabulary every screen shares.
  *
- * Mirrors the entities in the wireframes: purchase requests move Draft →
- * Pending → Canvassing / PO Created → Partially Completed → Completed, with
- * Rejected and Canceled as off-ramps. Items within a single request can be
- * sourced independently, so status lives on both the request and its
- * individual items.
+ * Purchase requests, canvassing and the rest of the backend-wired features do
+ * not appear here: their shapes are the FastAPI responses themselves and live
+ * in each module's `models/`.
  */
 
 /** Visual tone shared by every status pill in the app. */
@@ -18,53 +18,12 @@ export type StatusTone =
   | "warning"
   | "danger";
 
-export type Priority = "High" | "Normal" | "Low";
-
-export type PurchaseRequestStatus =
-  | "draft"
-  | "pending"
-  | "canvassing"
-  | "po-created"
-  | "partially-completed"
-  | "completed"
-  | "rejected"
-  | "canceled";
-
 /**
- * Items carry a wider set of states than their parent request, because a
- * single item can be rejected or completed while the rest of the request moves
- * on. Mirrors `Status` in the backend's purchase_request_item schema.
+ * The backend's own priority values, kept here rather than in the purchase
+ * requests module because `PriorityBadge` is shared and a shared component may
+ * not reach into a feature module for its types. Modules re-export it.
  */
-export type PurchaseRequestItemStatus =
-  | "pending"
-  | "draft"
-  | "canvassing"
-  | "quotation-awarded"
-  | "po-created"
-  | "partially-completed"
-  | "completed"
-  | "rejected"
-  | "canceled";
-
-/**
- * How an item is sourced. Derived from the material's `is_needs_canvass` flag,
- * not editable by the requester.
- */
-export type SourcingMode = "direct" | "canvassing";
-
-export interface PurchaseRequestItem {
-  id: string;
-  materialId: string;
-  name: string;
-  quantity: number;
-  unit: string | null;
-  /** Null whenever the material has no cost on file, which is currently always. */
-  estimatedUnitCost: number | null;
-  vendorId: string | null;
-  vendor: string | null;
-  sourcing: SourcingMode;
-  status: PurchaseRequestItemStatus;
-}
+export type Priority = "low" | "normal" | "high";
 
 export interface ActivityEntry {
   id: string;
@@ -72,44 +31,7 @@ export interface ActivityEntry {
   timestamp: string;
 }
 
-/**
- * A purchase request as the UI renders it.
- *
- * Several fields the wireframe imagined have no backend source and are
- * deliberately absent rather than invented: submitted/completed/rejected
- * dates, rejection reasons, documents, comments and activity history. The
- * panels that would show them stay hidden until the endpoints exist.
- */
-export interface PurchaseRequest {
-  id: string;
-  /** Human-readable request number, e.g. "PR-0042". */
-  no: string;
-  /** Null for drafts that have not been titled yet. */
-  title: string | null;
-  requester: string;
-  department: string;
-  departmentId: string;
-  /**
-   * Null when the total can't be established — no amount is stored on the
-   * request and materials currently sync without a cost.
-   */
-  amount: number | null;
-  priority: Priority;
-  status: PurchaseRequestStatus;
-  /** Human label for the status pill, e.g. "PO-3025 Created". */
-  statusLabel: string;
-  /** Why the purchase is needed, as entered by the requester. */
-  justification: string;
-  /** When the requester needs the items, e.g. "Aug 17". */
-  dateNeeded: string | null;
-  /** `dateNeeded` reformatted for a date input's `value`, e.g. "2026-08-17". */
-  dateNeededValue: string;
-  /** Date shown on list rows and cards. Null while still a draft. */
-  createdAt: string | null;
-  items: PurchaseRequestItem[];
-}
-
-/** A row on the dashboard's "Requests Requiring Action" table. */
+/** A row on the dashboard's "Requests Requiring Action" table. Mock-driven. */
 export interface ActionableRequest {
   id: string;
   requester: string;
@@ -181,49 +103,4 @@ export interface User {
 export interface RolePermission {
   role: string;
   description: string;
-}
-
-/**
- * Roles & Permissions. No backend endpoint exists for any of this yet — the
- * catalogue below is the shape the page would read once one does, and
- * `src/data/roles.ts` supplies it statically in the meantime.
- */
-
-export type RoleStatus = "active" | "inactive";
-
-/** A single grantable action, addressed as `module.action` everywhere else. */
-export interface Permission {
-  action: string;
-  label: string;
-}
-
-export interface PermissionModule {
-  key: string;
-  name: string;
-  permissions: Permission[];
-}
-
-/** A person holding a role. Department is shown beside the name in the sheet. */
-export interface RoleAssignee {
-  id: string;
-  name: string;
-  department: string;
-}
-
-export interface Role {
-  id: string;
-  name: string;
-  /** Stable slug shown in mono under the role name. */
-  key: string;
-  description: string;
-  /** System roles ship with the product: they cannot be deleted. */
-  isSystem: boolean;
-  status: RoleStatus;
-  assignees: RoleAssignee[];
-  /** Grant keys, `module.action`. */
-  permissions: string[];
-  createdAt: string;
-  createdBy: string;
-  updatedAt: string;
-  updatedBy: string;
 }

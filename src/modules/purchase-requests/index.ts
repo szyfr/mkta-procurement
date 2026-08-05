@@ -17,19 +17,24 @@ export {
 } from "@/modules/purchase-requests/api/client";
 export {
   LOOKUP_PAGE_SIZE,
-  priorityToDto,
   purchaseRequestItemStatusLabels,
   purchaseRequestItemTone,
+  purchaseRequestStatusLabels,
   purchaseRequestStatusLegend,
   purchaseRequestTone,
 } from "@/modules/purchase-requests/constants";
 export type {
-  CreatePurchaseRequestPayload,
-  LookupOption,
+  CreatePurchaseRequestInput,
+  UpdatePurchaseRequestDto,
+} from "@/modules/purchase-requests/dto";
+export type { Material } from "@/modules/purchase-requests/models/material";
+export type {
+  Priority,
   PurchaseRequest,
+  PurchaseRequestDetail,
+  PurchaseRequestItem,
   PurchaseRequestStatus,
   SettablePurchaseRequestStatus,
-  UpdatePurchaseRequestPayload,
 } from "@/modules/purchase-requests/models/purchase-request";
 export type { PurchaseRequestListFilters } from "@/modules/purchase-requests/queries/purchase-request.queries";
 export {

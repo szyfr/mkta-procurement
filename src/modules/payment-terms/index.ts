@@ -1,9 +1,9 @@
 /**
  * Payment terms module — public surface.
  *
- * Two consumers share this module: the quotation form's picker (via
- * `fetchPaymentTermOptions`, producing `LookupOption`) and the Payment Terms
- * management screen (list/create/update/delete on the full model).
+ * Two consumers share the one list call: the quotation form's picker and the
+ * Payment Terms management screen. Both read the same records; only what they
+ * render from them differs.
  *
  * The DAL is deliberately left out: it reaches FastAPI and must be imported
  * directly by Route Handlers (`@/modules/payment-terms/dal/...`) so it can
@@ -13,14 +13,15 @@
 export {
   createPaymentTerm,
   deletePaymentTerm,
-  fetchPaymentTermOptions,
+  fetchPaymentTerms,
   updatePaymentTerm,
 } from "@/modules/payment-terms/api/client";
 export { paymentTermEndpoints } from "@/modules/payment-terms/api/endpoints";
 export type {
-  PaymentTerm,
-  PaymentTermPayload,
-} from "@/modules/payment-terms/models/payment-term";
+  CreatePaymentTermDto,
+  UpdatePaymentTermDto,
+} from "@/modules/payment-terms/dto";
+export type { PaymentTerm } from "@/modules/payment-terms/models/payment-term";
 export {
   paymentTermKeys,
   paymentTermListQuery,

@@ -1,5 +1,5 @@
 import type { StatusTone } from "@/lib/types";
-import type { CanvassingStatusDto } from "@/modules/canvassing/dto";
+import type { CanvassingStatus } from "@/modules/canvassing/models/canvassing";
 
 /** Default page size for the canvassing list. */
 export const DEFAULT_PAGE_SIZE = 10;
@@ -11,7 +11,7 @@ export const DEFAULT_PAGE_SIZE = 10;
  * Declaration order is sourcing order, which is the order the filter lists them
  * in. Tones match the ones the mock list used for the equivalent stages.
  */
-export const canvassingStatusTone: Record<CanvassingStatusDto, StatusTone> = {
+export const canvassingStatusTone: Record<CanvassingStatus, StatusTone> = {
   "Awaiting Quotation": "info",
   "Ready for Comparison": "neutral",
   "Vendor Selected": "success",
@@ -20,4 +20,4 @@ export const canvassingStatusTone: Record<CanvassingStatusDto, StatusTone> = {
 /** The statuses a row can carry, for the Status filter. */
 export const canvassingStatusOptions = Object.keys(
   canvassingStatusTone,
-) as CanvassingStatusDto[];
+) as CanvassingStatus[];
