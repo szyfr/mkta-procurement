@@ -473,7 +473,7 @@ export function EntityListView<
 
   const { data: entities, pagination } = data;
 
-  if (entities.length === 0) {
+  if (pagination.total_items === 0) {
     return (
       <EmptyState
         icon={config.emptyStateIcon}
