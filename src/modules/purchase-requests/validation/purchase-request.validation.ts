@@ -46,8 +46,18 @@ function invalid(message: string) {
   return new ApiError(422, "validation_failed", message);
 }
 
-/** Shared by create and update: every item needs a material and a quantity. */
-function parseItems(items: unknown) {
+const ITEM_STATUSES = ["draft", "pending"] as const;
+
+/**
+ * Shared by create and update: every item needs a material and a quantity.
+ *
+ * `defaultStatus` is only passed on create, where it stamps every item with
+ * the request's own status so a submitted request's items come in `pending`
+ * rather than sitting at the backend's `draft` default. Update never passes
+ * it — item status transitions there are owned by the dedicated status
+ * endpoint, not this route.
+ */
+function parseItems(items: unknown, defaultStatus?: "draft" | "pending") {
   if (!Array.isArray(items) || items.length === 0) {
     throw invalid("Add at least one item.");
   }
@@ -57,6 +67,7 @@ function parseItems(items: unknown) {
       material_id?: string;
       quantity?: number;
       vendor_id?: string | null;
+      status?: string;
     } | null;
 
     if (!item?.material_id)
@@ -65,10 +76,17 @@ function parseItems(items: unknown) {
       throw invalid(`Item ${index + 1} needs a quantity greater than zero.`);
     }
 
+    const status = ITEM_STATUSES.includes(
+      item.status as (typeof ITEM_STATUSES)[number],
+    )
+      ? (item.status as (typeof ITEM_STATUSES)[number])
+      : defaultStatus;
+
     return {
       material_id: item.material_id,
       quantity: item.quantity as number,
       vendor_id: item.vendor_id ?? null,
+      ...(status ? { status } : {}),
     };
   });
 }
@@ -107,7 +125,7 @@ export function parseCreatePayload(body: unknown): CreatePurchaseRequestInput {
     date_needed: payload.date_needed,
     priority,
     justification: payload.justification.trim(),
-    items: parseItems(payload.items),
+    items: parseItems(payload.items, payload.status ?? "draft"),
     status: payload.status,
   };
 }

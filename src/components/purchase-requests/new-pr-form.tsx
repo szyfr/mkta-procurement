@@ -46,7 +46,13 @@ export function NewPurchaseRequestForm() {
 
   function submit(status: "draft" | "pending") {
     const payload = form.validate();
-    if (payload) create({ ...payload, status });
+    if (payload) {
+      create({
+        ...payload,
+        status,
+        items: payload.items.map((item) => ({ ...item, status })),
+      });
+    }
   }
 
   return (

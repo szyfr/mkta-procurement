@@ -1,10 +1,16 @@
 import type { Priority } from "@/lib/types";
 
-/** `app/http/requests/pr_request.py:itemRequest` */
+/**
+ * `app/http/requests/pr_request.py:itemRequest`. `status` defaults to `draft`
+ * upstream when omitted — the create form sets it explicitly so a submitted
+ * request's items land as `pending` alongside the request itself, rather than
+ * staying `draft` until canvassing or PO processing touches them.
+ */
 export interface PurchaseRequestItemDto {
   material_id: string;
   quantity: number;
   vendor_id?: string | null;
+  status?: "draft" | "pending";
 }
 
 /**
