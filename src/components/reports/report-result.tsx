@@ -1,6 +1,7 @@
 import { SearchXIcon } from "lucide-react";
 
 import { ReportBarChart } from "@/components/charts/report-bar-chart";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Empty,
@@ -22,8 +23,8 @@ import type { ReportCell, ReportDefinition } from "@/data/reports";
 import { cn } from "@/lib/utils";
 
 const toneClasses = {
-  success: "text-status-success",
-  danger: "text-status-danger",
+  success: "text-status-success-fg",
+  danger: "text-status-danger-fg",
   muted: "text-muted-foreground",
 } as const;
 
@@ -68,7 +69,7 @@ export function ReportResult({ report }: { report: ReportDefinition }) {
             </EmptyHeader>
           </Empty>
         ) : (
-          <Table>
+          <Table className={dataTableClass}>
             <TableHeader>
               <TableRow>
                 {report.table.columns.map((column, index) => (

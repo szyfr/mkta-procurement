@@ -13,7 +13,11 @@ export function PriorityBadge({
   return (
     <Badge
       variant="outline"
-      className={cn(priority === "High" && "border-foreground/40", className)}
+      className={cn(
+        "rounded-sm text-[11px] leading-none font-semibold",
+        priority === "High" && "border-foreground/40",
+        className,
+      )}
     >
       {priority}
     </Badge>

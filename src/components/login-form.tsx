@@ -66,7 +66,7 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-5", className)} {...props}>
       <Card>
         <CardHeader>
           {/* The sign-in card carries the page heading. */}

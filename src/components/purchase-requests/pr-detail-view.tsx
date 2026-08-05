@@ -60,13 +60,13 @@ function metaLine(request: PurchaseRequest) {
 
 function DetailSkeleton() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-7 w-72" />
         <Skeleton className="h-4 w-96 max-w-full" />
       </div>
       <Skeleton className="h-20 w-full" />
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Skeleton className="h-64 w-full lg:col-span-2" />
         <Skeleton className="h-64 w-full" />
       </div>
@@ -269,8 +269,8 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
         </Card>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
               <CardTitle>Items</CardTitle>
@@ -295,7 +295,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
 
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="text-xs">Justification</CardTitle>
+              <CardTitle>Justification</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">
@@ -307,7 +307,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
           {isDraft ? null : (
             <Card>
               <CardHeader className="border-b">
-                <CardTitle className="text-xs">Comments</CardTitle>
+                <CardTitle>Comments</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
                 <p className="text-xs text-muted-foreground">
@@ -325,11 +325,11 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
           )}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-5">
           {canvassingItem ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-xs">Action Panel</CardTitle>
+                <CardTitle>Action Panel</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
                 <p className="text-xs text-muted-foreground">
@@ -355,7 +355,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
 
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="text-xs">Details</CardTitle>
+              <CardTitle>Details</CardTitle>
             </CardHeader>
             <CardContent className="px-0">
               <dl className="divide-y text-xs">

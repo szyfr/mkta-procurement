@@ -52,13 +52,16 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
   return (
     <Card
       className={cn(
-        "border-l-4 transition-colors hover:ring-foreground/20",
+        "border-l-2 transition-colors hover:border-foreground/20",
         accentClasses[tone],
       )}
     >
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
-          <Link href={href} className="font-medium hover:underline">
+          <Link
+            href={href}
+            className="font-mono text-[13.5px] font-semibold hover:underline"
+          >
             {request.no}
           </Link>
           <PriorityBadge priority={request.priority} />
@@ -72,10 +75,10 @@ export function PurchaseRequestCard({ request }: { request: PurchaseRequest }) {
           </p>
         )}
 
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[12.5px] text-muted-foreground">
           {request.requester} · {request.department}
         </p>
-        <p className="font-semibold">
+        <p className="font-semibold tabular-nums">
           {request.amount === null ? (
             <span
               className="text-muted-foreground"

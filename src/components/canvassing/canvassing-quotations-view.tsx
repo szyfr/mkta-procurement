@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { InboxIcon } from "lucide-react";
+import { InboxIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
 
@@ -9,6 +9,11 @@ import { AwardVendorDialog } from "@/components/canvassing/award-vendor-dialog";
 import { QuotationDetailDialog } from "@/components/canvassing/quotation-detail-dialog";
 import { ErrorAlert } from "@/components/shared/query-states";
 import { StatusBadge } from "@/components/shared/status-badge";
+import {
+  cellIdClass,
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -213,7 +218,8 @@ function QuoteComparison({
               />
             }
           >
-            + Add Vendor Quote
+            <PlusIcon data-icon="inline-start" />
+            Add Vendor Quote
           </Button>
         </div>
       </div>
@@ -238,7 +244,8 @@ function QuoteComparison({
                 />
               }
             >
-              + Add Vendor Quote
+              <PlusIcon data-icon="inline-start" />
+              Add Vendor Quote
             </Button>
           </CardContent>
         </Card>
@@ -251,19 +258,23 @@ function QuoteComparison({
               aria-label={`Select winning vendor for ${item.name}`}
               className="block"
             >
-              <Table>
+              <Table className={dataTableClass}>
                 <TableHeader>
                   <TableRow>
-                    <TableHead scope="col" className="w-8 pl-4">
+                    <TableHead scope="col" className="w-8">
                       <span className="sr-only">Select</span>
                     </TableHead>
                     <TableHead scope="col">Vendor ID</TableHead>
                     <TableHead scope="col">Reference</TableHead>
-                    <TableHead scope="col">Unit Price</TableHead>
-                    <TableHead scope="col">Total</TableHead>
+                    <TableHead scope="col" className={numericCellClass}>
+                      Unit Price
+                    </TableHead>
+                    <TableHead scope="col" className={numericCellClass}>
+                      Total
+                    </TableHead>
                     <TableHead scope="col">Delivery</TableHead>
                     <TableHead scope="col">Quote Date</TableHead>
-                    <TableHead scope="col" className="pr-4">
+                    <TableHead scope="col">
                       <span className="sr-only">Actions</span>
                     </TableHead>
                   </TableRow>
@@ -277,9 +288,9 @@ function QuoteComparison({
                     return (
                       <TableRow
                         key={quotation.id}
-                        className={cn(isLowest && "bg-status-success/10")}
+                        className={cn(isLowest && "bg-status-success-subtle")}
                       >
-                        <TableCell className="pl-4">
+                        <TableCell>
                           <RadioGroupItem
                             value={quotation.id}
                             aria-label={`Select vendor ${quotation.vendorId}`}
@@ -289,17 +300,18 @@ function QuoteComparison({
                         <TableCell
                           className={cn(
                             "font-mono text-xs",
-                            isLowest && "font-medium text-status-success",
+                            isLowest && "font-semibold text-status-success-fg",
                           )}
                         >
                           {quotation.vendorId}
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className={cellIdClass}>
                           {quotation.referenceNo}
                         </TableCell>
                         <TableCell
                           className={cn(
-                            isLowest && "font-medium text-status-success",
+                            numericCellClass,
+                            isLowest && "font-semibold text-status-success-fg",
                           )}
                         >
                           {quotation.unitPrice === null
@@ -308,7 +320,8 @@ function QuoteComparison({
                         </TableCell>
                         <TableCell
                           className={cn(
-                            isLowest && "font-medium text-status-success",
+                            numericCellClass,
+                            isLowest && "font-semibold text-status-success-fg",
                           )}
                         >
                           {quotation.unitPrice === null
@@ -322,7 +335,7 @@ function QuoteComparison({
                         <TableCell className="text-muted-foreground">
                           {quotation.quotedOn ?? "—"}
                         </TableCell>
-                        <TableCell className="pr-4">
+                        <TableCell>
                           <QuotationDetailDialog
                             quotationId={quotation.id}
                             itemId={item.id}

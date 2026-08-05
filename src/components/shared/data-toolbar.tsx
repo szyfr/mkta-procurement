@@ -39,8 +39,8 @@ export function DataToolbar({
   onSearchChange?: (value: string) => void;
 }) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-3", className)}>
-      <InputGroup className="h-8 w-full sm:w-64">
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      <InputGroup className="h-8 w-full rounded-md sm:w-64">
         <InputGroupInput
           type="search"
           placeholder={placeholder}

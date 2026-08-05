@@ -82,7 +82,7 @@ export function ReportWorkspace() {
                   <Icon className="size-8 rounded-lg border p-1.5 text-muted-foreground" />
                   {isActive ? <Badge>Active</Badge> : null}
                 </div>
-                <CardTitle className="text-xs">{report.title}</CardTitle>
+                <CardTitle>{report.title}</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-1 flex-col justify-end gap-3">
                 <p className="text-xs text-muted-foreground">
@@ -122,7 +122,7 @@ export function ReportWorkspace() {
             </span>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed bg-muted/50 text-xs text-muted-foreground">
+            <div className="flex h-32 items-center justify-center rounded-lg border border-dashed bg-accent text-xs text-muted-foreground">
               Crunching PO and evaluation data…
             </div>
             <Skeleton className="h-3 w-full" />

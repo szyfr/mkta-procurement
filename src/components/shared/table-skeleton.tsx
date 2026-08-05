@@ -1,3 +1,4 @@
+import { dataTableClass } from "@/components/shared/table-classes";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -33,23 +34,20 @@ export function TableSkeleton({
 }) {
   return (
     <Card aria-busy="true">
-      {/* Absolutely positioned by `sr-only`, so it announces without taking space. */}
-      <output className="sr-only">Loading table…</output>
       <CardContent className="px-0">
-        <Table>
+        <Table className={dataTableClass}>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {Array.from({ length: columns }, (_, column) => (
                 <TableHead
                   // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length placeholder columns
                   key={column}
-                  className={cn(
-                    column === 0 && "pl-4",
-                    column === columns - 1 && "pr-4",
-                  )}
                 >
                   <Skeleton
-                    className={cn("h-3", column % 2 === 0 ? "w-20" : "w-16")}
+                    className={cn(
+                      "h-3 rounded-[5px]",
+                      column % 2 === 0 ? "w-20" : "w-16",
+                    )}
                   />
                 </TableHead>
               ))}
@@ -58,19 +56,17 @@ export function TableSkeleton({
           <TableBody>
             {Array.from({ length: rows }, (_, row) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length placeholder rows
-              <TableRow key={row} className="hover:bg-transparent">
+              <TableRow key={row} className="hover:bg-transparent!">
                 {Array.from({ length: columns }, (_, column) => (
                   <TableCell
                     // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length placeholder columns
                     key={column}
-                    className={cn(
-                      "py-3",
-                      column === 0 && "pl-4",
-                      column === columns - 1 && "pr-4",
-                    )}
                   >
                     <Skeleton
-                      className={cn("h-4", cellWidth(row, column))}
+                      className={cn(
+                        "h-4 rounded-[5px]",
+                        cellWidth(row, column),
+                      )}
                       // Rows fade in sequence, which reads as loading rather
                       // than as one block flashing.
                       style={{ animationDelay: `${row * 90}ms` }}
@@ -83,7 +79,11 @@ export function TableSkeleton({
         </Table>
       </CardContent>
       <CardFooter className="justify-between gap-2">
-        <Skeleton className="h-3 w-28" />
+        {/* Visible rather than `sr-only`: a table of grey bars needs a word
+            saying it is loading and not empty. */}
+        <output className="text-[12.5px] text-muted-foreground">
+          Loading…
+        </output>
         <div className="flex items-center gap-1">
           <Skeleton className="h-8 w-20 rounded-lg" />
           <Skeleton className="h-8 w-9 rounded-lg" />

@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-geist-sans), "Inter", system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -23,13 +23,54 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+
+  /* Four ramps per status, not one token at varying opacity: the design system
+     fixes the tint, border, text and dot independently, and a flat opacity
+     ladder cannot hit all four. `--color-status-*` (no suffix) is the solid
+     dot/rule colour; `-fg` is the only one safe as body text. */
   --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-bg: var(--status-neutral-bg);
+  --color-status-neutral-fg: var(--status-neutral-fg);
+  --color-status-neutral-border: var(--status-neutral-border);
+  --color-status-neutral-subtle: var(--status-neutral-subtle);
+  --color-status-neutral-subtle-fg: var(--status-neutral-subtle-fg);
   --color-status-info: var(--status-info);
+  --color-status-info-bg: var(--status-info-bg);
+  --color-status-info-fg: var(--status-info-fg);
+  --color-status-info-border: var(--status-info-border);
+  --color-status-info-subtle: var(--status-info-subtle);
+  --color-status-info-subtle-fg: var(--status-info-subtle-fg);
   --color-status-ordered: var(--status-ordered);
+  --color-status-ordered-bg: var(--status-ordered-bg);
+  --color-status-ordered-fg: var(--status-ordered-fg);
+  --color-status-ordered-border: var(--status-ordered-border);
+  --color-status-ordered-subtle: var(--status-ordered-subtle);
+  --color-status-ordered-subtle-fg: var(--status-ordered-subtle-fg);
   --color-status-partial: var(--status-partial);
+  --color-status-partial-bg: var(--status-partial-bg);
+  --color-status-partial-fg: var(--status-partial-fg);
+  --color-status-partial-border: var(--status-partial-border);
+  --color-status-partial-subtle: var(--status-partial-subtle);
+  --color-status-partial-subtle-fg: var(--status-partial-subtle-fg);
   --color-status-success: var(--status-success);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-success-fg: var(--status-success-fg);
+  --color-status-success-border: var(--status-success-border);
+  --color-status-success-subtle: var(--status-success-subtle);
+  --color-status-success-subtle-fg: var(--status-success-subtle-fg);
   --color-status-warning: var(--status-warning);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-warning-fg: var(--status-warning-fg);
+  --color-status-warning-border: var(--status-warning-border);
+  --color-status-warning-subtle: var(--status-warning-subtle);
+  --color-status-warning-subtle-fg: var(--status-warning-subtle-fg);
   --color-status-danger: var(--status-danger);
+  --color-status-danger-bg: var(--status-danger-bg);
+  --color-status-danger-fg: var(--status-danger-fg);
+  --color-status-danger-border: var(--status-danger-border);
+  --color-status-danger-subtle: var(--status-danger-subtle);
+  --color-status-danger-subtle-fg: var(--status-danger-subtle-fg);
+
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -46,17 +87,35 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* The wireframes put the same 4px corner on every surface — cards, buttons,
-     inputs, selects, menus, badges — so the scale is flat from `md` up rather
-     than ramping. `sm` keeps a half step for the few hairline details
-     (chart swatches, tooltip arrows, nested kbd chips). */
-  --radius-sm: calc(var(--radius) * 0.5);
-  --radius-md: var(--radius);
+
+  /* The design system assigns a corner to each kind of surface rather than
+     reusing one value: 6 chips · 8 inputs and inner rows · 10 buttons and
+     menus · 12 cards, table shells and panels · 14 dialogs and sheets. */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: var(--radius);
-  --radius-2xl: var(--radius);
-  --radius-3xl: var(--radius);
-  --radius-4xl: var(--radius);
+  --radius-xl: calc(var(--radius) + 2px);
+  --radius-2xl: calc(var(--radius) + 4px);
+  --radius-3xl: calc(var(--radius) + 4px);
+  --radius-4xl: calc(var(--radius) + 4px);
+
+  /* Only three elevations exist. Buttons and inputs take `shadow-xs`, menus
+     and popovers `shadow-md`; these two are the modal pair. A card gets a
+     border instead — there is no decorative elevation anywhere. */
+  --shadow-dialog: 0 24px 64px rgb(0 0 0 / 0.24);
+  --shadow-sheet: -18px 0 48px rgb(0 0 0 / 0.18);
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Overrides Tailwind's stock pulse (1 ↔ .5 over 2s) so every Skeleton in the
+     app breathes on the design system's curve without touching generated
+     `components/ui`. */
+  --animate-pulse: pulse 1.5s var(--ease-standard) infinite;
+  @keyframes pulse {
+    50% {
+      opacity: 0.45;
+    }
+  }
 }
 
 :root {
@@ -72,22 +131,25 @@
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
+  /* Half a step lighter than `muted`, which is what separates the two roles:
+     `accent` is the passive tint (sidebar, toolbars, footers, row hover),
+     `muted` the active one (nav hover, progress tracks, icon tiles). */
+  --accent: oklch(0.985 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  /* Windows-first system stack: Segoe UI leads, then the wireframe's own
-     fallbacks so macOS/Linux still land on their native UI face. */
-  --font-sans: "Segoe UI", -apple-system, Helvetica, Arial, sans-serif;
+  --ring: oklch(0.145 0 0);
+  /* Single blue ramp for chart series — procurement charts compare periods and
+     categories, never sentiment, so a diverging palette would imply meaning
+     that isn't there. Status-bearing values use the status tokens instead. */
+  --chart-1: #0090ff;
+  --chart-2: #5eb1ef;
+  --chart-3: #0588f0;
+  --chart-4: #0d74ce;
+  --chart-5: #113264;
 
-  --radius: 0.25rem;
+  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -95,17 +157,61 @@
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-ring: oklch(0.145 0 0);
 
-  /* Procurement status hues. One token per status; badges derive their tint,
-     border, and text from it so a status reads the same everywhere. */
-  --status-neutral: oklch(0.44 0 0);
-  --status-info: oklch(0.488 0.203 258);
-  --status-ordered: oklch(0.496 0.237 302);
-  --status-partial: oklch(0.553 0.178 48);
-  --status-success: oklch(0.522 0.147 150);
-  --status-warning: oklch(0.554 0.135 71);
-  --status-danger: oklch(0.514 0.202 27);
+  /* Procurement status palettes. The five in the design system, plus `ordered`
+     and `partial` built to the same recipe (100 tint / 200 border / 800 text /
+     600 dot / 50 subtle / 700 subtle text) because "PO Created" and "Partially
+     Received" are distinct states that would otherwise collapse into info and
+     warning. One palette per meaning, used identically on every page. */
+  --status-neutral: #a3a3a3;
+  --status-neutral-bg: #f5f5f5;
+  --status-neutral-fg: #525252;
+  --status-neutral-border: #e5e5e5;
+  --status-neutral-subtle: #fafafa;
+  --status-neutral-subtle-fg: #525252;
+
+  --status-info: #2563eb;
+  --status-info-bg: #dbeafe;
+  --status-info-fg: #1e40af;
+  --status-info-border: #bfdbfe;
+  --status-info-subtle: #eff6ff;
+  --status-info-subtle-fg: #1d4ed8;
+
+  --status-ordered: #9333ea;
+  --status-ordered-bg: #f3e8ff;
+  --status-ordered-fg: #6b21a8;
+  --status-ordered-border: #e9d5ff;
+  --status-ordered-subtle: #faf5ff;
+  --status-ordered-subtle-fg: #7e22ce;
+
+  --status-partial: #ea580c;
+  --status-partial-bg: #ffedd5;
+  --status-partial-fg: #9a3412;
+  --status-partial-border: #fed7aa;
+  --status-partial-subtle: #fff7ed;
+  --status-partial-subtle-fg: #c2410c;
+
+  --status-success: #16a34a;
+  --status-success-bg: #dcfce7;
+  --status-success-fg: #166534;
+  --status-success-border: #bbf7d0;
+  --status-success-subtle: #f0fdf4;
+  --status-success-subtle-fg: #15803d;
+
+  --status-warning: #d97706;
+  --status-warning-bg: #fef3c7;
+  --status-warning-fg: #92400e;
+  --status-warning-border: #fde68a;
+  --status-warning-subtle: #fffbeb;
+  --status-warning-subtle-fg: #b45309;
+
+  --status-danger: #dc2626;
+  --status-danger-bg: #fee2e2;
+  --status-danger-fg: #991b1b;
+  --status-danger-border: #fecaca;
+  --status-danger-subtle: #fef2f2;
+  --status-danger-subtle-fg: #b91c1c;
 }
 
 .dark {
@@ -121,33 +227,77 @@
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --accent: oklch(0.205 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.985 0 0);
+  --chart-1: #5eb1ef;
+  --chart-2: #0090ff;
+  --chart-3: #0588f0;
+  --chart-4: #0d74ce;
+  --chart-5: #113264;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.922 0 0);
+  --sidebar-primary-foreground: oklch(0.205 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.985 0 0);
 
-  --status-neutral: oklch(0.708 0 0);
-  --status-info: oklch(0.707 0.152 258);
-  --status-ordered: oklch(0.714 0.168 302);
-  --status-partial: oklch(0.75 0.157 55);
-  --status-success: oklch(0.75 0.155 150);
-  --status-warning: oklch(0.799 0.136 78);
-  --status-danger: oklch(0.704 0.191 22);
+  /* Same recipe inverted: 950 tint / 900 border / 300 text / 500 dot. Nothing
+     in the app sets `.dark` today — see the note in the migration report — so
+     these are kept in step by construction rather than by inspection. */
+  --status-neutral: #737373;
+  --status-neutral-bg: #171717;
+  --status-neutral-fg: #d4d4d4;
+  --status-neutral-border: #262626;
+  --status-neutral-subtle: #171717;
+  --status-neutral-subtle-fg: #d4d4d4;
+
+  --status-info: #3b82f6;
+  --status-info-bg: #172554;
+  --status-info-fg: #93c5fd;
+  --status-info-border: #1e3a8a;
+  --status-info-subtle: #172554;
+  --status-info-subtle-fg: #93c5fd;
+
+  --status-ordered: #a855f7;
+  --status-ordered-bg: #3b0764;
+  --status-ordered-fg: #d8b4fe;
+  --status-ordered-border: #581c87;
+  --status-ordered-subtle: #3b0764;
+  --status-ordered-subtle-fg: #d8b4fe;
+
+  --status-partial: #f97316;
+  --status-partial-bg: #431407;
+  --status-partial-fg: #fdba74;
+  --status-partial-border: #7c2d12;
+  --status-partial-subtle: #431407;
+  --status-partial-subtle-fg: #fdba74;
+
+  --status-success: #22c55e;
+  --status-success-bg: #052e16;
+  --status-success-fg: #86efac;
+  --status-success-border: #14532d;
+  --status-success-subtle: #052e16;
+  --status-success-subtle-fg: #86efac;
+
+  --status-warning: #f59e0b;
+  --status-warning-bg: #451a03;
+  --status-warning-fg: #fcd34d;
+  --status-warning-border: #78350f;
+  --status-warning-subtle: #451a03;
+  --status-warning-subtle-fg: #fcd34d;
+
+  --status-danger: #ef4444;
+  --status-danger-bg: #450a0a;
+  --status-danger-fg: #fca5a5;
+  --status-danger-border: #7f1d1d;
+  --status-danger-subtle: #450a0a;
+  --status-danger-subtle-fg: #fca5a5;
 }
 
 @layer base {
@@ -155,14 +305,75 @@
     @apply border-border outline-ring/50;
   }
   body {
-    /* The wireframes set `text-sm` on <body>, so 14px/20px is the inherited
-       baseline rather than the browser's 16px. Applied to <body>, not <html>,
-       so rem-based spacing stays anchored to the 16px root. */
+    /* 14px/20px is the inherited baseline rather than the browser's 16px, so
+       table cells and body copy need no size class. Applied to <body>, not
+       <html>, so rem-based spacing stays anchored to the 16px root. */
     @apply bg-background text-foreground text-sm;
   }
   html {
     @apply font-sans;
   }
+  /* Every number in a procurement UI sits in a column next to another number,
+     so lining figures are the default rather than a per-cell opt-in. */
+  table,
+  output,
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+  /* `components/ui` is generated, so the handful of places where the registry
+     defaults disagree with the design system are corrected here through the
+     `data-slot` hooks rather than by hand-editing files that get regenerated.
+     Everything below is a token value from §1, not a new decision. */
+
+  /* Cards carry a border, never elevation — and the registry's `ring-1` is a
+     hairline in a different colour than every other hairline in the app. */
+  [data-slot="card"] {
+    @apply border ring-0;
+  }
+  /* One heading size for a card section, instead of the base 16px/medium in
+     some cards and a shrunken 12px in others. */
+  [data-slot="card-title"] {
+    @apply text-[15px] font-semibold;
+  }
+
+  /* Overlays: a plain scrim at 38%, no frosted glass. */
+  [data-slot="dialog-overlay"],
+  [data-slot="alert-dialog-overlay"],
+  [data-slot="sheet-overlay"] {
+    @apply bg-black/38;
+    backdrop-filter: none;
+  }
+
+  /* The two modal elevations, and the 14px corner dialogs and sheets share. */
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"] {
+    @apply rounded-2xl ring-0;
+    box-shadow: var(--shadow-dialog);
+  }
+  [data-slot="sheet-content"] {
+    box-shadow: var(--shadow-sheet);
+  }
+  [data-slot="dialog-title"],
+  [data-slot="alert-dialog-title"],
+  [data-slot="sheet-title"] {
+    @apply text-[17px] font-semibold;
+  }
+
+  /* Popovers and tooltips sit on `shadow-md`; the chart tooltip was the one
+     surface reaching for a heavier shadow than the system defines. Recharts
+     renders it without a `data-slot`, so the wrapper is the only handle. */
+  .recharts-tooltip-wrapper > * {
+    @apply shadow-md!;
+  }
+
+  /* Toast copy matches the design system's feedback size. */
+  [data-slot="toast-title"] {
+    @apply text-[13.5px] font-medium;
+  }
+  [data-slot="toast-description"] {
+    @apply text-[13px];
+  }
+
   /* Tailwind v4's preflight drops the browser's pointer cursor on buttons.
      Restored here rather than in `components/ui`, which is generated and would
      lose the change on the next regeneration. Sitting in the base layer means

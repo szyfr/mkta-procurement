@@ -5,6 +5,10 @@ import * as React from "react";
 
 import { LookupPicker } from "@/components/shared/lookup-picker";
 import { StatusDot } from "@/components/shared/status-badge";
+import {
+  dataTableClass,
+  numericCellClass,
+} from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -121,24 +125,30 @@ export function LineItemsEditor({
       </CardContent>
 
       <CardContent className="px-0">
-        <Table>
+        <Table className={dataTableClass}>
           <TableHeader>
             <TableRow>
-              <TableHead scope="col" className="w-8 pl-4">
+              <TableHead scope="col" className="w-8">
                 #
               </TableHead>
               <TableHead scope="col" className="min-w-56">
                 Item
               </TableHead>
-              <TableHead scope="col">Qty</TableHead>
+              <TableHead scope="col" className={numericCellClass}>
+                Qty
+              </TableHead>
               <TableHead scope="col">Unit</TableHead>
-              <TableHead scope="col">Est. Unit Cost</TableHead>
-              <TableHead scope="col">Est. Total</TableHead>
+              <TableHead scope="col" className={numericCellClass}>
+                Est. Unit Cost
+              </TableHead>
+              <TableHead scope="col" className={numericCellClass}>
+                Est. Total
+              </TableHead>
               <TableHead scope="col">Sourcing</TableHead>
               <TableHead scope="col" className="min-w-44">
                 Vendor
               </TableHead>
-              <TableHead scope="col" className="w-8 pr-4">
+              <TableHead scope="col" className="w-8">
                 <span className="sr-only">Remove</span>
               </TableHead>
             </TableRow>
@@ -146,7 +156,7 @@ export function LineItemsEditor({
           <TableBody>
             {lines.map((line, index) => (
               <TableRow key={line.key}>
-                <TableCell className="pl-4 text-muted-foreground">
+                <TableCell className="text-muted-foreground">
                   {index + 1}
                 </TableCell>
 
@@ -184,7 +194,7 @@ export function LineItemsEditor({
                     min={1}
                     value={line.quantity}
                     aria-label={`Quantity for line ${index + 1}`}
-                    className="h-7 w-16"
+                    className="h-8 w-16"
                     onChange={(event) =>
                       updateLine(line.key, {
                         quantity: Number(event.target.value) || 0,
@@ -225,7 +235,7 @@ export function LineItemsEditor({
                       className={cn(
                         "flex items-center gap-1.5 text-xs",
                         line.sourcing === "canvassing"
-                          ? "text-status-info"
+                          ? "text-status-info-fg"
                           : "text-muted-foreground",
                       )}
                     >
@@ -270,7 +280,7 @@ export function LineItemsEditor({
                   )}
                 </TableCell>
 
-                <TableCell className="pr-4">
+                <TableCell>
                   <Button
                     variant="ghost"
                     size="icon-xs"
@@ -295,12 +305,14 @@ export function LineItemsEditor({
         </Button>
       </CardContent>
 
-      <CardFooter className="justify-between gap-4 bg-white">
+      <CardFooter className="gap-4">
         <div className="ml-auto shrink-0 text-right">
           <p className="text-xs text-muted-foreground">
             Total Estimated Amount
           </p>
-          <p className="text-lg font-semibold">{formatCurrency(total, true)}</p>
+          <p className="text-base font-bold tabular-nums">
+            {formatCurrency(total, true)}
+          </p>
         </div>
       </CardFooter>
     </Card>

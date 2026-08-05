@@ -4,6 +4,7 @@ import {
   ClipboardListIcon,
   HandCoinsIcon,
   LayoutDashboardIcon,
+  ShieldIcon,
   TruckIcon,
   UsersIcon,
 } from "lucide-react";
@@ -37,6 +38,7 @@ export const mainNav = [
         url: "/payment-terms",
         icon: HandCoinsIcon,
       },
+      { title: "Roles & Permissions", url: "/roles", icon: ShieldIcon },
     ],
   },
 ];
@@ -61,6 +63,7 @@ export const breadcrumbLabels: Record<string, string> = {
   departments: "Departments",
   vendors: "Vendors",
   "payment-terms": "Payment Terms",
+  roles: "Roles & Permissions",
   settings: "Settings",
   account: "My Account",
   users: "Users & Roles",

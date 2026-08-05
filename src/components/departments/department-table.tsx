@@ -1,6 +1,7 @@
 import { PencilIcon } from "lucide-react";
 
 import { DeleteDepartmentDialog } from "@/components/departments/delete-department-dialog";
+import { dataTableClass } from "@/components/shared/table-classes";
 import { TablePagination } from "@/components/shared/table-pagination";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,16 +30,14 @@ export function DepartmentTable({
   return (
     <Card>
       <CardContent className="px-0">
-        <Table>
+        <Table className={dataTableClass}>
           <TableHeader>
             <TableRow>
-              <TableHead scope="col" className="pl-4">
-                Title
-              </TableHead>
+              <TableHead scope="col">Title</TableHead>
               <TableHead scope="col">Description</TableHead>
               <TableHead scope="col">Created At</TableHead>
               <TableHead scope="col">Updated At</TableHead>
-              <TableHead scope="col" className="pr-4">
+              <TableHead scope="col">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
@@ -46,7 +45,7 @@ export function DepartmentTable({
           <TableBody>
             {departments.map((department) => (
               <TableRow key={department.id}>
-                <TableCell className="pl-4 font-medium">
+                <TableCell className="font-medium">
                   {department.title}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
@@ -60,7 +59,7 @@ export function DepartmentTable({
                 <TableCell className="text-muted-foreground">
                   {department.updatedAt ?? "—"}
                 </TableCell>
-                <TableCell className="pr-4">
+                <TableCell>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"

@@ -34,7 +34,7 @@ export default async function DashboardLayout({
           stretching the flex track past the viewport. */}
       <SidebarInset className="min-w-0">
         <SiteHeader />
-        <div className="flex min-w-0 flex-1 flex-col gap-6 p-4 md:p-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-5 p-4 md:p-6">
           {children}
         </div>
       </SidebarInset>
