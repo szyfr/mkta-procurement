@@ -29,3 +29,11 @@ export interface RoleDetail {
   updated_at: string;
   permissions: Permission[];
 }
+
+/**
+ * The `PUT /roles/{id}` response, verbatim — a confirmation message only,
+ * not the updated role document.
+ */
+export interface UpdateRoleResult {
+  message: string;
+}

@@ -26,14 +26,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { MAX_PAGE_SIZE } from "@/lib/api/pagination";
 import { permissionListQuery } from "@/modules/permissions";
-import { createRole, type Role, roleKeys } from "@/modules/roles";
+import {
+  createRole,
+  type Role,
+  roleKeys,
+  type UpdateRoleResult,
+  updateRole,
+} from "@/modules/roles";
 
 /**
  * Create and edit share one dialog: the only differences are the copy and
- * whether the fields start populated. Create persists through
- * `POST /roles`; edit is still mocked — saving just closes the dialog and
- * confirms with a toast, because FastAPI has no update endpoint for roles
- * yet.
+ * whether the fields start populated. Create persists through `POST /roles`,
+ * edit through `PUT /roles/{id}` — the update endpoint answers with a
+ * confirmation message rather than the saved role, so the edited fields
+ * (not the response) drive the toast and cache invalidation.
  *
  * The permission catalogue comes from `GET /permissions`, fetched at the
  * backend's page-size cap — there is no module grouping upstream, so the
@@ -71,21 +77,32 @@ export function RoleFormDialog({
   const [search, setSearch] = React.useState("");
   const queryClient = useQueryClient();
 
+  const isEdit = mode === "edit";
+
   const { mutate: submitRole, isPending: submitting } = useMutation({
-    mutationFn: (values: DraftRole) =>
-      createRole({
-        title: values.name,
-        description: values.description,
-        permission_ids: Array.from(values.permissions),
-      }),
-    onSuccess: (_created, values) => {
-      toast.add({ title: `${values.name} created`, type: "success" });
+    mutationFn: (values: DraftRole): Promise<Role | UpdateRoleResult> =>
+      isEdit && role
+        ? updateRole(role._id, {
+            title: values.name,
+            description: values.description,
+            permission_ids: Array.from(values.permissions),
+          })
+        : createRole({
+            title: values.name,
+            description: values.description,
+            permission_ids: Array.from(values.permissions),
+          }),
+    onSuccess: (_result, values) => {
+      toast.add({
+        title: `${values.name} ${isEdit ? "updated" : "created"}`,
+        type: "success",
+      });
       queryClient.invalidateQueries({ queryKey: roleKeys.all });
       onOpenChange(false);
     },
     onError: (mutationError) => {
       toast.add({
-        title: "Couldn't create role",
+        title: isEdit ? "Couldn't update role" : "Couldn't create role",
         description:
           mutationError instanceof Error
             ? mutationError.message
@@ -136,13 +153,7 @@ export function RoleFormDialog({
   }
 
   function save() {
-    if (mode === "create") {
-      submitRole(draft);
-      return;
-    }
-
-    toast.add({ title: `${draft.name} updated`, type: "success" });
-    onOpenChange(false);
+    submitRole(draft);
   }
 
   return (
@@ -302,10 +313,12 @@ export function RoleFormDialog({
               disabled={draft.name.trim().length === 0 || submitting}
               onClick={save}
             >
-              {mode === "edit"
-                ? "Save changes"
-                : submitting
-                  ? "Creating…"
+              {submitting
+                ? isEdit
+                  ? "Saving…"
+                  : "Creating…"
+                : isEdit
+                  ? "Save changes"
                   : "Create role"}
             </Button>
           </div>

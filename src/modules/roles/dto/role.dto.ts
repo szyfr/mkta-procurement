@@ -9,3 +9,13 @@ export interface CreateRoleDto {
   description: string;
   permission_ids: string[];
 }
+
+/**
+ * `PUT /roles/{id}` accepts the same fields as create. Its own sample body
+ * omits `title`, so the field is optional here — see `parseUpdateRolePayload`.
+ */
+export interface UpdateRoleDto {
+  title?: string;
+  description: string;
+  permission_ids: string[];
+}

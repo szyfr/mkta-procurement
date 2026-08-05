@@ -2,8 +2,12 @@ import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
 import { clampPageSize, type Paginated } from "@/lib/api/pagination";
 import { DEFAULT_PAGE_SIZE } from "@/modules/roles/constants";
-import type { CreateRoleDto } from "@/modules/roles/dto";
-import type { Role, RoleDetail } from "@/modules/roles/models/role";
+import type { CreateRoleDto, UpdateRoleDto } from "@/modules/roles/dto";
+import type {
+  Role,
+  RoleDetail,
+  UpdateRoleResult,
+} from "@/modules/roles/models/role";
 
 const NOT_FOUND = "Role not found";
 
@@ -33,6 +37,18 @@ export function getRole(id: string): Promise<RoleDetail> {
 export function createRole(input: CreateRoleDto): Promise<Role> {
   return serverFetch<Role>("/roles", {
     method: "POST",
+    body: input,
+  });
+}
+
+export function updateRole(
+  id: string,
+  input: UpdateRoleDto,
+): Promise<UpdateRoleResult> {
+  assertObjectId(id, NOT_FOUND);
+
+  return serverFetch<UpdateRoleResult>(`/roles/${id}`, {
+    method: "PUT",
     body: input,
   });
 }

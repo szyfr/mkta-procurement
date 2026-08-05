@@ -1,7 +1,16 @@
-export { createRole, fetchRole, fetchRoles } from "@/modules/roles/api/client";
+export {
+  createRole,
+  fetchRole,
+  fetchRoles,
+  updateRole,
+} from "@/modules/roles/api/client";
 export { roleEndpoints } from "@/modules/roles/api/endpoints";
-export type { CreateRoleDto } from "@/modules/roles/dto";
-export type { Role, RoleDetail } from "@/modules/roles/models/role";
+export type { CreateRoleDto, UpdateRoleDto } from "@/modules/roles/dto";
+export type {
+  Role,
+  RoleDetail,
+  UpdateRoleResult,
+} from "@/modules/roles/models/role";
 export {
   roleDetailQuery,
   roleKeys,
