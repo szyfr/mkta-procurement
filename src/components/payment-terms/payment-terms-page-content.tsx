@@ -1,54 +1,43 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
-import * as React from "react";
+import { HandCoinsIcon } from "lucide-react";
 
-import { PaymentTermFormDialog } from "@/components/payment-terms/payment-term-form-dialog";
-import { PaymentTermListView } from "@/components/payment-terms/payment-term-list-view";
-import { PageHeader } from "@/components/shared/page-header";
-import { Button } from "@/components/ui/button";
-import type { PaymentTerm } from "@/modules/payment-terms";
+import {
+  type EntityCrudConfig,
+  EntityPageContent,
+} from "@/components/shared/entity-crud";
+import {
+  type CreatePaymentTermDto,
+  createPaymentTerm,
+  deletePaymentTerm,
+  type PaymentTerm,
+  paymentTermKeys,
+  paymentTermListQuery,
+  updatePaymentTerm,
+} from "@/modules/payment-terms";
 
-/**
- * Owns the one thing the list and the create/edit dialog have to agree on:
- * which dialog, if any, is open. Refetching after a save is handled by the
- * mutations invalidating the payment term cache.
- */
+const config: EntityCrudConfig<PaymentTerm, CreatePaymentTermDto> = {
+  entityLabel: "Payment Term",
+  titlePlaceholder: 'e.g. "Full Payment"',
+  descriptionPlaceholder: 'e.g. "Fully paying the vendor (cash or cheque)"',
+  emptyStateIcon: <HandCoinsIcon />,
+  emptyStateTitle: "No payment terms yet",
+  emptyStateDescription:
+    "Create one to make it available when creating a quotation.",
+  pageTitle: "Payment Terms",
+  pageDescription:
+    "Manage the payment terms available when creating a quotation",
+  createDescription:
+    "Add a payment term that can be selected when creating a quotation.",
+  newButtonLabel: "New Payment Term",
+  basePath: "/payment-terms",
+  queryKeys: paymentTermKeys,
+  listQuery: paymentTermListQuery,
+  create: createPaymentTerm,
+  update: updatePaymentTerm,
+  remove: deletePaymentTerm,
+};
+
 export function PaymentTermsPageContent({ page }: { page: number }) {
-  const [dialogState, setDialogState] = React.useState<
-    { mode: "create" } | { mode: "edit"; paymentTerm: PaymentTerm } | null
-  >(null);
-
-  return (
-    <>
-      <PageHeader
-        title="Payment Terms"
-        description="Manage the payment terms available when creating a quotation"
-        actions={
-          <Button
-            variant="outline"
-            onClick={() => setDialogState({ mode: "create" })}
-          >
-            <PlusIcon data-icon="inline-start" />
-            New Payment Term
-          </Button>
-        }
-      />
-
-      <PaymentTermListView
-        page={page}
-        onEdit={(paymentTerm) => setDialogState({ mode: "edit", paymentTerm })}
-      />
-
-      <PaymentTermFormDialog
-        open={dialogState !== null}
-        onOpenChange={(open) => {
-          if (!open) setDialogState(null);
-        }}
-        paymentTerm={
-          dialogState?.mode === "edit" ? dialogState.paymentTerm : null
-        }
-      />
-    </>
-  );
+  return <EntityPageContent page={page} config={config} />;
 }

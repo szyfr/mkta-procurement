@@ -3,8 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import * as React from "react";
-
 import { CancelPurchaseRequestDialog } from "@/components/purchase-requests/cancel-pr-dialog";
+import { PurchaseRequestActionPanel } from "@/components/purchase-requests/pr-action-panel";
+import { PurchaseRequestDetailsPanel } from "@/components/purchase-requests/pr-details-panel";
 import { PurchaseRequestItemsTable } from "@/components/purchase-requests/pr-items-table";
 import { PurchaseRequestStepper } from "@/components/purchase-requests/pr-stepper";
 import { ProofOfOrderForm } from "@/components/purchase-requests/proof-of-order-form";
@@ -329,57 +330,10 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
 
         <div className="flex min-w-0 flex-col gap-5">
           {canvassingItem ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Action Panel</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <p className="text-xs text-muted-foreground">
-                  Items on this request are routed to canvassing and are waiting
-                  on vendor quotes.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  render={
-                    <Link
-                      href={`/purchase-requests/${request._id}/canvassing`}
-                    />
-                  }
-                  nativeButton={false}
-                >
-                  View Canvassing
-                </Button>
-              </CardContent>
-            </Card>
+            <PurchaseRequestActionPanel purchaseRequestId={request._id} />
           ) : null}
 
-          <Card>
-            <CardHeader className="border-b">
-              <CardTitle>Details</CardTitle>
-            </CardHeader>
-            <CardContent className="px-0">
-              <dl className="divide-y text-xs">
-                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
-                  <dt className="text-muted-foreground">Requester</dt>
-                  <dd>{request.requester_name || "—"}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
-                  <dt className="text-muted-foreground">Department</dt>
-                  <dd>{request.department?.title || "—"}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
-                  <dt className="text-muted-foreground">Date needed</dt>
-                  <dd>{formatShortDate(request.date_needed) ?? "—"}</dd>
-                </div>
-                <div className="flex items-center justify-between gap-2 px-4 py-2.5">
-                  <dt className="text-muted-foreground">Created</dt>
-                  <dd>{formatShortDate(request.created_at) ?? "—"}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
+          <PurchaseRequestDetailsPanel request={request} />
         </div>
       </div>
     </>

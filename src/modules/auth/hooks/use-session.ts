@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import { logout } from "@/modules/auth/api/client";
 import { LOGIN_PATH } from "@/modules/auth/constants";
-import { authKeys, sessionQuery } from "@/modules/auth/queries/auth.queries";
+import { sessionQuery } from "@/modules/auth/queries/auth.queries";
 
 /**
  * The signed-in user as the backend reports it, or `null`. Components that
@@ -33,5 +33,3 @@ export function useLogout() {
     },
   });
 }
-
-export { authKeys };

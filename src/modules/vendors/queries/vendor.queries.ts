@@ -12,7 +12,6 @@ import { fetchVendors } from "@/modules/vendors/api/client";
  */
 
 export const vendorKeys = {
-  all: ["vendors"] as const,
   list: (page: number) => ["vendors", page] as const,
 };
 

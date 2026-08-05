@@ -1,54 +1,41 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
-import * as React from "react";
+import { BuildingIcon } from "lucide-react";
 
-import { DepartmentFormDialog } from "@/components/departments/department-form-dialog";
-import { DepartmentListView } from "@/components/departments/department-list-view";
-import { PageHeader } from "@/components/shared/page-header";
-import { Button } from "@/components/ui/button";
-import type { Department } from "@/modules/departments";
+import {
+  type EntityCrudConfig,
+  EntityPageContent,
+} from "@/components/shared/entity-crud";
+import {
+  type CreateDepartmentDto,
+  createDepartment,
+  type Department,
+  deleteDepartment,
+  departmentKeys,
+  departmentListQuery,
+  updateDepartment,
+} from "@/modules/departments";
 
-/**
- * Owns the one thing the list and the create/edit dialog have to agree on:
- * which dialog, if any, is open. Refetching after a save is handled by the
- * mutations invalidating the department cache.
- */
+const config: EntityCrudConfig<Department, CreateDepartmentDto> = {
+  entityLabel: "Department",
+  titlePlaceholder: 'e.g. "IT"',
+  descriptionPlaceholder: 'e.g. "IT Department"',
+  emptyStateIcon: <BuildingIcon />,
+  emptyStateTitle: "No departments yet",
+  emptyStateDescription:
+    "Create one to start assigning purchase requests to a department.",
+  pageTitle: "Departments",
+  pageDescription: "Manage the departments purchase requests are assigned to",
+  createDescription: "Add a department purchase requests can be assigned to.",
+  newButtonLabel: "New Department",
+  basePath: "/departments",
+  queryKeys: departmentKeys,
+  listQuery: departmentListQuery,
+  create: createDepartment,
+  update: updateDepartment,
+  remove: deleteDepartment,
+};
+
 export function DepartmentsPageContent({ page }: { page: number }) {
-  const [dialogState, setDialogState] = React.useState<
-    { mode: "create" } | { mode: "edit"; department: Department } | null
-  >(null);
-
-  return (
-    <>
-      <PageHeader
-        title="Departments"
-        description="Manage the departments purchase requests are assigned to"
-        actions={
-          <Button
-            variant="outline"
-            onClick={() => setDialogState({ mode: "create" })}
-          >
-            <PlusIcon data-icon="inline-start" />
-            New Department
-          </Button>
-        }
-      />
-
-      <DepartmentListView
-        page={page}
-        onEdit={(department) => setDialogState({ mode: "edit", department })}
-      />
-
-      <DepartmentFormDialog
-        open={dialogState !== null}
-        onOpenChange={(open) => {
-          if (!open) setDialogState(null);
-        }}
-        department={
-          dialogState?.mode === "edit" ? dialogState.department : null
-        }
-      />
-    </>
-  );
+  return <EntityPageContent page={page} config={config} />;
 }
