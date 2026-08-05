@@ -15,10 +15,24 @@ export function parseTitleDescriptionPayload<
   if (!body || typeof body !== "object")
     throw invalid("Request body is missing.");
 
-  const payload = body as Partial<T>;
+  const payload = body as Record<string, unknown>;
+  const rawTitle = payload.title;
+  const rawDescription = payload.description;
 
-  const title = payload.title?.trim();
+  if (typeof rawTitle !== "string") {
+    throw invalid("Title is required.");
+  }
+
+  const title = rawTitle.trim();
   if (!title) throw invalid("Title is required.");
 
-  return { title, description: payload.description?.trim() ?? "" } as T;
+  if (rawDescription != null && typeof rawDescription !== "string") {
+    throw invalid("Description must be a string.");
+  }
+
+  return {
+    title,
+    description:
+      typeof rawDescription === "string" ? rawDescription.trim() : "",
+  } as T;
 }
