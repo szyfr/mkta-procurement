@@ -25,34 +25,11 @@ export type StatusTone =
  */
 export type Priority = "low" | "normal" | "high";
 
+/** An entry in the dashboard's Recent Activity feed. No backend source yet. */
 export interface ActivityEntry {
   id: string;
   description: string;
   timestamp: string;
-}
-
-/** A row on the dashboard's "Requests Requiring Action" table. Mock-driven. */
-export interface ActionableRequest {
-  id: string;
-  requester: string;
-  department: string;
-  amount: number;
-  step: string;
-  stepTone: StatusTone;
-  priority: Priority;
-}
-
-export interface PendingQuotation {
-  id: string;
-  summary: string;
-  detail: string;
-}
-
-export interface Deadline {
-  id: string;
-  label: string;
-  due: string;
-  overdue?: boolean;
 }
 
 /**
