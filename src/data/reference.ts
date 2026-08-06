@@ -24,11 +24,3 @@ export const vendors = [
   "Bay Area Electricals",
   "Sunrise Safety Equipment",
 ];
-
-export const paymentTerms = [
-  "Cash on delivery",
-  "Net 15",
-  "Net 30",
-  "Net 60",
-  "50% down payment",
-];

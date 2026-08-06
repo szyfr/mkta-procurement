@@ -56,16 +56,13 @@ export function AwardVendorDialog({
       awardQuotation({ quotationId: quotationId as string, itemIds: [itemId] }),
     onSuccess: (result) => {
       // A duplicate award isn't inserted — it comes back as an issue rather
-      // than a thrown error, so it has to be checked explicitly rather than
-      // assumed from a 200.
+      // than a thrown error, so it has to be checked explicitly.
       const [issue] = result.issues;
 
       setOpen(false);
-      // Refetches both the canvassing list (derived status flips to "Vendor
-      // Selected") and the quote comparison (the item's `quotation_id` now
-      // names the winner). Worth doing even on an issue: it means this item
-      // already had an award on record, so the comparison should already be
-      // showing that instead of the stale "pick a quote" table.
+      // Refetches the canvassing list (status derives from awards) and the
+      // quote comparison (item's `quotation_id` now names the winner) — worth
+      // doing even on an issue, since that means an award already existed.
       queryClient.invalidateQueries({ queryKey: canvassingKeys.all });
 
       if (issue) {

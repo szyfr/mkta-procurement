@@ -104,7 +104,7 @@ export function EditPurchaseRequestForm({ id }: { id: string }) {
   });
 
   // One mutation drives both buttons; which is busy comes from the payload it
-  // was called with, keeping the two spinners independent as before.
+  // was called with, keeping the two spinners independent.
   const savingChanges = saving && variables?.submit === false;
   const submittingForApproval = saving && variables?.submit === true;
 

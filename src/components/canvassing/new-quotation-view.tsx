@@ -1,26 +1,21 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PackageXIcon, PaperclipIcon, XIcon } from "lucide-react";
+import { PackageXIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import {
+  MAX_ATTACHMENT_BYTES,
+  QuotationAttachmentsField,
+} from "@/components/canvassing/quotation-attachments-field";
+import { QuotationItemPricingTable } from "@/components/canvassing/quotation-item-pricing-table";
 import { LookupPicker } from "@/components/shared/lookup-picker";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState, ErrorAlert } from "@/components/shared/query-states";
-import {
-  dataTableClass,
-  numericCellClass,
-} from "@/components/shared/table-classes";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
@@ -30,17 +25,8 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { toast } from "@/components/ui/toast";
 import type { SelectedOption } from "@/lib/lookup";
-import { formatCurrency } from "@/lib/utils";
 import { canvassingKeys, createQuotation } from "@/modules/canvassing";
 import { fetchPaymentTerms, paymentTermKeys } from "@/modules/payment-terms";
 import {
@@ -63,14 +49,6 @@ import {
 /** Both pickers page through the BFF; only their fetcher differs. */
 const loadVendorPage = fetchVendorOptions;
 const loadPaymentTermPage = fetchPaymentTerms;
-
-/**
- * The backend accepts any file at any size and stores it straight to S3, so
- * the only limits that exist are the ones enforced here.
- */
-const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
-const ACCEPTED_ATTACHMENTS =
-  ".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.csv";
 
 interface FieldErrors {
   vendor?: string;
@@ -432,147 +410,27 @@ export function NewQuotationView({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
-          <CardTitle>Item Pricing</CardTitle>
-          <span className="text-xs text-muted-foreground">
-            {items.length === 1
-              ? "The item this quote covers"
-              : "Every item this quote covers"}
-          </span>
-        </CardHeader>
-        <CardContent className="px-0">
-          <Table className={dataTableClass}>
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col">Item</TableHead>
-                <TableHead scope="col" className={numericCellClass}>
-                  Qty
-                </TableHead>
-                <TableHead scope="col" className={numericCellClass}>
-                  Unit Price
-                </TableHead>
-                <TableHead scope="col" className={numericCellClass}>
-                  Line Total
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item) => {
-                const unitPrice = Number(unitPrices[item._id]) || 0;
-                // The detail pipeline joins the material; the raw id stands in
-                // if the lookup missed.
-                const name = item.material?.description || item.material_id;
+      <QuotationItemPricingTable
+        items={items}
+        unitPrices={unitPrices}
+        pricingError={fieldErrors.pricing}
+        total={total}
+        onPriceChange={(itemId, value) => {
+          setUnitPrices((current) => ({ ...current, [itemId]: value }));
+          clearFieldError("pricing");
+        }}
+      />
 
-                return (
-                  <TableRow key={item._id}>
-                    <TableCell>{name}</TableCell>
-                    <TableCell>
-                      {item.quantity}
-                      {item.material?.uom ? ` ${item.material.uom}` : ""}
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={unitPrices[item._id] ?? ""}
-                        placeholder="0.00"
-                        aria-label={`Unit price for ${name}`}
-                        aria-invalid={fieldErrors.pricing ? true : undefined}
-                        className="h-8 w-28"
-                        onChange={(event) => {
-                          setUnitPrices((current) => ({
-                            ...current,
-                            [item._id]: event.target.value,
-                          }));
-                          clearFieldError("pricing");
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {formatCurrency(item.quantity * unitPrice, true)}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter className="justify-between gap-2">
-          {fieldErrors.pricing ? (
-            <FieldError>{fieldErrors.pricing}</FieldError>
-          ) : (
-            <span />
-          )}
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">Total Quote Amount</p>
-            <p className="text-base font-bold tabular-nums">
-              {formatCurrency(total, true)}
-            </p>
-          </div>
-        </CardFooter>
-      </Card>
-
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle>Quotation Documents</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <label
-            htmlFor="attachments"
-            className="flex cursor-pointer items-center justify-center rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground hover:bg-accent"
-          >
-            Upload the vendor&apos;s quotation (PDF, image, or spreadsheet)
-            <input
-              id="attachments"
-              name="attachments"
-              type="file"
-              multiple
-              accept={ACCEPTED_ATTACHMENTS}
-              className="sr-only"
-              onChange={(event) => {
-                addAttachments(event.target.files);
-                // Lets the same file be re-picked after it's removed.
-                event.target.value = "";
-              }}
-            />
-          </label>
-
-          {fieldErrors.attachments ? (
-            <FieldError>{fieldErrors.attachments}</FieldError>
-          ) : null}
-
-          {attachments.length > 0 ? (
-            <ul className="flex flex-col gap-1">
-              {attachments.map((file, index) => (
-                <li
-                  key={`${file.name}-${file.lastModified}`}
-                  className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs"
-                >
-                  <PaperclipIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                  <span className="min-w-0 flex-1 truncate">{file.name}</span>
-                  <span className="shrink-0 text-muted-foreground">
-                    {Math.max(1, Math.round(file.size / 1024))} KB
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Remove ${file.name}`}
-                    onClick={() =>
-                      setAttachments((current) =>
-                        current.filter((_, position) => position !== index),
-                      )
-                    }
-                  >
-                    <XIcon />
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </CardContent>
-      </Card>
+      <QuotationAttachmentsField
+        attachments={attachments}
+        error={fieldErrors.attachments}
+        onAdd={addAttachments}
+        onRemove={(index) =>
+          setAttachments((current) =>
+            current.filter((_, position) => position !== index),
+          )
+        }
+      />
 
       <Card>
         <CardContent className="text-xs text-muted-foreground">

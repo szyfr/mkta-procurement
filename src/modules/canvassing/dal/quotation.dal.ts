@@ -1,6 +1,9 @@
 import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
-import type { CreateQuotationDto } from "@/modules/canvassing/dto";
+import {
+  buildQuotationForm,
+  type CreateQuotationDto,
+} from "@/modules/canvassing/dto";
 import type {
   ItemQuotations,
   Quotation,
@@ -66,18 +69,7 @@ export function createQuotation(
   payload: CreateQuotationDto,
   attachments: File[] = [],
 ): Promise<Quotation> {
-  const form = new FormData();
-
-  form.set("reference_no", payload.reference_no);
-  form.set("date", payload.date);
-  form.set("delivery_date", payload.delivery_date);
-  form.set("vendor_id", payload.vendor_id);
-  form.set("payment_term_id", payload.payment_term_id);
-  form.set("item_pricing", JSON.stringify(payload.item_pricing));
-
-  for (const attachment of attachments) {
-    form.append("attachments", attachment, attachment.name);
-  }
+  const form = buildQuotationForm(payload, attachments);
 
   // Answers 200 with the bare inserted document — no `{ data }` envelope and
   // no uploaded-document list, so there is nothing else to read back.

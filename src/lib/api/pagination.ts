@@ -28,6 +28,9 @@ export interface Paginated<T> {
 /** FastAPI caps `page_size` at 100. */
 export const MAX_PAGE_SIZE = 100;
 
+/** Default page size every module's list uses unless it needs a different one. */
+export const DEFAULT_PAGE_SIZE = 10;
+
 /** Keeps a caller-supplied page size inside what the backend accepts. */
 export function clampPageSize(pageSize: number | undefined, fallback: number) {
   return Math.min(Math.max(pageSize ?? fallback, 1), MAX_PAGE_SIZE);

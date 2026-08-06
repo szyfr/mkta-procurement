@@ -1,8 +1,7 @@
 import type { StatusTone } from "@/lib/types";
 import type { CanvassingStatus } from "@/modules/canvassing/models/canvassing";
 
-/** Default page size for the canvassing list. */
-export const DEFAULT_PAGE_SIZE = 10;
+export { DEFAULT_PAGE_SIZE } from "@/lib/api/pagination";
 
 /**
  * Status → pill tone. There is no matching label map: the backend derives each

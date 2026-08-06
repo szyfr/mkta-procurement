@@ -58,8 +58,7 @@ export function RolesPageContent({
   const [overlay, setOverlay] = React.useState<Overlay>(null);
   const [searchInput, setSearchInput] = React.useState(search);
 
-  // Keeps the field in sync when the URL changes from elsewhere, e.g. back
-  // navigation.
+  // Keeps the field in sync when the URL changes elsewhere, e.g. back navigation.
   React.useEffect(() => {
     setSearchInput(search);
   }, [search]);

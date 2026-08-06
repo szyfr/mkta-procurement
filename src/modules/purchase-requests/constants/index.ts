@@ -4,8 +4,7 @@ import type {
   PurchaseRequestStatus,
 } from "@/modules/purchase-requests/models/purchase-request";
 
-/** Default page size for the request list. */
-export const DEFAULT_PAGE_SIZE = 10;
+export { DEFAULT_PAGE_SIZE } from "@/lib/api/pagination";
 
 /** Shared with Canvassing's pickers, so it lives in `@/lib/lookup` now. */
 export { LOOKUP_PAGE_SIZE } from "@/lib/lookup";

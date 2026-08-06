@@ -3,23 +3,22 @@ import { cookies } from "next/headers";
 /**
  * Cookie plumbing for the BFF boundary.
  *
- * FastAPI issues its session cookie to *us*, not to the browser: the browser
- * only ever talks to this app's own origin, so nothing FastAPI sets ever
- * reaches it directly. Two things follow, and both live here — every upstream
- * call has to carry the caller's cookies forward by hand, and every cookie the
- * browser is meant to keep has to be re-issued on our origin.
+ * FastAPI issues its session cookie to *us*, not the browser — the browser
+ * only talks to this app's own origin, so nothing FastAPI sets reaches it
+ * directly. Two things follow, and both live here: every upstream call must
+ * carry the caller's cookies forward by hand, and every cookie the browser
+ * keeps must be re-issued on our origin.
  *
- * Server-only; importing this from a Client Component will fail the build.
+ * Server-only; importing from a Client Component fails the build.
  */
 
 /**
  * The caller's cookies, serialized for an upstream `Cookie` header.
  *
- * Deliberately unguarded. `cookies()` is a request-time API, so reaching it
- * during a prerender is how Next.js learns the route has to be dynamic — and
- * since every upstream call now depends on who is asking, that is the right
- * answer for anything downstream of `serverFetch`. Catching the bailout here
- * would only turn it into an opaque fetch failure at build time.
+ * Deliberately unguarded: `cookies()` is a request-time API, so reaching it
+ * during a prerender is how Next.js learns the route must be dynamic —
+ * correct, since every upstream call depends on who's asking. Catching the
+ * bailout here would just turn it into an opaque fetch failure at build time.
  */
 export async function forwardedCookieHeader(): Promise<string | undefined> {
   const header = (await cookies()).toString();

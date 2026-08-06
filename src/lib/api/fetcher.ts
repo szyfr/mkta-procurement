@@ -4,12 +4,11 @@ import { ApiError, normalizeBackendError } from "@/lib/api/errors";
 
 /**
  * The single place the server talks to FastAPI. Used only by DALs — Route
- * Handlers and components go through those, never through here directly.
+ * Handlers and components go through those, never here directly.
  *
- * Every call carries the caller's cookies upstream, which is how FastAPI sees
- * the session: the browser sends its `access_token` to our origin, and this is
- * the hop that passes it on. There is no cookie jar on the server, so it is an
- * explicit header rather than a `credentials` flag.
+ * Every call forwards the caller's cookies upstream — how FastAPI sees the
+ * session. There's no cookie jar on the server, so it's an explicit header
+ * rather than a `credentials` flag.
  */
 
 export interface ServerFetchOptions {
@@ -77,8 +76,8 @@ async function request<T>(
 ): Promise<UpstreamResponse<T>> {
   const { method = "GET", body, query, headers, signal } = options;
 
-  // Setting `Content-Type` by hand on a multipart body would drop the boundary
-  // and FastAPI would read no parts at all, so leave both to `fetch`.
+  // Setting `Content-Type` by hand on a multipart body drops the boundary —
+  // leave it to `fetch`.
   const multipart = body instanceof FormData;
 
   const cookie = await forwardedCookieHeader();
@@ -102,8 +101,8 @@ async function request<T>(
           : multipart
             ? body
             : JSON.stringify(body),
-      // Purchasing data is operational and changes constantly; never serve a
-      // stale copy from the Next.js data cache.
+      // Purchasing data changes constantly — never serve a stale copy from
+      // the Next.js data cache.
       cache: "no-store",
       signal: signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
@@ -135,10 +134,10 @@ export async function serverFetch<T>(
  * The same call, keeping the upstream `Set-Cookie` lines.
  *
  * Only the auth DAL needs them — FastAPI's CSRF endpoint returns an empty body
- * and reports the token it minted through a cookie header alone. Everything
- * else goes through `serverFetch`, which discards them: an upstream cookie is
- * scoped to FastAPI's origin and means nothing to the browser until a Route
- * Handler deliberately re-issues it on ours.
+ * and mints its token via a cookie header alone. Everything else uses
+ * `serverFetch`, which discards them: an upstream cookie is scoped to
+ * FastAPI's origin and means nothing to the browser until a Route Handler
+ * re-issues it on ours.
  */
 export async function serverFetchWithCookies<T>(
   path: string,

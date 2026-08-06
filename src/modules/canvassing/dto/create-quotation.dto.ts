@@ -23,3 +23,29 @@ export interface CreateQuotationDto {
   payment_term_id: string;
   item_pricing: QuotationItemPricing[];
 }
+
+/**
+ * Serializes a quote into the `multipart/form-data` body `POST /quotations`
+ * expects — every scalar as its own part, `item_pricing` as a single JSON
+ * string part, attachments appended last. Shared by the browser client and
+ * the server DAL so the two can't drift on field names or ordering.
+ */
+export function buildQuotationForm(
+  payload: CreateQuotationDto,
+  attachments: File[] = [],
+): FormData {
+  const form = new FormData();
+
+  form.set("reference_no", payload.reference_no);
+  form.set("date", payload.date);
+  form.set("delivery_date", payload.delivery_date);
+  form.set("vendor_id", payload.vendor_id);
+  form.set("payment_term_id", payload.payment_term_id);
+  form.set("item_pricing", JSON.stringify(payload.item_pricing));
+
+  for (const attachment of attachments) {
+    form.append("attachments", attachment, attachment.name);
+  }
+
+  return form;
+}
