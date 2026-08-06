@@ -2,8 +2,17 @@
 
 import type { QueryKey, UseQueryOptions } from "@tanstack/react-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import {
+  MoreVerticalIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+} from "lucide-react";
 import * as React from "react";
+import {
+  dropdownContentClass,
+  dropdownItemClass,
+} from "@/components/shared/menu-classes";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState, ErrorAlert } from "@/components/shared/query-states";
 import { dataTableClass } from "@/components/shared/table-classes";
@@ -19,7 +28,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +39,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Field,
   FieldError,
@@ -52,6 +67,7 @@ import { toast } from "@/components/ui/toast";
 import type { Paginated, Pagination } from "@/lib/api/pagination";
 import { formatDate } from "@/lib/date";
 import { buildPageHref } from "@/lib/page-href";
+import { cn } from "@/lib/utils";
 
 /**
  * Departments and payment terms are the same CRUD screen wearing different
@@ -110,11 +126,13 @@ export function EntityTable<
   entities,
   page,
   onEdit,
+  onDelete,
   config,
 }: {
   entities: TEntity[];
   page: Pagination;
   onEdit: (entity: TEntity) => void;
+  onDelete: (entity: TEntity) => void;
   config: EntityCrudConfig<TEntity, TDto>;
 }) {
   return (
@@ -148,16 +166,41 @@ export function EntityTable<
                   {formatDate(entity.updated_at) ?? "—"}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`Edit ${entity.title}`}
-                      onClick={() => onEdit(entity)}
-                    >
-                      <PencilIcon />
-                    </Button>
-                    <DeleteEntityDialog entity={entity} config={config} />
+                  <div className="flex justify-end">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Actions for ${entity.title}`}
+                          />
+                        }
+                      >
+                        <MoreVerticalIcon />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className={cn(dropdownContentClass, "min-w-[196px]")}
+                      >
+                        <DropdownMenuItem
+                          className={dropdownItemClass}
+                          onClick={() => onEdit(entity)}
+                        >
+                          <PencilIcon />
+                          Edit {config.entityLabel.toLowerCase()}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          className={dropdownItemClass}
+                          onClick={() => onDelete(entity)}
+                        >
+                          <TrashIcon />
+                          Delete {config.entityLabel.toLowerCase()}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
@@ -367,29 +410,40 @@ export function EntityFormDialog<
   );
 }
 
+/**
+ * Controlled from the page's overlay state, same as the row's edit dialog —
+ * the row menu only decides *which* entity to confirm, not whether the
+ * dialog is open.
+ */
 export function DeleteEntityDialog<
   TEntity extends TitleDescriptionEntity,
   TDto extends TitleDescriptionDto,
 >({
   entity,
+  open,
+  onOpenChange,
   config,
 }: {
-  entity: { _id: string; title: string };
+  entity: { _id: string; title: string } | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   config: EntityCrudConfig<TEntity, TDto>;
 }) {
-  const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const label = config.entityLabel;
 
   const { mutate: remove, isPending: deleting } = useMutation({
-    mutationFn: () => config.remove(entity._id),
+    mutationFn: () => {
+      if (!entity) throw new Error("No entity selected.");
+      return config.remove(entity._id);
+    },
     onSuccess: () => {
       toast.add({
         title: `${label} deleted`,
-        description: `"${entity.title}" was removed.`,
+        description: entity ? `"${entity.title}" was removed.` : undefined,
         type: "success",
       });
-      setOpen(false);
+      onOpenChange(false);
       // Refreshes whichever page the list is on, replacing the reload token
       // the parent used to thread down.
       queryClient.invalidateQueries({ queryKey: config.queryKeys.all });
@@ -404,19 +458,10 @@ export function DeleteEntityDialog<
     },
   });
 
+  if (!entity) return null;
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={`Delete ${entity.title}`}
-          />
-        }
-      >
-        <TrashIcon />
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>Delete {label.toLowerCase()}?</AlertDialogTitle>
@@ -448,10 +493,12 @@ export function EntityListView<
 >({
   page,
   onEdit,
+  onDelete,
   config,
 }: {
   page: number;
   onEdit: (entity: TEntity) => void;
+  onDelete: (entity: TEntity) => void;
   config: EntityCrudConfig<TEntity, TDto>;
 }) {
   // Create, edit and delete invalidate the entity cache, so the list
@@ -488,6 +535,7 @@ export function EntityListView<
       entities={entities}
       page={pagination}
       onEdit={onEdit}
+      onDelete={onDelete}
       config={config}
     />
   );
@@ -503,7 +551,10 @@ export function EntityPageContent<
   TDto extends TitleDescriptionDto,
 >({ page, config }: { page: number; config: EntityCrudConfig<TEntity, TDto> }) {
   const [dialogState, setDialogState] = React.useState<
-    { mode: "create" } | { mode: "edit"; entity: TEntity } | null
+    | { mode: "create" }
+    | { mode: "edit"; entity: TEntity }
+    | { mode: "delete"; entity: TEntity }
+    | null
   >(null);
 
   return (
@@ -525,15 +576,25 @@ export function EntityPageContent<
       <EntityListView
         page={page}
         onEdit={(entity) => setDialogState({ mode: "edit", entity })}
+        onDelete={(entity) => setDialogState({ mode: "delete", entity })}
         config={config}
       />
 
       <EntityFormDialog
-        open={dialogState !== null}
+        open={dialogState?.mode === "create" || dialogState?.mode === "edit"}
         onOpenChange={(open) => {
           if (!open) setDialogState(null);
         }}
         entity={dialogState?.mode === "edit" ? dialogState.entity : null}
+        config={config}
+      />
+
+      <DeleteEntityDialog
+        entity={dialogState?.mode === "delete" ? dialogState.entity : null}
+        open={dialogState?.mode === "delete"}
+        onOpenChange={(open) => {
+          if (!open) setDialogState(null);
+        }}
         config={config}
       />
     </>
