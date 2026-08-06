@@ -102,14 +102,14 @@ export function PurchaseRequestTable({
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col items-start gap-1 text-xs">
-                      <Link href={href} className="hover:underline">
+                      <Link href={href} className="hover:underline flex items-center gap-1">
                         Open
                         <ArrowRightIcon className="size-3.5" aria-hidden />
                       </Link>
                       {needsProof ? (
                         <Link
                           href={href}
-                          className="text-status-ordered-fg hover:underline"
+                          className="text-status-ordered-fg hover:underline flex items-center gap-1"
                         >
                           <PlusIcon className="size-3.5" aria-hidden />
                           Add Proof of Order

@@ -121,7 +121,7 @@ export function CanvassingTable({
                 <TableCell>
                   <Link
                     href={`/purchase-requests/${entry.purchase_request_id}/canvassing`}
-                    className="text-xs text-muted-foreground hover:underline"
+                    className="text-xs text-muted-foreground hover:underline flex items-center gap-1"
                   >
                     Open
                     <ArrowRightIcon className="size-3.5" aria-hidden />
