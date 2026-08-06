@@ -22,23 +22,28 @@ import type { Vendor } from "@/modules/vendors";
 
 export interface ListPurchaseRequestsParams {
   page?: number;
+  pageSize?: number;
   /** Matches against request title and justification. */
   search?: string;
   priority?: string;
   /** A department id. */
   departments?: string;
+  /** Repeats the query key, e.g. `status=pending&status=canvassing`. */
+  status?: string[];
   signal?: AbortSignal;
 }
 
 export function fetchPurchaseRequests({
   page,
+  pageSize,
   search,
   priority,
   departments,
+  status,
   signal,
 }: ListPurchaseRequestsParams = {}) {
   return bffRequest<Paginated<PurchaseRequest>>(purchaseRequestEndpoints.list, {
-    query: { page, search, priority, departments },
+    query: { page, pageSize, search, priority, departments, status },
     signal,
   });
 }

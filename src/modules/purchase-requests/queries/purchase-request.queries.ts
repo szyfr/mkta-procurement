@@ -19,6 +19,8 @@ export interface PurchaseRequestListFilters {
   search?: string;
   priority?: string;
   departments?: string;
+  status?: string[];
+  pageSize?: number;
 }
 
 export const purchaseRequestKeys = {
@@ -45,12 +47,20 @@ export function purchaseRequestListQuery(
   page: number,
   filters: PurchaseRequestListFilters = {},
 ) {
-  const { search, priority, departments } = filters;
+  const { search, priority, departments, status, pageSize } = filters;
 
   return queryOptions({
     queryKey: purchaseRequestKeys.list(page, filters),
     queryFn: ({ signal }) =>
-      fetchPurchaseRequests({ page, search, priority, departments, signal }),
+      fetchPurchaseRequests({
+        page,
+        pageSize,
+        search,
+        priority,
+        departments,
+        status,
+        signal,
+      }),
   });
 }
 

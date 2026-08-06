@@ -17,6 +17,7 @@ import { parseCreatePayload } from "@/modules/purchase-requests/validation/purch
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
+    const status = searchParams.getAll("status");
 
     const result = await listPurchaseRequests({
       page: readPageParam(searchParams.get("page"), 1),
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
       search: searchParams.get("search") || undefined,
       priority: searchParams.get("priority") || undefined,
       departments: searchParams.get("departments") || undefined,
+      status: status.length > 0 ? status : undefined,
     });
 
     return Response.json({ data: result });

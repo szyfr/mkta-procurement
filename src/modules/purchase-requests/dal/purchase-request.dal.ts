@@ -32,6 +32,8 @@ export interface ListPurchaseRequestsQuery {
   priority?: string;
   /** A department id. */
   departments?: string;
+  /** Matches the backend's `pr_status` param. */
+  status?: string[];
 }
 
 export function listPurchaseRequests(
@@ -44,6 +46,7 @@ export function listPurchaseRequests(
       search: query.search,
       priority: query.priority,
       departments: query.departments,
+      pr_status: query.status,
     },
   });
 }
