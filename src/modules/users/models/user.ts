@@ -25,3 +25,8 @@ export interface UserRole {
 export interface UserDetail extends User {
   roles: UserRole[];
 }
+
+/** The `PATCH /users/{id}/roles` response — a confirmation message only, not the updated user. */
+export interface UpdateUserRolesResult {
+  message: string;
+}

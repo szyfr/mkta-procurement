@@ -3,7 +3,10 @@ import type { NextRequest } from "next/server";
 import { toErrorResponse } from "@/lib/api/errors";
 import { getUser } from "@/modules/users/dal/user.dal";
 
-/** BFF for a single user. No `PUT`/`DELETE` — the backend has no write endpoints yet. */
+/**
+ * BFF for a single user. No `PUT`/`DELETE` here — the only write the backend
+ * exposes for users is role assignment, at `PATCH /api/users/[id]/roles`.
+ */
 
 export async function GET(
   _request: NextRequest,

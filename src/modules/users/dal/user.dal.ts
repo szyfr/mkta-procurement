@@ -3,7 +3,12 @@ import { serverFetch } from "@/lib/api/fetcher";
 import { assertObjectId } from "@/lib/api/object-id";
 import { clampPageSize, type Paginated } from "@/lib/api/pagination";
 import { DEFAULT_PAGE_SIZE } from "@/modules/users/constants";
-import type { User, UserDetail } from "@/modules/users/models/user";
+import type { UpdateUserRolesDto } from "@/modules/users/dto/update-user-roles.dto";
+import type {
+  UpdateUserRolesResult,
+  User,
+  UserDetail,
+} from "@/modules/users/models/user";
 
 const NOT_FOUND = "User not found";
 
@@ -55,4 +60,16 @@ export async function getUser(id: string): Promise<UserDetail> {
   if (!user) throw new ApiError(404, "not_found", NOT_FOUND);
 
   return dropPassword(user);
+}
+
+export function updateUserRoles(
+  id: string,
+  input: UpdateUserRolesDto,
+): Promise<UpdateUserRolesResult> {
+  assertObjectId(id, NOT_FOUND);
+
+  return serverFetch<UpdateUserRolesResult>(`/users/${id}/roles`, {
+    method: "PATCH",
+    body: input,
+  });
 }
