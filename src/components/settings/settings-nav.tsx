@@ -29,9 +29,6 @@ export function SettingsNav() {
                 )}
               >
                 {entry.title}
-                {entry.adminOnly ? (
-                  <span className="text-muted-foreground"> (Admin)</span>
-                ) : null}
               </Link>
             </li>
           );

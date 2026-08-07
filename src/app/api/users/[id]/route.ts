@@ -1,0 +1,19 @@
+import type { NextRequest } from "next/server";
+
+import { toErrorResponse } from "@/lib/api/errors";
+import { getUser } from "@/modules/users/dal/user.dal";
+
+/** BFF for a single user. No `PUT`/`DELETE` — the backend has no write endpoints yet. */
+
+export async function GET(
+  _request: NextRequest,
+  context: RouteContext<"/api/users/[id]">,
+) {
+  try {
+    const { id } = await context.params;
+
+    return Response.json({ data: await getUser(id) });
+  } catch (error) {
+    return toErrorResponse(error);
+  }
+}

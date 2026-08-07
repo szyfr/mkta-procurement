@@ -1,11 +1,11 @@
 /**
  * Types for the screens that are still mock-driven — dashboard, reports,
- * roles, users, notifications and global search — plus the one presentation
- * vocabulary every screen shares.
+ * notifications and global search — plus the one presentation vocabulary
+ * every screen shares.
  *
- * Purchase requests, canvassing and the rest of the backend-wired features do
- * not appear here: their shapes are the FastAPI responses themselves and live
- * in each module's `models/`.
+ * Purchase requests, canvassing, roles, users and the rest of the
+ * backend-wired features do not appear here: their shapes are the FastAPI
+ * responses themselves and live in each module's `models/`.
  */
 
 /** Visual tone shared by every status pill in the app. */
@@ -63,21 +63,4 @@ export interface SearchResult {
   badge?: string;
   badgeTone?: StatusTone;
   href: string;
-}
-
-export type UserStatus = "active" | "invited";
-
-export interface User {
-  id: string;
-  name: string;
-  role: string;
-  department: string;
-  status: UserStatus;
-  /** True for the signed-in user, who cannot edit their own row here. */
-  isCurrentUser?: boolean;
-}
-
-export interface RolePermission {
-  role: string;
-  description: string;
 }

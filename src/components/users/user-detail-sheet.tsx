@@ -1,0 +1,137 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+
+import { ErrorAlert } from "@/components/shared/query-states";
+import { StatusBadge } from "@/components/shared/status-badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/lib/date";
+import type { User } from "@/modules/users";
+import { userDetailQuery } from "@/modules/users";
+
+/** Label above value, the shape the identity and audit grids both use. */
+function Field({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-medium">{value}</p>
+    </div>
+  );
+}
+
+/** Section heading, matching the roles detail sheet's. */
+function SectionLabel(props: React.ComponentProps<"p">) {
+  return (
+    <p
+      className="text-xs font-semibold tracking-[0.06em] text-muted-foreground uppercase"
+      {...props}
+    />
+  );
+}
+
+/**
+ * Read-only summary of one user, opened by clicking its row.
+ *
+ * The list row only carries the bare identity fields, so the sheet fetches
+ * `GET /users/{id}` itself to get the joined role documents it needs to
+ * render as badges. Department, status, last login and phone number have no
+ * backend source at all and render as a literal em-dash.
+ */
+export function UserDetailSheet({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: User | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { data, isPending, isError, error } = useQuery({
+    ...userDetailQuery(user?._id ?? ""),
+    enabled: open && Boolean(user),
+  });
+
+  if (!user) return null;
+
+  const name = `${user.firstname} ${user.lastname}`;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      {/* The side-scoped widths have to be overridden on the same selector, or
+          the base `data-[side=right]:w-3/4` outranks a plain `w-` utility. */}
+      <SheetContent className="flex flex-col gap-0 p-0 data-[side=right]:w-[470px] data-[side=right]:sm:max-w-[470px]">
+        <SheetHeader className="gap-1 border-b p-4 pr-24">
+          <SheetDescription className="font-mono text-xs">
+            {user.email}
+          </SheetDescription>
+          <SheetTitle>{name}</SheetTitle>
+        </SheetHeader>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+          {isError ? (
+            <ErrorAlert title="Couldn't load user details" error={error} />
+          ) : null}
+
+          <section className="flex flex-col gap-3">
+            <SectionLabel>Identity</SectionLabel>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="First name" value={user.firstname} />
+              <Field label="Last name" value={user.lastname} />
+              <Field label="Email" value={user.email} />
+              <Field label="Department" value="—" />
+              <Field label="Status" value="—" />
+              <Field label="Phone number" value="—" />
+            </div>
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <SectionLabel>Assigned roles</SectionLabel>
+            {isPending ? (
+              <div className="flex flex-wrap gap-1.5">
+                {Array.from({ length: 2 }, (_, chip) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length placeholder chips
+                  <Skeleton key={chip} className="h-5 w-20 rounded-sm" />
+                ))}
+              </div>
+            ) : data && data.roles.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {data.roles.map((role) => (
+                  <StatusBadge key={role._id} tone="info">
+                    {role.title}
+                  </StatusBadge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                This user has no roles assigned.
+              </p>
+            )}
+          </section>
+
+          <section className="flex flex-col gap-2">
+            <SectionLabel>Audit information</SectionLabel>
+            <div className="grid grid-cols-2 gap-3">
+              <Field
+                label="Created"
+                value={formatDate(user.created_at) ?? "—"}
+              />
+              <Field label="Last login" value="—" />
+              <Field
+                label="Last updated"
+                value={formatDate(user.updated_at) ?? "—"}
+              />
+              <Field label="Updated by" value="—" />
+            </div>
+          </section>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
