@@ -28,9 +28,14 @@ export function parseCreatePurchaseRequestProofForm(form: FormData): {
 } {
   const deliveryDate = readText(form, "delivery_date");
   if (!deliveryDate) throw invalid("Delivery date is required.");
+  const parsedDelivery = new Date(deliveryDate);
+  // A date-only string parses as UTC, and out-of-range components roll forward
+  // instead of failing — `2025-02-30` becomes March 2 — so the round trip is
+  // what rejects a calendar-invalid date, not `Date.parse` alone.
   if (
     !DATE_PATTERN.test(deliveryDate) ||
-    Number.isNaN(Date.parse(deliveryDate))
+    Number.isNaN(parsedDelivery.getTime()) ||
+    parsedDelivery.toISOString().slice(0, 10) !== deliveryDate
   ) {
     throw invalid("Delivery date must be a valid date.");
   }
