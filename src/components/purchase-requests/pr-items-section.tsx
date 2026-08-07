@@ -39,8 +39,8 @@ export function PurchaseRequestItemsSection({
   const [saveError, setSaveError] = React.useState<string | null>(null);
 
   const { mutateAsync: saveGroups, isPending: saving } = useMutation({
-    mutationFn: (groups: ProofOfOrderSaveGroup[]) =>
-      Promise.all(
+    mutationFn: async (groups: ProofOfOrderSaveGroup[]) => {
+      const results = await Promise.allSettled(
         groups.map((group) =>
           createPurchaseRequestProof(
             {
@@ -51,7 +51,20 @@ export function PurchaseRequestItemsSection({
             group.files,
           ),
         ),
-      ),
+      );
+
+      // One rejected group must not hide the others that already persisted —
+      // report savedItemIds so the caller can drop them from the selection
+      // and retry only what actually failed.
+      const savedItemIds = groups.flatMap((group, index) =>
+        results[index]?.status === "fulfilled" ? group.itemIds : [],
+      );
+      const failedCount = results.filter(
+        (result) => result.status === "rejected",
+      ).length;
+
+      return { savedItemIds, failedCount };
+    },
   });
 
   const selectableIds = request.items
@@ -80,8 +93,9 @@ export function PurchaseRequestItemsSection({
   async function handleSave(groups: ProofOfOrderSaveGroup[]) {
     setSaveError(null);
 
+    let result: Awaited<ReturnType<typeof saveGroups>>;
     try {
-      await saveGroups(groups);
+      result = await saveGroups(groups);
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "Something went wrong.",
@@ -89,16 +103,34 @@ export function PurchaseRequestItemsSection({
       return;
     }
 
-    const count = new Set(groups.flatMap((group) => group.itemIds)).size;
+    const { savedItemIds, failedCount } = result;
 
-    setSelectedIds(new Set());
+    if (savedItemIds.length > 0) {
+      // Only the items that actually persisted come out of the selection, so
+      // a retry re-submits the failed vendor groups and nothing else.
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        for (const id of savedItemIds) next.delete(id);
+        return next;
+      });
+      queryClient.invalidateQueries({
+        queryKey: purchaseRequestKeys.detail(request._id),
+      });
+    }
+
+    if (failedCount > 0) {
+      setSaveError(
+        `${failedCount} of ${groups.length} vendor group${groups.length === 1 ? "" : "s"} failed to save.` +
+          (savedItemIds.length > 0
+            ? ` ${savedItemIds.length} item${savedItemIds.length === 1 ? "" : "s"} saved successfully and ${savedItemIds.length === 1 ? "was" : "were"} removed from the selection — retry the rest.`
+            : ""),
+      );
+      return;
+    }
+
     setDialogOpen(false);
-    queryClient.invalidateQueries({
-      queryKey: purchaseRequestKeys.detail(request._id),
-    });
-
     toast.add({
-      title: `Proof saved for ${count} item${count === 1 ? "" : "s"}`,
+      title: `Proof saved for ${savedItemIds.length} item${savedItemIds.length === 1 ? "" : "s"}`,
       type: "success",
     });
   }
