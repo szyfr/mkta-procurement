@@ -77,6 +77,15 @@ export function PurchaseRequestItemsSection({
     (item) => item.status === "completed",
   ).length;
 
+  // `open` below is derived from `selectedItems.length`, so the selection
+  // clearing (via the bulk bar's "Clear" or a saved/refetched item dropping
+  // out) can close the dialog without `onOpenChange` firing. Left unsynced,
+  // `dialogOpen` would stay true and the next selection would reopen it
+  // unprompted.
+  React.useEffect(() => {
+    if (selectedItems.length === 0) setDialogOpen(false);
+  }, [selectedItems.length]);
+
   function toggleItem(id: string, checked: boolean) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
