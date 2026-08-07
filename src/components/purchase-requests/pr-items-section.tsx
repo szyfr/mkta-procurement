@@ -1,0 +1,149 @@
+"use client";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
+
+import { PurchaseRequestItemsTable } from "@/components/purchase-requests/pr-items-table";
+import { ProofOfOrderBulkBar } from "@/components/purchase-requests/proof-of-order-bulk-bar";
+import {
+  ProofOfOrderDialog,
+  type ProofOfOrderSaveGroup,
+} from "@/components/purchase-requests/proof-of-order-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "@/components/ui/toast";
+import {
+  createPurchaseRequestProof,
+  type PurchaseRequestDetail,
+  purchaseRequestKeys,
+} from "@/modules/purchase-requests";
+
+/**
+ * Items table plus the bulk proof-of-order workflow: select rows, open one
+ * dialog, save. Each vendor group in the dialog becomes its own
+ * `POST /purchase-request-proofs` call — the backend takes one delivery date
+ * and one vendor reference per proof, so a mixed-vendor selection saves as
+ * several requests, not one.
+ *
+ * There's no local overlay of the result: the response carries no filename to
+ * show (see `pr-items-table.tsx`), so a successful save just invalidates the
+ * detail query and the table picks up the real, persisted `proofs` join.
+ */
+export function PurchaseRequestItemsSection({
+  request,
+}: {
+  request: PurchaseRequestDetail;
+}) {
+  const queryClient = useQueryClient();
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [saveError, setSaveError] = React.useState<string | null>(null);
+
+  const { mutateAsync: saveGroups, isPending: saving } = useMutation({
+    mutationFn: (groups: ProofOfOrderSaveGroup[]) =>
+      Promise.all(
+        groups.map((group) =>
+          createPurchaseRequestProof(
+            {
+              delivery_date: group.deliveryDate,
+              vendor_reference_no: group.vendorReference,
+              purchase_request_item_ids: group.itemIds,
+            },
+            group.files,
+          ),
+        ),
+      ),
+  });
+
+  const selectableIds = request.items
+    .filter((item) => item.status === "po-created")
+    .map((item) => item._id);
+  const selectedItems = request.items.filter((item) =>
+    selectedIds.has(item._id),
+  );
+  const deliveredCount = request.items.filter(
+    (item) => item.status === "completed",
+  ).length;
+
+  function toggleItem(id: string, checked: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function toggleAll(checked: boolean) {
+    setSelectedIds(checked ? new Set(selectableIds) : new Set());
+  }
+
+  async function handleSave(groups: ProofOfOrderSaveGroup[]) {
+    setSaveError(null);
+
+    try {
+      await saveGroups(groups);
+    } catch (error) {
+      setSaveError(
+        error instanceof Error ? error.message : "Something went wrong.",
+      );
+      return;
+    }
+
+    const count = new Set(groups.flatMap((group) => group.itemIds)).size;
+
+    setSelectedIds(new Set());
+    setDialogOpen(false);
+    queryClient.invalidateQueries({
+      queryKey: purchaseRequestKeys.detail(request._id),
+    });
+
+    toast.add({
+      title: `Proof saved for ${count} item${count === 1 ? "" : "s"}`,
+      type: "success",
+    });
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
+        <CardTitle>Items</CardTitle>
+        <span className="text-xs text-muted-foreground">
+          {deliveredCount} of {request.items.length} completed
+        </span>
+      </CardHeader>
+      <CardContent className="px-0">
+        {request.items.length === 0 ? (
+          <p className="px-4 py-6 text-center text-xs text-muted-foreground">
+            No items on this request.
+          </p>
+        ) : (
+          <>
+            <ProofOfOrderBulkBar
+              selectedItems={selectedItems}
+              onClear={() => setSelectedIds(new Set())}
+              onOpen={() => setDialogOpen(true)}
+            />
+            <PurchaseRequestItemsTable
+              request={request}
+              selectedIds={selectedIds}
+              onToggleItem={toggleItem}
+              onToggleAll={toggleAll}
+            />
+          </>
+        )}
+      </CardContent>
+
+      <ProofOfOrderDialog
+        open={dialogOpen && selectedItems.length > 0}
+        onOpenChange={(next) => {
+          setDialogOpen(next);
+          if (!next) setSaveError(null);
+        }}
+        items={selectedItems}
+        saving={saving}
+        saveError={saveError}
+        onSave={handleSave}
+      />
+    </Card>
+  );
+}

@@ -2,9 +2,11 @@ import { bffRequest } from "@/lib/api/bff-client";
 import type { Paginated } from "@/lib/api/pagination";
 import type { Department } from "@/modules/departments";
 import { purchaseRequestEndpoints } from "@/modules/purchase-requests/api/endpoints";
-import type {
-  CreatePurchaseRequestInput,
-  UpdatePurchaseRequestDto,
+import {
+  buildPurchaseRequestProofForm,
+  type CreatePurchaseRequestInput,
+  type CreatePurchaseRequestProofDto,
+  type UpdatePurchaseRequestDto,
 } from "@/modules/purchase-requests/dto";
 import type { Material } from "@/modules/purchase-requests/models/material";
 import type {
@@ -12,6 +14,7 @@ import type {
   PurchaseRequestDetail,
   SettablePurchaseRequestStatus,
 } from "@/modules/purchase-requests/models/purchase-request";
+import type { PurchaseRequestProof } from "@/modules/purchase-requests/models/purchase-request-proof";
 import type { Vendor } from "@/modules/vendors";
 
 /**
@@ -84,6 +87,22 @@ export function setPurchaseRequestStatus(
 ) {
   return bffRequest<void>(purchaseRequestEndpoints.status(id, status), {
     method: "PATCH",
+  });
+}
+
+/**
+ * One proof record covers every item id passed in — a single vendor
+ * confirmation for a whole vendor group, not one call per item.
+ */
+export function createPurchaseRequestProof(
+  payload: CreatePurchaseRequestProofDto,
+  attachments: File[] = [],
+) {
+  const form = buildPurchaseRequestProofForm(payload, attachments);
+
+  return bffRequest<PurchaseRequestProof>(purchaseRequestEndpoints.proofs, {
+    method: "POST",
+    body: form,
   });
 }
 

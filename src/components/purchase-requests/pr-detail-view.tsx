@@ -6,9 +6,8 @@ import * as React from "react";
 import { CancelPurchaseRequestDialog } from "@/components/purchase-requests/cancel-pr-dialog";
 import { PurchaseRequestActionPanel } from "@/components/purchase-requests/pr-action-panel";
 import { PurchaseRequestDetailsPanel } from "@/components/purchase-requests/pr-details-panel";
-import { PurchaseRequestItemsTable } from "@/components/purchase-requests/pr-items-table";
+import { PurchaseRequestItemsSection } from "@/components/purchase-requests/pr-items-section";
 import { PurchaseRequestStepper } from "@/components/purchase-requests/pr-stepper";
-import { ProofOfOrderForm } from "@/components/purchase-requests/proof-of-order-form";
 import { PageHeader } from "@/components/shared/page-header";
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { ErrorAlert } from "@/components/shared/query-states";
@@ -149,12 +148,6 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
   const isCanceled = request.status === "canceled";
   // Cancelling is only meaningful while there is still work to stop.
   const isClosed = isRejected || isCanceled || request.status === "completed";
-  const deliveredCount = request.items.filter(
-    (item) => item.status === "completed",
-  ).length;
-  const awaitingProof = request.items.find(
-    (item) => item.status === "po-created",
-  );
   const canvassingItem = request.items.find(
     (item) => item.status === "canvassing",
   );
@@ -270,31 +263,7 @@ export function PurchaseRequestDetailView({ id }: { id: string }) {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-2 border-b">
-              <CardTitle>Items</CardTitle>
-              <span className="text-xs text-muted-foreground">
-                {deliveredCount} of {request.items.length} completed
-              </span>
-            </CardHeader>
-            <CardContent className="px-0">
-              {request.items.length === 0 ? (
-                <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-                  No items on this request.
-                </p>
-              ) : (
-                <PurchaseRequestItemsTable request={request} />
-              )}
-            </CardContent>
-          </Card>
-
-          {awaitingProof ? (
-            <ProofOfOrderForm
-              itemName={
-                awaitingProof.material?.description || awaitingProof.material_id
-              }
-            />
-          ) : null}
+          <PurchaseRequestItemsSection request={request} />
 
           <Card>
             <CardHeader className="border-b">
