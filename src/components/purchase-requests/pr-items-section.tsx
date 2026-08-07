@@ -3,7 +3,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
-import { PurchaseRequestItemsTable } from "@/components/purchase-requests/pr-items-table";
+import {
+  isProofSelectable,
+  PurchaseRequestItemsTable,
+} from "@/components/purchase-requests/pr-items-table";
 import { ProofOfOrderBulkBar } from "@/components/purchase-requests/proof-of-order-bulk-bar";
 import {
   ProofOfOrderDialog,
@@ -59,19 +62,29 @@ export function PurchaseRequestItemsSection({
       const savedItemIds = groups.flatMap((group, index) =>
         results[index]?.status === "fulfilled" ? group.itemIds : [],
       );
-      const failedCount = results.filter(
-        (result) => result.status === "rejected",
-      ).length;
+      const rejected = results.filter((result) => result.status === "rejected");
+      // `allSettled` swallows the reasons, so the first one is carried out to
+      // the message — otherwise a backend validation error reads as a bare
+      // "1 of 2 vendor groups failed".
+      const firstReason = rejected[0]?.reason;
 
-      return { savedItemIds, failedCount };
+      return {
+        savedItemIds,
+        failedCount: rejected.length,
+        firstError:
+          firstReason instanceof Error ? firstReason.message : undefined,
+      };
     },
   });
 
   const selectableIds = request.items
-    .filter((item) => item.status === "po-created")
+    .filter(isProofSelectable)
     .map((item) => item._id);
-  const selectedItems = request.items.filter((item) =>
-    selectedIds.has(item._id),
+  // Eligibility is re-checked here, not just held in `selectedIds`: a refetch
+  // can move an item past `po-created` (someone else recorded its proof) while
+  // its id is still in the set, and a stale id would otherwise be submitted.
+  const selectedItems = request.items.filter(
+    (item) => selectedIds.has(item._id) && isProofSelectable(item),
   );
   const deliveredCount = request.items.filter(
     (item) => item.status === "completed",
@@ -112,7 +125,7 @@ export function PurchaseRequestItemsSection({
       return;
     }
 
-    const { savedItemIds, failedCount } = result;
+    const { savedItemIds, failedCount, firstError } = result;
 
     if (savedItemIds.length > 0) {
       // Only the items that actually persisted come out of the selection, so
@@ -130,6 +143,7 @@ export function PurchaseRequestItemsSection({
     if (failedCount > 0) {
       setSaveError(
         `${failedCount} of ${groups.length} vendor group${groups.length === 1 ? "" : "s"} failed to save.` +
+          (firstError ? ` ${firstError}` : "") +
           (savedItemIds.length > 0
             ? ` ${savedItemIds.length} item${savedItemIds.length === 1 ? "" : "s"} saved successfully and ${savedItemIds.length === 1 ? "was" : "were"} removed from the selection — retry the rest.`
             : ""),

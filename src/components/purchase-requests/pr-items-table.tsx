@@ -23,8 +23,13 @@ import {
   purchaseRequestItemTone,
 } from "@/modules/purchase-requests";
 
-/** The only status a proof of order can still be added for. */
-function isSelectable(item: PurchaseRequestItem) {
+/**
+ * The only status a proof of order can still be added for. Exported because
+ * the section above owns the selection and must apply the same rule — a
+ * refetch that moves an item past `po-created` has to drop it from both the
+ * checkbox column and the selection.
+ */
+export function isProofSelectable(item: PurchaseRequestItem) {
   return item.status === "po-created";
 }
 
@@ -55,7 +60,7 @@ export function PurchaseRequestItemsTable({
   onToggleItem: (id: string, checked: boolean) => void;
   onToggleAll: (checked: boolean) => void;
 }) {
-  const selectableItems = request.items.filter(isSelectable);
+  const selectableItems = request.items.filter(isProofSelectable);
   const allSelected =
     selectableItems.length > 0 &&
     selectableItems.every((item) => selectedIds.has(item._id));
@@ -89,7 +94,7 @@ export function PurchaseRequestItemsTable({
       </TableHeader>
       <TableBody>
         {request.items.map((item) => {
-          const selectable = isSelectable(item);
+          const selectable = isProofSelectable(item);
           const proof = resolveProof(item, request);
 
           return (

@@ -61,6 +61,11 @@ function vendorLabel(key: string) {
 
 const ACCEPTED_PROOF_EXTENSIONS = ACCEPTED_PROOF_FILES.split(",");
 
+/** Identity of a picked file: also the list key, so both agree on duplicates. */
+function fileKey(file: File) {
+  return `${file.name}-${file.lastModified}`;
+}
+
 function hasAcceptedExtension(file: File) {
   const name = file.name.toLowerCase();
   return ACCEPTED_PROOF_EXTENSIONS.some((extension) =>
@@ -81,12 +86,35 @@ function ProofDropzone({
   compact?: boolean;
 }) {
   const [isDraggingOver, setIsDraggingOver] = React.useState(false);
+  const [rejection, setRejection] = React.useState<string | null>(null);
 
   function addFiles(picked: FileList | null) {
     if (!picked?.length) return;
+
     // Drag-and-drop bypasses the input's `accept` filter, so it's enforced
-    // here too rather than only on the browse path.
-    const accepted = Array.from(picked).filter(hasAcceptedExtension);
+    // here too rather than only on the browse path — and silently dropping a
+    // file reads as the upload having worked.
+    const rejected: string[] = [];
+    const accepted: File[] = [];
+    // Same identity as the list key below, so a re-pick can't produce two rows
+    // React can't tell apart.
+    const seen = new Set(files.map((file) => fileKey(file)));
+
+    for (const file of Array.from(picked)) {
+      if (!hasAcceptedExtension(file)) {
+        rejected.push(file.name);
+        continue;
+      }
+      if (seen.has(fileKey(file))) continue;
+      seen.add(fileKey(file));
+      accepted.push(file);
+    }
+
+    setRejection(
+      rejected.length
+        ? `Not a supported file type: ${rejected.join(", ")}`
+        : null,
+    );
     if (accepted.length) onChange([...files, ...accepted]);
   }
 
@@ -124,11 +152,17 @@ function ProofDropzone({
         />
       </label>
 
+      {rejection ? (
+        <p role="alert" className="text-xs text-destructive">
+          {rejection}
+        </p>
+      ) : null}
+
       {files.length > 0 ? (
         <ul className="flex flex-col gap-1">
           {files.map((file, index) => (
             <li
-              key={`${file.name}-${file.lastModified}`}
+              key={fileKey(file)}
               className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs"
             >
               <PaperclipIcon
@@ -367,6 +401,13 @@ export function ProofOfOrderDialog({
     new Set(),
   );
 
+  // `groups` is rebuilt whenever the parent re-renders (its `items` prop is a
+  // fresh filter of the request), so the reset keys off the group identities
+  // instead — depending on the array itself would wipe the open override
+  // panels on every unrelated parent render.
+  const groupKeys = groups.map(([key]) => key).join(" ");
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `groupKeys` is the stable stand-in for `groups`.
   React.useEffect(() => {
     if (!open) return;
     setGroupState((prev) => {
@@ -377,7 +418,7 @@ export function ProofOfOrderDialog({
       return next;
     });
     setOverrideOpenFor(new Set());
-  }, [open, groups]);
+  }, [open, groupKeys]);
 
   function updateGroup(key: string, patch: Partial<GroupState>) {
     setGroupState((prev) => ({
@@ -482,14 +523,21 @@ export function ProofOfOrderDialog({
                 state={groupState[key] ?? emptyGroupState()}
                 onChange={(patch) => updateGroup(key, patch)}
                 overrideOpen={overrideOpenFor.has(key)}
-                onToggleOverride={() =>
+                onToggleOverride={() => {
+                  // Collapsing the panel discards the per-item dates with it —
+                  // left in state they'd still split the group into extra
+                  // proofs on save, with no visible sign of why.
+                  if (overrideOpenFor.has(key))
+                    updateGroup(key, {
+                      itemOverrides: {},
+                    });
                   setOverrideOpenFor((prev) => {
                     const next = new Set(prev);
                     if (next.has(key)) next.delete(key);
                     else next.add(key);
                     return next;
-                  })
-                }
+                  });
+                }}
               />
             ))
           )}
