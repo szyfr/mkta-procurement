@@ -6,6 +6,7 @@ import {
   LayoutDashboardIcon,
   ShieldIcon,
   TruckIcon,
+  UserCogIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -39,14 +40,12 @@ export const mainNav = [
         icon: HandCoinsIcon,
       },
       { title: "Roles & Permissions", url: "/roles", icon: ShieldIcon },
+      { title: "Users", url: "/users", icon: UserCogIcon },
     ],
   },
 ];
 
-export const settingsNav = [
-  { title: "My Account", url: "/settings/account" },
-  { title: "Users & Roles", url: "/settings/users", adminOnly: true },
-];
+export const settingsNav = [{ title: "My Account", url: "/settings/account" }];
 
 /**
  * Breadcrumb labels for static segments. Segments without an entry — dynamic
@@ -66,7 +65,7 @@ export const breadcrumbLabels: Record<string, string> = {
   roles: "Roles & Permissions",
   settings: "Settings",
   account: "My Account",
-  users: "Users & Roles",
+  users: "Users",
 };
 
 /** Segments that exist only to nest routes and should not appear as a crumb. */

@@ -3,16 +3,16 @@ import { fetchRole, fetchRoles } from "@/modules/roles/api/client";
 
 export const roleKeys = {
   all: ["roles"] as const,
-  list: (page: number, search: string) =>
-    [...roleKeys.all, "list", page, search] as const,
+  list: (page: number, search: string, pageSize?: number) =>
+    [...roleKeys.all, "list", page, search, pageSize ?? null] as const,
   detail: (id: string) => [...roleKeys.all, "detail", id] as const,
 };
 
-export function roleListQuery(page: number, search = "") {
+export function roleListQuery(page: number, search = "", pageSize?: number) {
   return queryOptions({
-    queryKey: roleKeys.list(page, search),
+    queryKey: roleKeys.list(page, search, pageSize),
     queryFn: ({ signal }) =>
-      fetchRoles({ page, search: search || undefined, signal }),
+      fetchRoles({ page, pageSize, search: search || undefined, signal }),
   });
 }
 
