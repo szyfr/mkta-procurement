@@ -9,6 +9,7 @@
 
 export {
   createPurchaseRequest,
+  createPurchaseRequestProof,
   fetchDepartmentOptions,
   fetchMaterialOptions,
   fetchVendorOptions,
@@ -25,6 +26,7 @@ export {
 } from "@/modules/purchase-requests/constants";
 export type {
   CreatePurchaseRequestInput,
+  CreatePurchaseRequestProofDto,
   UpdatePurchaseRequestDto,
 } from "@/modules/purchase-requests/dto";
 export type { Material } from "@/modules/purchase-requests/models/material";
@@ -36,6 +38,7 @@ export type {
   PurchaseRequestStatus,
   SettablePurchaseRequestStatus,
 } from "@/modules/purchase-requests/models/purchase-request";
+export type { PurchaseRequestProof } from "@/modules/purchase-requests/models/purchase-request-proof";
 export type { PurchaseRequestListFilters } from "@/modules/purchase-requests/queries/purchase-request.queries";
 export {
   departmentOptionsQuery,

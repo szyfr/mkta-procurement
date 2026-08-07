@@ -1,6 +1,7 @@
 import type { Priority } from "@/lib/types";
 import type { Department } from "@/modules/departments";
 import type { Material } from "@/modules/purchase-requests/models/material";
+import type { PurchaseRequestProof } from "@/modules/purchase-requests/models/purchase-request-proof";
 
 /**
  * The `/purchase-requests` responses, verbatim — snake_case, `_id` keys, and
@@ -10,8 +11,10 @@ import type { Material } from "@/modules/purchase-requests/models/material";
  *
  * Notably absent, because there is no source for them: a stored amount, a
  * status label richer than the enum, submitted/completed/rejected dates,
- * rejection reasons, documents, comments and activity history. The panels that
- * would show those stay hidden.
+ * rejection reasons, comments and activity history. The panels that would show
+ * those stay hidden. Proof-of-order documents (`proofs` below) are joined onto
+ * the detail response, but their filenames aren't — see
+ * `models/purchase-request-proof.ts`.
  */
 
 /** Shared with `PriorityBadge`, which is why the type itself lives in `lib/types`. */
@@ -96,6 +99,11 @@ export interface PurchaseRequestDetail extends PurchaseRequest {
    * requester at all, so the detail page has no name to show for one.
    */
   department?: Department | null;
+  /**
+   * Every proof touching one of this request's items, joined by
+   * `purchase_request_item_ids` rather than nested under each item.
+   */
+  proofs: PurchaseRequestProof[];
 }
 
 /**
